@@ -273,25 +273,25 @@ function renderEquationWithDots(task) {
         <div class="equation">${escapeHtml(data.expression)} = ?</div>
         <div class="hint-card count-hint interactive-hint addition-count-hint">
           <div class="hint-label">Podpowiedź</div>
-          <div class="hint-instruction">Dotykaj kropek i policz wszystkie.</div>
+          <div class="hint-instruction">Masz już ${left}. Dodaj jeszcze ${right}.</div>
 
           <div class="addition-interactive-groups" id="additionDots">
             <div class="dot-group">
               <div class="dot-group-label">${left}</div>
-              <div class="interactive-dots">${countingDots(left, "left")}</div>
+              <div class="interactive-dots fixed-addend">${filledCountingDots(left)}</div>
             </div>
 
             <div class="dot-operator">+</div>
 
             <div class="dot-group">
               <div class="dot-group-label">${right}</div>
-              <div class="interactive-dots">${countingDots(right, "right")}</div>
+              <div class="interactive-dots" id="rightAddendDots">${countingDots(right, "right")}</div>
             </div>
           </div>
 
           <div class="live-count-box">
-            <span>Policzono:</span>
-            <strong id="additionCount">0</strong>
+            <span>Razem:</span>
+            <strong id="additionCount">${left}</strong>
           </div>
         </div>
       </div>
@@ -342,13 +342,20 @@ function countingDots(count, group) {
     `<button class="interactive-dot counting-dot empty" type="button" data-group="${group}" aria-label="Kropka ${index + 1}"></button>`
   ).join("");
 }
+function filledCountingDots(count) {
+  return Array.from({ length: Number(count) || 0 }, (_, index) =>
+    `<span class="interactive-dot counting-dot filled fixed-dot" aria-hidden="true"></span>`
+  ).join("");
+}
+
 
 function setupAdditionCounting(total) {
-  const wrap = document.getElementById("additionDots");
+  const wrap = document.getElementById("rightAddendDots");
   const counter = document.getElementById("additionCount");
   if (!wrap || !counter) return;
 
-  let counted = 0;
+  const left = total - wrap.querySelectorAll(".counting-dot").length;
+  let added = 0;
 
   wrap.querySelectorAll(".counting-dot").forEach(dot => {
     dot.addEventListener("click", () => {
@@ -357,15 +364,16 @@ function setupAdditionCounting(total) {
       if (selected) {
         dot.classList.remove("filled");
         dot.classList.add("empty");
-        counted -= 1;
+        added -= 1;
       } else {
         dot.classList.add("filled");
         dot.classList.remove("empty");
-        counted += 1;
+        added += 1;
       }
 
-      counter.textContent = String(counted);
-      counter.parentElement?.classList.toggle("complete", counted === total);
+      const currentTotal = left + added;
+      counter.textContent = String(currentTotal);
+      counter.parentElement?.classList.toggle("complete", currentTotal === total);
     });
   });
 }
