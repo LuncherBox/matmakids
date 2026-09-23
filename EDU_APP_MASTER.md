@@ -40,23 +40,32 @@ For the current prototype:
 7. Finish screen
 
 ## 4. Current task areas
-Initial educational domains:
+Main task categories:
 - math
 - logic
+- coding
 - memory
 
-Current / planned task categories:
-- addition
-- subtraction
-- missing number
-- logical sequence
-- odd one out
-- sudoku 4x4
-- coding
-- pattern copying
+Current / planned subcategories:
+- math:
+  - addition
+  - subtraction
+  - missing_number
+- logic:
+  - logical_sequence
+  - odd_one_out
+  - sudoku_4x4
+  - pattern_copying
+- coding:
+  - symbol_decoding
+- memory:
+  - image_memory (temporarily excluded from the current prototype)
+
+Task hierarchy:
+category -> subcategory -> skill -> difficulty -> task
 
 Temporarily excluded from the current prototype:
-- image memory
+- image_memory
 
 Reason:
 - the first child test showed that the interaction was not sufficiently clear and the display time felt too short
@@ -167,6 +176,14 @@ These are future directions and should not inflate the current prototype unless 
 All technical keys, table names, enums and JSON key-value structures should be in English.
 
 Child-facing content can be in Polish.
+
+Task objects should use:
+- category - one of the 4 main categories: math, logic, coding, memory
+- subcategory - the concrete task type within the category
+- skill - the specific ability being trained
+- difficulty - difficulty within that skill, not the child's global level
+
+Do not use min_age / max_age as task-selection constraints. Child level is tracked separately and should drive adaptive task selection.
 
 ## 10. Conversation split
 
