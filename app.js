@@ -15,6 +15,8 @@ let state = {
   name: localStorage.getItem("kid_name") || "",
   index: 0,
   codeLetters: [],
+  gridSelection: [],
+  searchSelection: [],
   memoryTimer: null
 };
 
@@ -47,31 +49,39 @@ function buildSession() {
   const allowed = taskBank.filter(task => {
     if (task.status === "archived") return false;
     if (task.category === "memory") return false;
-
-    if (task.category === "logic" && task.subcategory === "classification") {
-      return false;
-    }
-
-    if (task.category === "coding") {
-      return ["symbol_decode", "repeat_pattern"].includes(task.subcategory);
-    }
-
-    return ["math", "logic"].includes(task.category);
+    return ["math", "logic", "coding"].includes(task.category);
   });
 
-  const quotas = { math: 4, logic: 4, coding: 2 };
   const picked = [];
 
-  Object.entries(quotas).forEach(([category, quota]) => {
+  ["math", "logic"].forEach(category => {
     const allInCategory = allowed.filter(task => task.category === category);
     let candidates = allInCategory.filter(task => !previous.has(task.id));
-
-    if (candidates.length < quota) {
-      candidates = allInCategory;
-    }
-
-    picked.push(...shuffle(candidates).slice(0, quota));
+    if (candidates.length < 4) candidates = allInCategory;
+    picked.push(...shuffle(candidates).slice(0, 4));
   });
+
+  const codingAll = allowed.filter(task => task.category === "coding");
+  let codingCandidates = codingAll.filter(task => !previous.has(task.id));
+  if (codingCandidates.length < 2) codingCandidates = codingAll;
+
+  const visualCoding = shuffle(codingCandidates.filter(task => task.subcategory !== "path_code"));
+  const pathCoding = shuffle(codingCandidates.filter(task => task.subcategory === "path_code"));
+
+  const codingPicked = [];
+  if (visualCoding.length) codingPicked.push(visualCoding.shift());
+
+  const secondPool = shuffle([
+    ...visualCoding,
+    ...(Math.random() < 0.35 ? pathCoding.slice(0, 1) : [])
+  ]);
+  if (secondPool.length) codingPicked.push(secondPool[0]);
+
+  if (codingPicked.length < 2) {
+    codingPicked.push(...shuffle(codingCandidates.filter(t => !codingPicked.some(p => p.id === t.id))).slice(0, 2 - codingPicked.length));
+  }
+
+  picked.push(...codingPicked.slice(0, 2));
 
   sessionTasks = shuffle(picked).slice(0, SESSION_SIZE);
   localStorage.setItem("last_task_ids", JSON.stringify(sessionTasks.map(task => task.id)));
@@ -154,6 +164,8 @@ function renderTask() {
   }
 
   state.codeLetters = [];
+  state.gridSelection = [];
+  state.searchSelection = [];
   const task = sessionTasks[state.index];
   const progress = Math.round((state.index / sessionTasks.length) * 100);
 
@@ -195,6 +207,10 @@ function renderByType(task) {
     spatial_relation_grid: renderSpatialRelation,
     pattern_matrix: renderPatternMatrix,
     sudoku_4x4: renderSudoku,
+    sudoku_grid: renderSudoku,
+    color_grid_copy: renderColorGridCopy,
+    visual_search: renderVisualSearch,
+    binary_grid_copy: renderBinaryGridCopy,
     symbol_code: renderSymbolCode,
     command_grid_follow: renderCommandGrid,
     command_grid_predict: renderCommandGrid,
@@ -545,12 +561,170 @@ function renderPatternMatrix(task) {
 function renderSudoku(task) {
   const area = document.getElementById("taskArea");
   const grid = (task.content.grid || []).flat();
+  const size = Number(task.content.size) || Math.sqrt(grid.length) || 4;
+
   area.innerHTML = `
-    <div class="sudoku">
+    <div class="sudoku sudoku-dynamic" style="--sudoku-size:${size}">
       ${grid.map(value => `<div class="sudoku-cell ${value == null ? "missing-cell" : ""}">${value == null ? "?" : escapeHtml(value)}</div>`).join("")}
     </div>
   `;
   renderOptions(task);
+}
+
+function renderBinaryGridCopy(task) {
+  const area = document.getElementById("taskArea");
+  const wrap = document.getElementById("options");
+  const rows = Number(task.content.rows) || 4;
+  const columns = Number(task.content.columns) || 4;
+  const pattern = task.content.pattern || [];
+  state.gridSelection = Array(pattern.length).fill(0);
+
+  area.innerHTML = `
+    <div class="copy-grid-task">
+      <div>
+        <div class="pattern-label">WZÓR</div>
+        ${renderBinaryGrid(pattern, rows, columns, false)}
+      </div>
+      <div class="copy-arrow">→</div>
+      <div>
+        <div class="pattern-label">TWÓJ KOD</div>
+        ${renderBinaryGrid(state.gridSelection, rows, columns, true)}
+      </div>
+    </div>
+  `;
+
+  wrap.style.display = "block";
+  wrap.innerHTML = '<button class="check-btn" id="checkGridCopy">SPRAWDŹ</button>';
+
+  area.querySelectorAll(".binary-cell.editable").forEach((cell,index) => {
+    cell.addEventListener("click", () => {
+      state.gridSelection[index] = state.gridSelection[index] ? 0 : 1;
+      cell.classList.toggle("filled", Boolean(state.gridSelection[index]));
+      clearFeedback();
+    });
+  });
+
+  document.getElementById("checkGridCopy").addEventListener("click", () => {
+    const ok = pattern.every((value,index) => Number(value) === Number(state.gridSelection[index] || 0));
+    if (ok) success(); else retry();
+  });
+}
+
+function renderBinaryGrid(values, rows, columns, editable) {
+  return `<div class="binary-grid" style="--copy-columns:${columns}">${values.map((value,index) =>
+    `<button type="button" class="binary-cell ${value ? "filled" : ""} ${editable ? "editable" : ""}" ${editable ? "" : "disabled"} aria-label="Pole ${index + 1}"></button>`
+  ).join("")}</div>`;
+}
+
+function renderColorGridCopy(task) {
+  const area = document.getElementById("taskArea");
+  const wrap = document.getElementById("options");
+  const rows = Number(task.content.rows) || 4;
+  const columns = Number(task.content.columns) || 4;
+  const pattern = task.content.pattern || [];
+  const colors = task.content.colors || ["b","y"];
+  state.gridSelection = Array(pattern.length).fill("w");
+
+  area.innerHTML = `
+    <div class="color-copy-layout">
+      <div>
+        <div class="pattern-label">WZÓR</div>
+        ${renderColorGrid(pattern, columns, false)}
+      </div>
+      <div>
+        <div class="pattern-label">TWÓJ WZÓR</div>
+        ${renderColorGrid(state.gridSelection, columns, true)}
+      </div>
+    </div>
+  `;
+
+  wrap.style.display = "block";
+  wrap.innerHTML = `
+    <div class="color-palette">
+      ${colors.map(color => `<button class="color-choice color-${color}" data-color="${color}" aria-label="Kolor"></button>`).join("")}
+      <button class="color-choice color-w selected" data-color="w" aria-label="Gumka"></button>
+    </div>
+    <button class="check-btn" id="checkColorGrid">SPRAWDŹ</button>
+  `;
+
+  let selectedColor = "w";
+  wrap.querySelectorAll(".color-choice").forEach(button => {
+    button.addEventListener("click", () => {
+      selectedColor = button.dataset.color;
+      wrap.querySelectorAll(".color-choice").forEach(b => b.classList.toggle("selected", b === button));
+    });
+  });
+
+  area.querySelectorAll(".color-grid-cell.editable").forEach((cell,index) => {
+    cell.addEventListener("click", () => {
+      state.gridSelection[index] = selectedColor;
+      cell.className = `color-grid-cell editable color-${selectedColor}`;
+      clearFeedback();
+    });
+  });
+
+  document.getElementById("checkColorGrid").addEventListener("click", () => {
+    const ok = pattern.every((value,index) => value === state.gridSelection[index]);
+    if (ok) success(); else retry();
+  });
+}
+
+function renderColorGrid(values, columns, editable) {
+  return `<div class="color-grid" style="--copy-columns:${columns}">${values.map((value,index) =>
+    `<button type="button" class="color-grid-cell color-${value} ${editable ? "editable" : ""}" ${editable ? "" : "disabled"} aria-label="Pole ${index + 1}"></button>`
+  ).join("")}</div>`;
+}
+
+function renderVisualSearch(task) {
+  const area = document.getElementById("taskArea");
+  const wrap = document.getElementById("options");
+  const rows = Number(task.content.rows) || 5;
+  const columns = Number(task.content.columns) || 5;
+  const grid = task.content.grid || [];
+  const target = task.content.target || [];
+  const correct = (task.content.correct_positions || []).map(Number);
+  state.searchSelection = [];
+
+  area.innerHTML = `
+    <div class="visual-search-task">
+      <div class="search-target">
+        <span class="mini-label">ZNAJDŹ</span>
+        <div class="target-sequence">${target.map(v => `<span>${escapeHtml(v)}</span>`).join("")}</div>
+      </div>
+      <div class="search-grid" style="--search-columns:${columns}">
+        ${grid.map((value,index) => `<button class="search-cell" data-index="${index}">${escapeHtml(value)}</button>`).join("")}
+      </div>
+    </div>
+  `;
+
+  wrap.style.display = "block";
+  wrap.innerHTML = '<button class="check-btn" id="checkVisualSearch">SPRAWDŹ</button>';
+
+  area.querySelectorAll(".search-cell").forEach(cell => {
+    cell.addEventListener("click", () => {
+      const index = Number(cell.dataset.index);
+      const existing = state.searchSelection.indexOf(index);
+      if (existing >= 0) {
+        state.searchSelection.splice(existing,1);
+        cell.classList.remove("selected");
+      } else {
+        if (state.searchSelection.length >= target.length) {
+          const removed = state.searchSelection.shift();
+          area.querySelector(`.search-cell[data-index="${removed}"]`)?.classList.remove("selected");
+        }
+        state.searchSelection.push(index);
+        cell.classList.add("selected");
+      }
+      clearFeedback();
+    });
+  });
+
+  document.getElementById("checkVisualSearch").addEventListener("click", () => {
+    const selected=[...state.searchSelection].sort((a,b)=>a-b);
+    const expected=[...correct].sort((a,b)=>a-b);
+    const ok=selected.length===expected.length && selected.every((v,i)=>v===expected[i]);
+    if(ok) success(); else retry();
+  });
 }
 
 function renderSymbolCode(task) {
@@ -828,7 +1002,11 @@ const INSTRUCTION_AUDIO = {
   "Gdzie dotrze robot?": "audio/gdzie-dotrze-robot.mp3",
   "Które komendy doprowadzą robota do celu?": "audio/ktore-komendy.mp3",
   "Która komenda jest błędna?": "audio/ktora-komenda-bledna.mp3",
-  "Jaka komenda powinna być dalej?": "audio/jaka-komenda-dalej.mp3"
+  "Jaka komenda powinna być dalej?": "audio/jaka-komenda-dalej.mp3",
+  "Odtwórz kod na pustej siatce.": "audio/odtworz-kod.mp3",
+  "Pokoloruj pustą siatkę tak samo.": "audio/pokoloruj-siatke.mp3",
+  "Znajdź na planszy taki sam układ.": "audio/znajdz-uklad.mp3",
+  "Które strzałki prowadzą do celu?": "audio/ktore-strzalki.mp3"
 };
 
 let instructionAudio = null;
