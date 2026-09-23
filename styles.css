@@ -562,3 +562,257 @@ p {
     height: 23px;
   }
 }
+
+
+/* Task bank renderers */
+.count-hint {
+  width: 100%;
+  max-width: 340px;
+}
+
+.addition-dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.count-dots {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 7px;
+  max-width: 150px;
+}
+
+.dot-operator {
+  font-size: 24px;
+  font-weight: 900;
+  color: var(--muted);
+}
+
+.inline-missing {
+  display: inline-grid;
+  place-items: center;
+  min-width: .9em;
+  padding: 0 .08em;
+  background: var(--highlight);
+  border: 3px dashed var(--highlight-border);
+  border-radius: 14px;
+  color: #9A671E;
+}
+
+.missing-equation {
+  line-height: 1.35;
+}
+
+.number-compare {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+}
+
+.compare-number {
+  min-width: 96px;
+  min-height: 96px;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--border);
+  border-radius: 22px;
+  background: #F5F7F8;
+  font-size: 46px;
+  font-weight: 950;
+}
+
+.compare-vs {
+  color: var(--muted);
+  font-weight: 900;
+}
+
+.item-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+
+.item-tile {
+  min-width: 68px;
+  min-height: 68px;
+  display: grid;
+  place-items: center;
+  padding: 8px;
+  border-radius: 18px;
+  background: #F1F4F6;
+  font-size: 38px;
+}
+
+.pattern-matrix {
+  display: grid;
+  grid-template-columns: repeat(2, 82px);
+  grid-template-rows: repeat(2, 82px);
+  border: 3px solid var(--text);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.matrix-cell {
+  display: grid;
+  place-items: center;
+  font-size: 34px;
+  background: white;
+  border-right: 1px solid #AEB6BF;
+  border-bottom: 1px solid #AEB6BF;
+}
+
+.matrix-cell:nth-child(2n) { border-right: 0; }
+.matrix-cell:nth-last-child(-n+2) { border-bottom: 0; }
+
+.matrix-cell.missing-cell {
+  background: var(--highlight);
+  color: #9A671E;
+}
+
+.command-task {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+
+.command-grid {
+  --grid-size: 4;
+  display: grid;
+  grid-template-columns: repeat(var(--grid-size), 54px);
+  grid-template-rows: repeat(var(--grid-size), 54px);
+  border: 3px solid var(--text);
+  border-radius: 10px;
+  overflow: hidden;
+  background: white;
+}
+
+.command-cell {
+  display: grid;
+  place-items: center;
+  font-size: 25px;
+  border-right: 1px solid #C8CED5;
+  border-bottom: 1px solid #C8CED5;
+}
+
+.command-sequence {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 9px;
+}
+
+.command-chip {
+  min-width: 54px;
+  height: 54px;
+  display: grid;
+  place-items: center;
+  position: relative;
+  border-radius: 15px;
+  background: #EEF3F7;
+  font-size: 31px;
+  font-weight: 900;
+}
+
+.command-number {
+  position: absolute;
+  top: 3px;
+  left: 6px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.command-pattern-row {
+  width: 100%;
+}
+
+.missing-command {
+  background: var(--highlight);
+  border: 3px dashed var(--highlight-border);
+  color: #9A671E;
+}
+
+.target-note {
+  font-size: 30px;
+}
+
+.memory-items {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 18px;
+  font-size: 48px;
+}
+
+.memory-pairs {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.memory-pair {
+  min-width: 220px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+  background: #F2F4F6;
+  border-radius: 16px;
+  text-align: center;
+  font-size: 34px;
+}
+
+.memory-timer {
+  margin-top: 18px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.memory-question {
+  font-size: 72px;
+  font-weight: 950;
+  color: var(--muted);
+}
+
+.location-option {
+  font-size: 38px;
+}
+
+.fallback-task {
+  font-size: 24px;
+  font-weight: 900;
+  text-align: center;
+}
+
+@media (max-width: 360px) {
+  .command-grid {
+    grid-template-columns: repeat(var(--grid-size), 48px);
+    grid-template-rows: repeat(var(--grid-size), 48px);
+  }
+
+  .command-cell {
+    font-size: 22px;
+  }
+
+  .compare-number {
+    min-width: 82px;
+    min-height: 82px;
+    font-size: 40px;
+  }
+
+  .item-tile {
+    min-width: 60px;
+    min-height: 60px;
+    font-size: 34px;
+  }
+}
