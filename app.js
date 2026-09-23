@@ -290,9 +290,8 @@ function renderEquationWithDots(task) {
           </div>
 
           <div class="live-count-box">
-            <span>Policzono</span>
+            <span>Policzono:</span>
             <strong id="additionCount">0</strong>
-            <span class="count-target">z ${total}</span>
           </div>
         </div>
       </div>
