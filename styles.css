@@ -1561,3 +1561,25 @@ body {
 .live-count-box {
   min-width: 140px;
 }
+
+
+/* Addition hint - first addend is already counted */
+.fixed-addend .fixed-dot {
+  cursor: default;
+  pointer-events: none;
+  opacity: 1;
+}
+
+.addition-count-hint .live-count-box {
+  background: #EEF4FA;
+}
+
+.addition-count-hint .live-count-box.complete {
+  background: var(--good-bg);
+}
+
+@media (max-height: 760px) {
+  .addition-count-hint .hint-instruction {
+    font-size: 15px;
+  }
+}
