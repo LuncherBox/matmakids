@@ -1598,3 +1598,17 @@ body {
   color: #456F59;
   box-shadow: inset 0 0 0 2px rgba(69,111,89,.18);
 }
+
+
+/* Missing-addition live equation: neutral until the correct total is reached */
+.missing-add-equation {
+  background: #EEF4FA;
+  color: var(--text);
+  box-shadow: none;
+}
+
+.missing-add-equation.complete {
+  background: var(--good-bg);
+  color: #456F59;
+  box-shadow: inset 0 0 0 2px rgba(69,111,89,.18);
+}
