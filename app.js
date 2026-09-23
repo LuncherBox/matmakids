@@ -1,117 +1,97 @@
-
 const app = document.getElementById("app");
 
-const tasks = [
-  {
-    id: "add_1",
-    type: "equation_with_dots",
-    title: "Matematyka",
-    instruction: "Oblicz działanie.",
-    expression: "1 + 4",
-    left: 1,
-    right: 4,
-    options: [3, 4, 5, 6],
-    correct: 5
-  },
-  {
-    id: "subtract_1",
-    type: "equation_with_gnome",
-    title: "Matematyka",
-    instruction: "Ile zostanie?",
-    expression: "9 - 4",
-    startCount: 9,
-    removedCount: 4,
-    options: [4, 5, 6, 7],
-    correct: 5
-  },
-  {
-    id: "missing_1",
-    type: "sequence",
-    title: "Brakująca liczba",
-    instruction: "Jaka liczba pasuje w wyróżnione miejsce?",
-    items: [2, 4, 6, "?", 10],
-    options: [7, 8, 9, 10],
-    correct: 8
-  },
-  {
-    id: "logic_1",
-    type: "emoji_sequence",
-    title: "Logika",
-    instruction: "Co będzie dalej?",
-    items: ["🔵", "🟡", "🔵", "🟡", "🔵", "?"],
-    options: ["🔵", "🟡", "🟢", "🟣"],
-    correct: "🟡"
-  },
-  {
-    id: "odd_1",
-    type: "odd",
-    title: "Logika",
-    instruction: "Co nie pasuje?",
-    items: ["🐶", "🐱", "🐰", "🚗"],
-    options: ["🐶", "🐱", "🐰", "🚗"],
-    correct: "🚗"
-  },
-  {
-    id: "code_1",
-    type: "code_input",
-    title: "Kodowanie",
-    instruction: "Odczytaj słowo i wybierz litery.",
-    key: [
-      ["○", "A"], ["□", "O"], ["△", "K"], ["◇", "L"],
-      ["⬠", "M"], ["☆", "P"], ["♡", "R"], ["⬡", "S"]
-    ],
-    symbols: ["◇", "○", "⬡"],
-    answer: "LAS"
-  },
-  {
-    id: "pattern_copy_1",
-    type: "pattern_copy",
-    title: "Logika",
-    instruction: "Pokoloruj taki sam wzór.",
-    pattern: [
-      1,1,1,0,0,
-      1,0,0,0,0,
-      1,0,0,0,0,
-      1,0,0,0,0,
-      1,0,0,0,0
-    ]
-  },
-  {
-    id: "sudoku_1",
-    type: "sudoku",
-    title: "Sudoku",
-    instruction: "Co pasuje w wyróżnione miejsce?",
-    grid: [
-      "🍎", null, "🍓", "🍐",
-      "🍓", "🍐", "🍎", "🍌",
-      "🍌", "🍎", "🍐", "🍓",
-      "🍐", "🍓", "🍌", "🍎"
-    ],
-    options: ["🍎", "🍌", "🍓", "🍐"],
-    correct: "🍌"
-  },
-  {
-    id: "add_2",
-    type: "equation_with_dots",
-    title: "Matematyka",
-    instruction: "Oblicz działanie.",
-    expression: "3 + 2",
-    left: 3,
-    right: 2,
-    options: [4, 5, 6, 7],
-    correct: 5
-  }
-];
+const SESSION_SIZE = 10;
+const CATEGORY_LABELS = {
+  math: "Matematyka",
+  logic: "Logika",
+  coding: "Kodowanie",
+  memory: "Pamięć"
+};
+
+let taskBank = [];
+let sessionTasks = [];
 
 let state = {
   name: localStorage.getItem("kid_name") || "",
   index: 0,
-  patternSelection: [],
-  codeLetters: []
+  codeLetters: [],
+  memoryTimer: null
 };
 
 function escapeHtml(value) {
-  return String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+  return String(value).replace(/[&<>"']/g, c => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
+  }[c]));
+}
+
+function shuffle(items) {
+  const copy = [...items];
+  for (let i = copy.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
+function previousTaskIds() {
+  try {
+    return new Set(JSON.parse(localStorage.getItem("last_task_ids") || "[]"));
+  } catch {
+    return new Set();
+  }
+}
+
+function buildSession() {
+  const previous = previousTaskIds();
+  const categories = shuffle(["math", "logic", "coding", "memory"]);
+  const quotas = {
+    [categories[0]]: 3,
+    [categories[1]]: 3,
+    [categories[2]]: 2,
+    [categories[3]]: 2
+  };
+
+  const picked = [];
+
+  categories.forEach(category => {
+    const allInCategory = taskBank.filter(task => task.category === category);
+    let candidates = allInCategory.filter(task => !previous.has(task.id));
+
+    if (candidates.length < quotas[category]) {
+      candidates = allInCategory;
+    }
+
+    picked.push(...shuffle(candidates).slice(0, quotas[category]));
+  });
+
+  sessionTasks = shuffle(picked).slice(0, SESSION_SIZE);
+  localStorage.setItem("last_task_ids", JSON.stringify(sessionTasks.map(task => task.id)));
+  state.index = 0;
+}
+
+async function loadTaskBank() {
+  try {
+    const response = await fetch("./tasks.json", { cache: "no-store" });
+    if (!response.ok) throw new Error("Nie udało się pobrać bazy zadań.");
+    taskBank = await response.json();
+
+    if (!Array.isArray(taskBank) || taskBank.length < SESSION_SIZE) {
+      throw new Error("Baza zadań jest niepełna.");
+    }
+
+    renderName();
+  } catch (error) {
+    app.innerHTML = `
+      <section class="screen centered">
+        <div class="finish-card">
+          <div class="big-emoji">🛠️</div>
+          <h1>Chwilowy problem</h1>
+          <p>Nie udało się wczytać zadań. Odśwież stronę.</p>
+        </div>
+      </section>
+    `;
+    console.error(error);
+  }
 }
 
 function renderName() {
@@ -127,44 +107,62 @@ function renderName() {
       </div>
     </section>
   `;
+
   const input = document.getElementById("name");
   const btn = document.getElementById("start");
-  input.addEventListener("input", e => {
-    state.name = e.target.value;
+
+  input.addEventListener("input", event => {
+    state.name = event.target.value;
     btn.disabled = !state.name.trim();
   });
+
   btn.addEventListener("click", () => {
     localStorage.setItem("kid_name", state.name.trim());
-    state.index = 0;
-    renderTask();
+    startNewSession();
   });
 }
 
-function renderTask() {
-  if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+function startNewSession() {
+  stopCurrentTaskActivity();
+  buildSession();
+  renderTask();
+}
 
-  if (state.index >= tasks.length) {
+function stopCurrentTaskActivity() {
+  if (state.memoryTimer) {
+    clearTimeout(state.memoryTimer);
+    state.memoryTimer = null;
+  }
+  if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+}
+
+function renderTask() {
+  stopCurrentTaskActivity();
+
+  if (state.index >= sessionTasks.length) {
     renderFinish();
     return;
   }
 
-  state.patternSelection = [];
   state.codeLetters = [];
-  const t = tasks[state.index];
-  const progress = Math.round((state.index / tasks.length) * 100);
+  const task = sessionTasks[state.index];
+  const progress = Math.round((state.index / sessionTasks.length) * 100);
 
   app.innerHTML = `
     <section class="screen">
       <div class="topbar">
         <div class="progress-shell"><div class="progress-bar" style="width:${progress}%"></div></div>
-        <div class="counter">${state.index + 1}/${tasks.length}</div>
+        <div class="counter">${state.index + 1}/${sessionTasks.length}</div>
       </div>
+
       <div class="task-card">
-        <div class="task-title">${escapeHtml(t.title)}</div>
+        <div class="task-title">${escapeHtml(CATEGORY_LABELS[task.category] || task.category)}</div>
+
         <div class="instruction-row">
-          <div class="instruction" id="instruction">${escapeHtml(t.instruction)}</div>
-          <button class="speak-btn" id="speakTask" type="button" aria-label="Przeczytaj zadanie">🔊</button>
+          <div class="instruction" id="instruction">${escapeHtml(task.instruction)}</div>
+          <button class="speak-btn" id="speakTask" type="button" aria-label="Przeczytaj instrukcję">🔊</button>
         </div>
+
         <div class="task-area" id="taskArea"></div>
         <div class="options" id="options"></div>
         <div class="feedback-slot" id="feedbackSlot" aria-live="polite"></div>
@@ -172,86 +170,426 @@ function renderTask() {
     </section>
   `;
 
+  renderByType(task);
+  setupTaskSpeech();
+}
+
+function renderByType(task) {
+  const renderers = {
+    equation_with_dots: renderEquationWithDots,
+    missing_number_equation: renderMissingEquation,
+    number_sequence: renderSequence,
+    number_comparison: renderNumberComparison,
+    visual_sequence: renderSequence,
+    odd_one_out: renderItemRow,
+    classification: renderItemRow,
+    spatial_relation_grid: renderSpatialRelation,
+    pattern_matrix: renderPatternMatrix,
+    sudoku_4x4: renderSudoku,
+    symbol_code: renderSymbolCode,
+    command_grid_follow: renderCommandGrid,
+    command_grid_predict: renderCommandGrid,
+    command_grid_plan: renderCommandGrid,
+    command_grid_debug: renderCommandGrid,
+    command_pattern: renderCommandPattern,
+    image_memory: renderMemory,
+    location_memory_grid: renderMemory,
+    sequence_memory: renderMemory,
+    number_memory: renderMemory,
+    pair_memory: renderMemory
+  };
+
+  const renderer = renderers[task.renderer];
+  if (renderer) {
+    renderer(task);
+  } else {
+    renderFallback(task);
+  }
+}
+
+function renderEquationWithDots(task) {
   const area = document.getElementById("taskArea");
+  const data = task.content;
+  const isSubtraction = task.subcategory === "subtraction";
 
-  if (t.type === "equation") {
-    area.innerHTML = `<div class="equation">${escapeHtml(t.expression)} = ?</div>`;
-    renderOptions(t);
-  }
-
-  if (t.type === "equation_with_dots") {
+  if (isSubtraction) {
     area.innerHTML = `
       <div class="math-stack">
-        <div class="equation">${escapeHtml(t.expression)} = ?</div>
-        <div class="hint-card">
+        <div class="equation">${escapeHtml(data.expression)} = ?</div>
+        <div class="hint-card count-hint">
           <div class="hint-label">Podpowiedź</div>
-          <div class="domino">
-            ${dominoHalf(t.left)}
-            ${dominoHalf(t.right)}
-          </div>
-        </div>
-      </div>
-    `;
-    renderOptions(t);
-  }
-
-  if (t.type === "equation_with_gnome") {
-    area.innerHTML = `
-      <div class="math-stack">
-        <div class="equation">${escapeHtml(t.expression)} = ?</div>
-        <div class="hint-card gnome-hint">
           <div class="gnome-line">
             <span class="gnome-character">🧙‍♂️</span>
-            <span><strong>Gnom zabiera ${t.removedCount}</strong><br><small>Zobacz, ile zostaje.</small></span>
+            <span>Gnom zabiera <strong>${escapeHtml(data.right)}</strong></span>
           </div>
-          <div class="takeaway-dots">${takeawayDots(t.startCount, t.removedCount)}</div>
+          <div class="count-dots">${takeawayDots(data.left, data.right)}</div>
         </div>
       </div>
     `;
-    renderOptions(t);
+  } else {
+    area.innerHTML = `
+      <div class="math-stack">
+        <div class="equation">${escapeHtml(data.expression)} = ?</div>
+        <div class="hint-card count-hint">
+          <div class="hint-label">Podpowiedź</div>
+          <div class="addition-dots">
+            <div class="count-dots">${plainDots(data.left)}</div>
+            <div class="dot-operator">+</div>
+            <div class="count-dots">${plainDots(data.right)}</div>
+          </div>
+        </div>
+      </div>
+    `;
   }
 
-  if (t.type === "sequence") {
-    area.innerHTML = `<div class="sequence">${t.items.map(x => `<div class="box ${x === "?" ? "missing-box" : ""}">${escapeHtml(x)}</div>`).join("")}</div>`;
-    renderOptions(t);
-  }
-
-  if (t.type === "emoji_sequence") {
-    area.innerHTML = `<div class="sequence">${t.items.map(x => `<div class="box ${x === "?" ? "missing-box" : ""}">${x}</div>`).join("")}</div>`;
-    renderOptions(t);
-  }
-
-  if (t.type === "odd") {
-    area.innerHTML = `<div class="sequence">${t.items.map(x => `<div class="box">${x}</div>`).join("")}</div>`;
-    renderOptions(t);
-  }
-
-  if (t.type === "code_input") {
-    renderCodeInputTask(t);
-  }
-
-  if (t.type === "pattern_copy") {
-    renderPatternCopyTask(t);
-  }
-
-  if (t.type === "sudoku") {
-    area.innerHTML = `<div class="sudoku">${t.grid.map(v => `<div class="sudoku-cell ${v == null ? "missing-cell" : ""}">${v ?? "?"}</div>`).join("")}</div>`;
-    renderOptions(t);
-  }
-
-  setupTaskSpeech(t);
+  renderOptions(task);
 }
 
-function getTaskSpeechText(t) {
-  return t.speechText || t.instruction;
+function renderMissingEquation(task) {
+  const area = document.getElementById("taskArea");
+  const expression = escapeHtml(task.content.expression).replace("?", '<span class="inline-missing">?</span>');
+  area.innerHTML = `<div class="equation missing-equation">${expression}</div>`;
+  renderOptions(task);
 }
 
-function speakTask(t) {
+function renderSequence(task) {
+  const area = document.getElementById("taskArea");
+  const items = task.content.items || [];
+  area.innerHTML = `
+    <div class="sequence">
+      ${items.map(item => item == null
+        ? '<div class="box missing-box">?</div>'
+        : `<div class="box">${escapeHtml(item)}</div>`
+      ).join("")}
+    </div>
+  `;
+  renderOptions(task);
+}
+
+function renderNumberComparison(task) {
+  const area = document.getElementById("taskArea");
+  const data = task.content;
+  area.innerHTML = `
+    <div class="number-compare">
+      <div class="compare-number">${escapeHtml(data.left)}</div>
+      <div class="compare-vs">czy</div>
+      <div class="compare-number">${escapeHtml(data.right)}</div>
+    </div>
+  `;
+  renderOptions(task);
+}
+
+function renderItemRow(task) {
+  const area = document.getElementById("taskArea");
+  const items = task.content.items || task.options || [];
+  area.innerHTML = `
+    <div class="item-row">
+      ${items.map(item => `<div class="item-tile">${escapeHtml(item)}</div>`).join("")}
+    </div>
+  `;
+  renderOptions(task);
+}
+
+function renderSpatialRelation(task) {
+  const area = document.getElementById("taskArea");
+  area.innerHTML = renderGrid(task.content.grid_size, task.content.objects, null, null);
+  renderOptions(task);
+}
+
+function renderPatternMatrix(task) {
+  const area = document.getElementById("taskArea");
+  const grid = task.content.grid || [];
+  area.innerHTML = `
+    <div class="pattern-matrix">
+      ${grid.flatMap((row, r) => row.map((value, c) => {
+        const missing = value == null;
+        return `<div class="matrix-cell ${missing ? "missing-cell" : ""}">${missing ? "?" : escapeHtml(value)}</div>`;
+      })).join("")}
+    </div>
+  `;
+  renderOptions(task);
+}
+
+function renderSudoku(task) {
+  const area = document.getElementById("taskArea");
+  const grid = (task.content.grid || []).flat();
+  area.innerHTML = `
+    <div class="sudoku">
+      ${grid.map(value => `<div class="sudoku-cell ${value == null ? "missing-cell" : ""}">${value == null ? "?" : escapeHtml(value)}</div>`).join("")}
+    </div>
+  `;
+  renderOptions(task);
+}
+
+function renderSymbolCode(task) {
+  const area = document.getElementById("taskArea");
+  const wrap = document.getElementById("options");
+  const legendEntries = Object.entries(task.content.legend || {});
+  const code = task.content.code || [];
+  const letters = shuffle([...new Set(legendEntries.map(([, letter]) => letter))]);
+
+  area.innerHTML = `
+    <div class="code-wrap">
+      <div class="code-key">
+        ${legendEntries.map(([symbol, letter]) => `
+          <div class="code-item">
+            <div class="code-symbol">${escapeHtml(symbol)}</div>
+            <div class="code-letter">${escapeHtml(letter)}</div>
+          </div>
+        `).join("")}
+      </div>
+
+      <div class="code-word">
+        ${code.map(symbol => `<span>${escapeHtml(symbol)}</span>`).join("")}
+      </div>
+
+      <div class="code-inputs" id="codeInputs">
+        ${code.map((_, index) => `<div class="code-input-box" data-index="${index}"></div>`).join("")}
+      </div>
+    </div>
+  `;
+
+  wrap.style.display = "block";
+  wrap.innerHTML = `
+    <div class="letter-pad">
+      ${letters.map(letter => `<button class="letter-btn" data-letter="${escapeHtml(letter)}">${escapeHtml(letter)}</button>`).join("")}
+      <button class="letter-btn erase-btn" id="eraseLetter" aria-label="Usuń ostatnią literę">⌫</button>
+    </div>
+    <button class="check-btn" id="checkCode">SPRAWDŹ</button>
+  `;
+
+  function refresh() {
+    document.querySelectorAll(".code-input-box").forEach((box, index) => {
+      box.textContent = state.codeLetters[index] || "";
+      box.classList.toggle("active", index === state.codeLetters.length && state.codeLetters.length < code.length);
+    });
+  }
+
+  wrap.querySelectorAll("[data-letter]").forEach(button => {
+    button.addEventListener("click", () => {
+      if (state.codeLetters.length >= code.length) return;
+      state.codeLetters.push(button.dataset.letter);
+      clearFeedback();
+      refresh();
+    });
+  });
+
+  document.getElementById("eraseLetter").addEventListener("click", () => {
+    state.codeLetters.pop();
+    clearFeedback();
+    refresh();
+  });
+
+  document.getElementById("checkCode").addEventListener("click", () => {
+    checkAnswer(state.codeLetters.join(""), task.correct_answer);
+  });
+
+  refresh();
+}
+
+function renderCommandGrid(task) {
+  const area = document.getElementById("taskArea");
+  const data = task.content;
+  const isPlan = task.renderer === "command_grid_plan";
+  const isDebug = task.renderer === "command_grid_debug";
+  const target = data.target || null;
+
+  let commandsHtml = "";
+  if (data.commands) {
+    commandsHtml = `
+      <div class="command-sequence">
+        ${data.commands.map((command, index) => `
+          <div class="command-chip">
+            ${isDebug ? `<span class="command-number">${index + 1}</span>` : ""}
+            ${commandArrow(command)}
+          </div>
+        `).join("")}
+      </div>
+    `;
+  }
+
+  area.innerHTML = `
+    <div class="command-task">
+      ${renderGrid(data.grid_size || 4, data.objects || {}, data.start, target)}
+      ${commandsHtml}
+      ${isPlan ? '<div class="target-note">🤖 → 🏁</div>' : ""}
+    </div>
+  `;
+
+  renderOptions(task, value => value);
+}
+
+function renderCommandPattern(task) {
+  const area = document.getElementById("taskArea");
+  const commands = task.content.commands || [];
+  area.innerHTML = `
+    <div class="command-sequence command-pattern-row">
+      ${commands.map(command => command == null
+        ? '<div class="command-chip missing-command">?</div>'
+        : `<div class="command-chip">${commandArrow(command)}</div>`
+      ).join("")}
+    </div>
+  `;
+
+  renderOptions(task, value => commandArrowFromAnswer(value));
+}
+
+function renderMemory(task) {
+  const area = document.getElementById("taskArea");
+  const options = document.getElementById("options");
+  const instruction = document.getElementById("instruction");
+  const data = task.content;
+  options.innerHTML = "";
+
+  if (task.renderer === "location_memory_grid") {
+    area.innerHTML = renderGrid(data.grid_size || 3, {
+      [data.position.join(",")]: data.item
+    }, null, null);
+  } else if (task.renderer === "pair_memory") {
+    area.innerHTML = `
+      <div class="memory-pairs">
+        ${(data.memorize_pairs || []).map(pair => `
+          <div class="memory-pair"><span>${escapeHtml(pair.item)}</span><span>↔</span><span>${escapeHtml(pair.pair)}</span></div>
+        `).join("")}
+      </div>
+    `;
+  } else {
+    const items = data.memorize_items || [];
+    area.innerHTML = `
+      <div class="memory-items">
+        ${items.map(item => `<span>${escapeHtml(item)}</span>`).join("")}
+      </div>
+    `;
+  }
+
+  const seconds = Number(data.display_seconds || task.time_limit_seconds || 4);
+  area.insertAdjacentHTML("beforeend", `<div class="memory-timer">Zapamiętaj • ${seconds} s</div>`);
+
+  state.memoryTimer = setTimeout(() => {
+    if (sessionTasks[state.index]?.id !== task.id) return;
+
+    instruction.textContent = data.answer_prompt || task.instruction;
+    area.innerHTML = '<div class="memory-question">?</div>';
+
+    if (task.renderer === "location_memory_grid") {
+      renderLocationOptions(task);
+    } else {
+      renderOptions(task);
+    }
+  }, seconds * 1000);
+}
+
+function renderLocationOptions(task) {
+  const wrap = document.getElementById("options");
+  wrap.innerHTML = (task.options || []).map(value => `
+    <button class="option location-option" data-value="${escapeHtml(value)}">
+      ${locationSymbol(value)}
+    </button>
+  `).join("");
+
+  wrap.querySelectorAll(".option").forEach(button => {
+    button.addEventListener("click", () => checkAnswer(button.dataset.value, task.correct_answer, button));
+  });
+}
+
+function renderFallback(task) {
+  const area = document.getElementById("taskArea");
+  area.innerHTML = `<div class="fallback-task">${escapeHtml(task.name || task.subcategory)}</div>`;
+  renderOptions(task);
+}
+
+function renderOptions(task, formatter = null) {
+  const wrap = document.getElementById("options");
+  wrap.style.display = "grid";
+
+  const options = task.options || [];
+  wrap.innerHTML = options.map(option => {
+    const label = formatter ? formatter(option) : option;
+    return `<button class="option" data-value="${escapeHtml(option)}">${label}</button>`;
+  }).join("");
+
+  wrap.querySelectorAll(".option").forEach(button => {
+    button.addEventListener("click", () => {
+      checkAnswer(button.dataset.value, task.correct_answer, button);
+    });
+  });
+}
+
+function renderGrid(size, objects = {}, start = null, target = null) {
+  const cells = [];
+  for (let row = 0; row < size; row += 1) {
+    for (let col = 0; col < size; col += 1) {
+      const key = `${row},${col}`;
+      let value = objects[key] || "";
+      const isStart = start && start[0] === row && start[1] === col;
+      const isTarget = target && target[0] === row && target[1] === col;
+
+      if (isStart) value = value ? `🤖${value}` : "🤖";
+      if (isTarget) value = value ? `${value}🏁` : "🏁";
+
+      cells.push(`<div class="command-cell">${escapeHtml(value)}</div>`);
+    }
+  }
+
+  return `<div class="command-grid" style="--grid-size:${size}">${cells.join("")}</div>`;
+}
+
+function plainDots(count) {
+  return Array.from({ length: Number(count) || 0 }, () => '<span class="takeaway-dot"></span>').join("");
+}
+
+function takeawayDots(total, removed) {
+  const totalCount = Number(total) || 0;
+  const removedCount = Number(removed) || 0;
+
+  return Array.from({ length: totalCount }, (_, index) => {
+    const removedClass = index >= totalCount - removedCount ? "taken" : "";
+    return `<span class="takeaway-dot ${removedClass}"></span>`;
+  }).join("");
+}
+
+function commandArrow(command) {
+  const map = { up: "↑", down: "↓", left: "←", right: "→" };
+  return map[command] || escapeHtml(command);
+}
+
+function commandArrowFromAnswer(value) {
+  const map = { up: "↑", down: "↓", left: "←", right: "→" };
+  return map[value] || escapeHtml(value);
+}
+
+function locationSymbol(value) {
+  const map = {
+    top_left: "↖",
+    top_right: "↗",
+    center: "●",
+    bottom_left: "↙",
+    bottom_right: "↘"
+  };
+  return map[value] || escapeHtml(value);
+}
+
+function setupTaskSpeech() {
+  const button = document.getElementById("speakTask");
+  if (!button) return;
+
+  if (!("speechSynthesis" in window)) {
+    button.hidden = true;
+    return;
+  }
+
+  button.addEventListener("click", speakCurrentInstruction);
+}
+
+function speakCurrentInstruction() {
   if (!("speechSynthesis" in window)) return;
+
+  const text = document.getElementById("instruction")?.textContent?.trim();
+  if (!text) return;
 
   window.speechSynthesis.cancel();
 
-  const utterance = new SpeechSynthesisUtterance(getTaskSpeechText(t));
+  const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = "pl-PL";
   utterance.rate = 0.88;
   utterance.pitch = 1.02;
@@ -261,145 +599,11 @@ function speakTask(t) {
   if (polishVoice) utterance.voice = polishVoice;
 
   const button = document.getElementById("speakTask");
-  if (button) button.classList.add("speaking");
-
+  button?.classList.add("speaking");
   utterance.onend = () => button?.classList.remove("speaking");
   utterance.onerror = () => button?.classList.remove("speaking");
 
   window.speechSynthesis.speak(utterance);
-}
-
-function setupTaskSpeech(t) {
-  const button = document.getElementById("speakTask");
-  if (!button) return;
-
-  if (!("speechSynthesis" in window)) {
-    button.hidden = true;
-    return;
-  }
-
-  button.addEventListener("click", () => speakTask(t));
-}
-
-function renderOptions(t) {
-  const wrap = document.getElementById("options");
-  wrap.innerHTML = t.options.map(o => `<button class="option" data-value="${escapeHtml(o)}">${escapeHtml(o)}</button>`).join("");
-  wrap.querySelectorAll(".option").forEach(btn => {
-    btn.addEventListener("click", () => checkAnswer(btn.dataset.value, t.correct, btn));
-  });
-}
-
-function renderMemoryTask(t) {
-  const area = document.getElementById("taskArea");
-  const instruction = document.getElementById("instruction");
-  const options = document.getElementById("options");
-  options.innerHTML = "";
-  instruction.textContent = t.instruction;
-  area.innerHTML = `<div class="memory-items">${t.items.map(i => `<span>${i}</span>`).join("")}</div>`;
-  setTimeout(() => {
-    if (tasks[state.index]?.id !== t.id) return;
-    instruction.textContent = t.question;
-    area.innerHTML = `<div class="equation">?</div>`;
-    renderOptions(t);
-  }, t.showMs);
-}
-
-function renderCodeInputTask(t) {
-  const area = document.getElementById("taskArea");
-  const wrap = document.getElementById("options");
-  wrap.style.display = "block";
-
-  const uniqueLetters = [...new Set(t.key.map(([, letter]) => letter))].slice(0, 8);
-
-  area.innerHTML = `
-    <div class="code-wrap">
-      <div class="code-key">
-        ${t.key.map(([s,l]) => `<div class="code-item"><div class="code-symbol">${s}</div><div class="code-letter">${l}</div></div>`).join("")}
-      </div>
-      <div class="code-word">${t.symbols.map(s => `<span>${s}</span>`).join("")}</div>
-      <div class="code-inputs" id="codeInputs">
-        ${t.symbols.map((_,i) => `<div class="code-input-box" data-index="${i}" aria-label="Litera ${i+1}"></div>`).join("")}
-      </div>
-    </div>
-  `;
-
-  wrap.innerHTML = `
-    <div class="letter-pad">
-      ${uniqueLetters.map(letter => `<button class="letter-btn" data-letter="${letter}">${letter}</button>`).join("")}
-      <button class="letter-btn erase-btn" id="eraseLetter" aria-label="Usuń ostatnią literę">⌫</button>
-    </div>
-    <button class="check-btn" id="checkCode">SPRAWDŹ</button>
-  `;
-
-  function refreshCodeBoxes() {
-    document.querySelectorAll(".code-input-box").forEach((box, index) => {
-      box.textContent = state.codeLetters[index] || "";
-      box.classList.toggle("active", index === state.codeLetters.length && state.codeLetters.length < t.symbols.length);
-    });
-  }
-
-  document.querySelectorAll(".letter-btn[data-letter]").forEach(btn => {
-    btn.addEventListener("click", () => {
-      if (state.codeLetters.length >= t.symbols.length) return;
-      state.codeLetters.push(btn.dataset.letter);
-      clearFeedback();
-      refreshCodeBoxes();
-    });
-  });
-
-  document.getElementById("eraseLetter").addEventListener("click", () => {
-    state.codeLetters.pop();
-    clearFeedback();
-    refreshCodeBoxes();
-  });
-
-  document.getElementById("checkCode").addEventListener("click", () => {
-    const value = state.codeLetters.join("");
-    if (value === t.answer) success();
-    else retry();
-  });
-
-  refreshCodeBoxes();
-}
-
-function renderPatternCopyTask(t) {
-  const area = document.getElementById("taskArea");
-  const wrap = document.getElementById("options");
-  wrap.style.display = "block";
-
-  area.innerHTML = `
-    <div class="pattern-block">
-      <div class="pattern-label">WZÓR</div>
-      ${patternGridStatic(t.pattern)}
-      <div class="pattern-label">TWÓJ WZÓR</div>
-      ${patternGridEditable(t.pattern.length)}
-    </div>
-  `;
-
-  wrap.innerHTML = `<button class="check-btn" id="checkPattern">SPRAWDŹ</button>`;
-
-  document.querySelectorAll(".dot-button").forEach((btn, idx) => {
-    btn.addEventListener("click", () => {
-      btn.classList.toggle("filled");
-      state.patternSelection[idx] = btn.classList.contains("filled") ? 1 : 0;
-      clearFeedback();
-    });
-  });
-
-  document.getElementById("checkPattern").addEventListener("click", () => {
-    const current = Array.from({length: t.pattern.length}, (_, i) => state.patternSelection[i] ? 1 : 0);
-    const ok = current.every((v, i) => v === t.pattern[i]);
-    if (ok) success();
-    else retry();
-  });
-}
-
-function patternGridStatic(pattern) {
-  return `<div class="grid-5">${pattern.map(v => `<div class="dot-static ${v ? "filled" : ""}"></div>`).join("")}</div>`;
-}
-
-function patternGridEditable(length) {
-  return `<div class="grid-5">${Array.from({length}, (_,i) => `<button class="dot-button" aria-label="Kropka ${i+1}"></button>`).join("")}</div>`;
 }
 
 function feedbackSlot() {
@@ -420,10 +624,24 @@ function showFeedback(text, kind) {
   slot.textContent = text;
 }
 
+function checkAnswer(value, correct, selectedButton = null) {
+  if (String(value) === String(correct)) {
+    success(selectedButton);
+  } else {
+    retry(selectedButton);
+  }
+}
+
 function success(selectedButton = null) {
+  stopCurrentTaskActivity();
+
   if (selectedButton) selectedButton.classList.add("correct-choice");
   showFeedback("Super! 🌟", "good");
-  document.querySelectorAll("button").forEach(el => el.disabled = true);
+
+  document.querySelectorAll("button").forEach(button => {
+    button.disabled = true;
+  });
+
   setTimeout(() => {
     state.index += 1;
     renderTask();
@@ -438,47 +656,22 @@ function retry(selectedButton = null) {
   showFeedback("Spróbuj jeszcze raz", "retry");
 }
 
-function checkAnswer(value, correct, selectedButton = null) {
-  if (String(value) === String(correct)) success(selectedButton);
-  else retry(selectedButton);
-}
-
-function dominoHalf(count) {
-  const positions = {
-    0: [],
-    1: [[50,50]],
-    2: [[25,25],[75,75]],
-    3: [[25,25],[50,50],[75,75]],
-    4: [[25,25],[75,25],[25,75],[75,75]],
-    5: [[25,25],[75,25],[50,50],[25,75],[75,75]],
-    6: [[25,20],[75,20],[25,50],[75,50],[25,80],[75,80]]
-  };
-  return `<div class="domino-half">${positions[count].map(([x,y]) => `<span class="pip" style="left:calc(${x}% - 6px);top:calc(${y}% - 6px)"></span>`).join("")}</div>`;
-}
-
-function takeawayDots(total, removed) {
-  return Array.from({length: total}, (_, index) => {
-    const removedClass = index >= total - removed ? "taken" : "";
-    return `<span class="takeaway-dot ${removedClass}"></span>`;
-  }).join("");
-}
-
 function renderFinish() {
+  stopCurrentTaskActivity();
+
   app.innerHTML = `
     <section class="screen centered">
       <div class="finish-card">
         <div class="big-emoji">🎉</div>
         <h1>Super, ${escapeHtml(state.name)}!</h1>
-        <p>Zrobiłaś wszystkie zadania na dziś.</p>
+        <p>10 zadań gotowe.</p>
         <div style="height:20px"></div>
         <button class="primary" id="again">JESZCZE RAZ</button>
       </div>
     </section>
   `;
-  document.getElementById("again").addEventListener("click", () => {
-    state.index = 0;
-    renderTask();
-  });
+
+  document.getElementById("again").addEventListener("click", startNewSession);
 }
 
-renderName();
+loadTaskBank();
