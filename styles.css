@@ -1583,3 +1583,18 @@ body {
     font-size: 15px;
   }
 }
+
+
+/* Subtraction hint - show the arithmetic changing live */
+.subtraction-equation {
+  min-width: 190px;
+  margin-top: 2px;
+  background: #EEF4FA;
+  color: var(--text);
+}
+
+.subtraction-equation.complete {
+  background: var(--good-bg);
+  color: #456F59;
+  box-shadow: inset 0 0 0 2px rgba(69,111,89,.18);
+}
