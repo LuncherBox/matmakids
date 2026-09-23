@@ -146,11 +146,43 @@ p {
   margin-bottom: 8px;
 }
 
+.instruction-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
 .instruction {
+  flex: 1;
   font-size: clamp(24px, 7vw, 34px);
   font-weight: 900;
   line-height: 1.15;
-  margin-bottom: 18px;
+  margin: 0;
+}
+
+.speak-btn {
+  flex: 0 0 auto;
+  width: 52px;
+  height: 52px;
+  border: 2px solid var(--accent-2);
+  border-radius: 16px;
+  background: #EEF4FA;
+  color: var(--text);
+  display: grid;
+  place-items: center;
+  font-size: 24px;
+  cursor: pointer;
+  transition: transform .12s ease, background .12s ease, box-shadow .12s ease;
+}
+
+.speak-btn:active {
+  transform: scale(.96);
+}
+
+.speak-btn.speaking {
+  background: #DCEAF6;
+  box-shadow: 0 0 0 4px rgba(184, 203, 227, .28);
 }
 
 .task-area {
