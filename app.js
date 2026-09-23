@@ -412,7 +412,7 @@ function renderMissingNumberHint(task) {
         <div class="plus-sign">+</div>
         <div class="interactive-dots add-dots" id="missingAddDots">${interactiveDots(needed)}</div>
       </div>
-      <div class="live-equation" id="liveEquation">${known} + 0 = ${known}</div>
+      <div class="live-equation missing-add-equation" id="liveEquation">${known} + 0 = ${known}</div>
     `;
 
     let added = 0;
@@ -433,7 +433,9 @@ function renderMissingNumberHint(task) {
         }
 
         const total = known + added;
-        document.getElementById("liveEquation").textContent = `${known} + ${added} = ${total}`;
+        const liveEquation = document.getElementById("liveEquation");
+        liveEquation.textContent = `${known} + ${added} = ${total}`;
+        liveEquation.classList.toggle("complete", total === result);
       });
     });
 
