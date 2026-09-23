@@ -816,3 +816,181 @@ p {
     font-size: 34px;
   }
 }
+
+
+/* Interactive math hints */
+.interactive-hint {
+  width: 100%;
+  max-width: 360px;
+}
+
+.hint-instruction {
+  font-size: 16px;
+  font-weight: 800;
+  text-align: center;
+  line-height: 1.35;
+}
+
+.interactive-dots {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 9px;
+  width: 100%;
+}
+
+.interactive-dot {
+  width: 28px;
+  height: 28px;
+  border: 2px solid #596273;
+  border-radius: 50%;
+  background: #596273;
+  padding: 0;
+  cursor: pointer;
+  position: relative;
+}
+
+.interactive-dot.removed {
+  background: #fff;
+  opacity: .55;
+}
+
+.interactive-dot.removed::after {
+  content: "";
+  position: absolute;
+  left: 1px;
+  top: 12px;
+  width: 22px;
+  height: 2px;
+  background: var(--retry);
+  transform: rotate(-35deg);
+  border-radius: 2px;
+}
+
+.interactive-dot.empty {
+  background: #fff;
+  border-style: dashed;
+  opacity: .65;
+}
+
+.interactive-dot.filled {
+  background: #596273;
+  border-style: solid;
+  opacity: 1;
+}
+
+.dot-status {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px 14px;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--muted);
+}
+
+.remaining-result {
+  color: #456F59;
+  opacity: 0;
+  transition: opacity .15s ease;
+}
+
+.remaining-result.visible {
+  opacity: 1;
+}
+
+.dot-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+}
+
+.dot-group-label,
+.mini-label {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 900;
+}
+
+.missing-add-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.fixed-dots {
+  max-width: 220px;
+}
+
+.add-dots {
+  max-width: 220px;
+}
+
+.reverse-subtraction {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.reverse-subtraction > div {
+  background: #fff;
+  border-radius: 14px;
+  padding: 10px;
+}
+
+.removed-group .takeaway-dot {
+  opacity: .25;
+}
+
+/* Coding start / goal emphasis */
+.command-cell {
+  position: relative;
+}
+
+.start-cell {
+  background: #E8F3ED;
+  box-shadow: inset 0 0 0 3px var(--accent);
+}
+
+.target-cell {
+  background: var(--highlight);
+  box-shadow: inset 0 0 0 3px var(--highlight-border);
+}
+
+.cell-badge {
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  font-size: 8px;
+  font-weight: 950;
+  letter-spacing: .04em;
+  color: var(--muted);
+}
+
+.cell-content {
+  line-height: 1;
+}
+
+/* Audio button is shown only when a prerecorded asset is available */
+.speak-btn[hidden] {
+  display: none !important;
+}
+
+@media (max-width: 360px) {
+  .interactive-dot {
+    width: 26px;
+    height: 26px;
+  }
+
+  .reverse-subtraction {
+    gap: 8px;
+  }
+
+  .cell-badge {
+    font-size: 7px;
+  }
+}
