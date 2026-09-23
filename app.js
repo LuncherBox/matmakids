@@ -341,81 +341,30 @@ function renderMissingNumberHint(task) {
 
   const expression = String(data.expression || "");
 
-  // a + ? = result
-  if (expression.includes("+") && data.missing === "b") {
-    const start = Number(data.a) || 0;
-    const result = Number(data.result) || 0;
-    const needed = Math.max(0, result - start);
-
-    hint.innerHTML = `
-      <div class="hint-label">Podpowiedź</div>
-      <div class="hint-instruction">Dodawaj kropki, aż suma będzie równa ${result}.</div>
-      <div class="missing-add-wrap">
-        <div class="dot-group">
-          <div class="dot-group-label">Masz: ${start}</div>
-          <div class="count-dots fixed-dots">${plainDots(start)}</div>
-        </div>
-        <div class="dot-group">
-          <div class="dot-group-label">Dodaj</div>
-          <div class="interactive-dots add-dots" id="missingAddDots">${interactiveDots(needed)}</div>
-        </div>
-      </div>
-      <div class="dot-status live-math-status">
-        <span>Dodano: <strong id="addedCount">0</strong></span>
-        <span id="sumCount" class="remaining-result visible">Suma: ${start}</span>
-      </div>
-    `;
-
-    let added = 0;
-    hint.querySelectorAll("#missingAddDots .interactive-dot").forEach(dot => {
-      dot.classList.add("empty");
-      dot.addEventListener("click", () => {
-        const filled = dot.classList.contains("filled");
-        if (filled) {
-          dot.classList.remove("filled");
-          dot.classList.add("empty");
-          added -= 1;
-        } else {
-          dot.classList.add("filled");
-          dot.classList.remove("empty");
-          added += 1;
-        }
-        document.getElementById("addedCount").textContent = String(added);
-        document.getElementById("sumCount").textContent = `Suma: ${start + added}`;
-      });
-    });
-    return;
-  }
-  // ? + b = result
-  if (expression.includes("+") && data.missing === "a") {
-    const known = Number(data.b) || 0;
+  // missing addend: a + ? = result OR ? + b = result
+  if (expression.includes("+") && (data.missing === "a" || data.missing === "b")) {
+    const known = data.missing === "a" ? Number(data.b) || 0 : Number(data.a) || 0;
     const result = Number(data.result) || 0;
     const needed = Math.max(0, result - known);
 
     hint.innerHTML = `
       <div class="hint-label">Podpowiedź</div>
-      <div class="hint-instruction">Do ${known} dodawaj kropki, aż suma będzie równa ${result}.</div>
-      <div class="missing-add-wrap">
-        <div class="dot-group">
-          <div class="dot-group-label">Masz: ${known}</div>
-          <div class="count-dots fixed-dots">${plainDots(known)}</div>
-        </div>
-        <div class="dot-group">
-          <div class="dot-group-label">Dodaj</div>
-          <div class="interactive-dots add-dots" id="missingAddDots">${interactiveDots(needed)}</div>
-        </div>
+      <div class="hint-instruction simple-hint-copy">Klikaj puste kropki, aż razem będzie <strong>${result}</strong>.</div>
+      <div class="missing-add-simple">
+        <div class="count-dots fixed-dots">${plainDots(known)}</div>
+        <div class="plus-sign">+</div>
+        <div class="interactive-dots add-dots" id="missingAddDots">${interactiveDots(needed)}</div>
       </div>
-      <div class="dot-status live-math-status">
-        <span>Dodano: <strong id="addedCount">0</strong></span>
-        <span id="sumCount" class="remaining-result visible">Suma: ${known}</span>
-      </div>
+      <div class="live-equation" id="liveEquation">${known} + 0 = ${known}</div>
     `;
 
     let added = 0;
+
     hint.querySelectorAll("#missingAddDots .interactive-dot").forEach(dot => {
       dot.classList.add("empty");
       dot.addEventListener("click", () => {
         const filled = dot.classList.contains("filled");
+
         if (filled) {
           dot.classList.remove("filled");
           dot.classList.add("empty");
@@ -425,12 +374,15 @@ function renderMissingNumberHint(task) {
           dot.classList.remove("empty");
           added += 1;
         }
-        document.getElementById("addedCount").textContent = String(added);
-        document.getElementById("sumCount").textContent = `Suma: ${known + added}`;
+
+        const total = known + added;
+        document.getElementById("liveEquation").textContent = `${known} + ${added} = ${total}`;
       });
     });
+
     return;
   }
+
   // a - ? = result
   if (expression.includes("-") && data.missing === "b") {
     const start = Number(data.a) || 0;
