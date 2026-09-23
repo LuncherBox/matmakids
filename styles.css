@@ -1175,3 +1175,210 @@ p {
     font-size: 20px;
   }
 }
+
+
+/* Viewport fit - keep a full task visible without page scrolling */
+html, body {
+  min-height: 100%;
+  height: 100%;
+}
+
+body {
+  overflow: hidden;
+}
+
+#app {
+  height: 100dvh;
+  min-height: 100dvh;
+}
+
+.screen {
+  height: 100dvh;
+  min-height: 100dvh;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  overflow: hidden;
+}
+
+.topbar {
+  margin-bottom: 10px;
+}
+
+.task-card {
+  min-height: 0;
+  overflow: hidden;
+  padding: 18px;
+}
+
+.task-title {
+  margin-bottom: 5px;
+  font-size: 15px;
+}
+
+.instruction-row {
+  margin-bottom: 10px;
+}
+
+.instruction {
+  font-size: clamp(22px, 5.8vw, 30px);
+  line-height: 1.08;
+}
+
+.task-area {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+}
+
+.equation {
+  font-size: clamp(40px, 11vw, 64px);
+}
+
+.math-stack {
+  gap: 10px;
+}
+
+.hint-card {
+  padding: 9px 13px;
+}
+
+.options {
+  margin-top: 10px;
+  gap: 9px;
+}
+
+.option {
+  min-height: 58px;
+  font-size: 26px;
+}
+
+.feedback-slot {
+  min-height: 42px;
+  margin-top: 7px;
+  padding: 7px 12px;
+  font-size: 18px;
+}
+
+.check-btn {
+  margin-top: 8px;
+  padding: 12px 16px;
+}
+
+/* Clearer missing-number hint */
+.simple-hint-copy {
+  max-width: 300px;
+}
+
+.missing-add-simple {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1.35fr);
+  align-items: center;
+  gap: 8px;
+  padding: 2px 0;
+}
+
+.missing-add-simple .fixed-dots,
+.missing-add-simple .add-dots {
+  max-width: none;
+}
+
+.plus-sign {
+  font-size: 25px;
+  font-weight: 950;
+  color: var(--text);
+}
+
+.live-equation {
+  min-width: 150px;
+  padding: 7px 13px;
+  border-radius: 14px;
+  background: #E8F3ED;
+  color: #456F59;
+  font-size: 20px;
+  font-weight: 950;
+  text-align: center;
+}
+
+/* Palette: the white option must remain visible even when another color is selected */
+.color-choice.color-w {
+  background: #fff;
+  border-color: #8D969F;
+  box-shadow: inset 0 0 0 1px #fff;
+}
+
+.color-choice:not(.selected) {
+  border-color: #8D969F;
+}
+
+.color-choice.selected {
+  border-color: var(--text);
+  box-shadow: 0 0 0 3px rgba(41,49,61,.12);
+}
+
+/* Sudoku is temporarily limited to 4x4 */
+.sudoku-dynamic {
+  --sudoku-size: 4;
+  width: min(60vw, 250px);
+}
+
+@media (max-height: 760px) {
+  .screen {
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+
+  .topbar {
+    margin-bottom: 7px;
+  }
+
+  .task-card {
+    padding: 14px 16px;
+  }
+
+  .instruction {
+    font-size: clamp(20px, 5vw, 27px);
+  }
+
+  .instruction-row {
+    margin-bottom: 7px;
+  }
+
+  .task-area {
+    min-height: 0;
+  }
+
+  .equation {
+    font-size: clamp(36px, 9vw, 56px);
+  }
+
+  .interactive-dot {
+    width: 24px;
+    height: 24px;
+  }
+
+  .binary-grid,
+  .color-grid {
+    grid-template-columns: repeat(var(--copy-columns), 30px);
+    gap: 4px;
+    padding: 8px;
+  }
+
+  .binary-cell,
+  .color-grid-cell {
+    width: 30px;
+    height: 30px;
+  }
+
+  .color-choice {
+    width: 40px;
+    height: 40px;
+  }
+
+  .option {
+    min-height: 52px;
+  }
+
+  .feedback-slot {
+    min-height: 36px;
+  }
+}
