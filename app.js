@@ -43,24 +43,34 @@ function previousTaskIds() {
 
 function buildSession() {
   const previous = previousTaskIds();
-  const categories = shuffle(["math", "logic", "coding"]);
-  const quotas = {
-    [categories[0]]: 4,
-    [categories[1]]: 3,
-    [categories[2]]: 3
-  };
 
+  const allowed = taskBank.filter(task => {
+    if (task.status === "archived") return false;
+    if (task.category === "memory") return false;
+
+    if (task.category === "logic" && task.subcategory === "classification") {
+      return false;
+    }
+
+    if (task.category === "coding") {
+      return ["symbol_decode", "repeat_pattern"].includes(task.subcategory);
+    }
+
+    return ["math", "logic"].includes(task.category);
+  });
+
+  const quotas = { math: 4, logic: 4, coding: 2 };
   const picked = [];
 
-  categories.forEach(category => {
-    const allInCategory = taskBank.filter(task => task.category === category);
+  Object.entries(quotas).forEach(([category, quota]) => {
+    const allInCategory = allowed.filter(task => task.category === category);
     let candidates = allInCategory.filter(task => !previous.has(task.id));
 
-    if (candidates.length < quotas[category]) {
+    if (candidates.length < quota) {
       candidates = allInCategory;
     }
 
-    picked.push(...shuffle(candidates).slice(0, quotas[category]));
+    picked.push(...shuffle(candidates).slice(0, quota));
   });
 
   sessionTasks = shuffle(picked).slice(0, SESSION_SIZE);
@@ -226,7 +236,7 @@ function renderEquationWithDots(task) {
           </div>
           <div class="dot-status">
             <span>Odjęto: <strong id="removedCount">0</strong> z ${targetRemoved}</span>
-            <span id="remainingResult" class="remaining-result"></span>
+            <span id="remainingResult" class="remaining-result visible">Zostało: ${total}</span>
           </div>
         </div>
       </div>
@@ -280,13 +290,8 @@ function setupSubtractionDots(total, targetRemoved) {
 
       removedLabel.textContent = String(removed);
 
-      if (removed === targetRemoved) {
-        resultLabel.textContent = `Zostało: ${total - removed}`;
-        resultLabel.classList.add("visible");
-      } else {
-        resultLabel.textContent = "";
-        resultLabel.classList.remove("visible");
-      }
+      resultLabel.textContent = `Zostało: ${total - removed}`;
+      resultLabel.classList.add("visible");
     });
   });
 }
@@ -328,14 +333,20 @@ function renderMissingNumberHint(task) {
 
     hint.innerHTML = `
       <div class="hint-label">Podpowiedź</div>
-      <div class="hint-instruction">Masz ${start}. Dodawaj kropki, aż będzie ${result}.</div>
+      <div class="hint-instruction">Dodawaj kropki, aż suma będzie równa ${result}.</div>
       <div class="missing-add-wrap">
-        <div class="count-dots fixed-dots">${plainDots(start)}</div>
-        <div class="interactive-dots add-dots" id="missingAddDots">${interactiveDots(needed)}</div>
+        <div class="dot-group">
+          <div class="dot-group-label">Masz: ${start}</div>
+          <div class="count-dots fixed-dots">${plainDots(start)}</div>
+        </div>
+        <div class="dot-group">
+          <div class="dot-group-label">Dodaj</div>
+          <div class="interactive-dots add-dots" id="missingAddDots">${interactiveDots(needed)}</div>
+        </div>
       </div>
-      <div class="dot-status">
+      <div class="dot-status live-math-status">
         <span>Dodano: <strong id="addedCount">0</strong></span>
-        <span id="missingAnswerResult" class="remaining-result"></span>
+        <span id="sumCount" class="remaining-result visible">Suma: ${start}</span>
       </div>
     `;
 
@@ -354,14 +365,11 @@ function renderMissingNumberHint(task) {
           added += 1;
         }
         document.getElementById("addedCount").textContent = String(added);
-        const resultLabel = document.getElementById("missingAnswerResult");
-        resultLabel.textContent = added === needed ? `Brakuje: ${needed}` : "";
-        resultLabel.classList.toggle("visible", added === needed);
+        document.getElementById("sumCount").textContent = `Suma: ${start + added}`;
       });
     });
     return;
   }
-
   // ? + b = result
   if (expression.includes("+") && data.missing === "a") {
     const known = Number(data.b) || 0;
@@ -370,14 +378,20 @@ function renderMissingNumberHint(task) {
 
     hint.innerHTML = `
       <div class="hint-label">Podpowiedź</div>
-      <div class="hint-instruction">Do ${known} dodaj tyle kropek, żeby razem było ${result}.</div>
+      <div class="hint-instruction">Do ${known} dodawaj kropki, aż suma będzie równa ${result}.</div>
       <div class="missing-add-wrap">
-        <div class="count-dots fixed-dots">${plainDots(known)}</div>
-        <div class="interactive-dots add-dots" id="missingAddDots">${interactiveDots(needed)}</div>
+        <div class="dot-group">
+          <div class="dot-group-label">Masz: ${known}</div>
+          <div class="count-dots fixed-dots">${plainDots(known)}</div>
+        </div>
+        <div class="dot-group">
+          <div class="dot-group-label">Dodaj</div>
+          <div class="interactive-dots add-dots" id="missingAddDots">${interactiveDots(needed)}</div>
+        </div>
       </div>
-      <div class="dot-status">
+      <div class="dot-status live-math-status">
         <span>Dodano: <strong id="addedCount">0</strong></span>
-        <span id="missingAnswerResult" class="remaining-result"></span>
+        <span id="sumCount" class="remaining-result visible">Suma: ${known}</span>
       </div>
     `;
 
@@ -396,14 +410,11 @@ function renderMissingNumberHint(task) {
           added += 1;
         }
         document.getElementById("addedCount").textContent = String(added);
-        const resultLabel = document.getElementById("missingAnswerResult");
-        resultLabel.textContent = added === needed ? `Brakuje: ${needed}` : "";
-        resultLabel.classList.toggle("visible", added === needed);
+        document.getElementById("sumCount").textContent = `Suma: ${known + added}`;
       });
     });
     return;
   }
-
   // a - ? = result
   if (expression.includes("-") && data.missing === "b") {
     const start = Number(data.a) || 0;
@@ -416,7 +427,7 @@ function renderMissingNumberHint(task) {
       <div class="interactive-dots" id="missingSubtractDots">${interactiveDots(start)}</div>
       <div class="dot-status">
         <span>Odjęto: <strong id="missingRemovedCount">0</strong></span>
-        <span id="missingSubtractResult" class="remaining-result"></span>
+        <span id="missingSubtractResult" class="remaining-result visible">Zostało: ${start}</span>
       </div>
     `;
 
@@ -434,8 +445,8 @@ function renderMissingNumberHint(task) {
 
         document.getElementById("missingRemovedCount").textContent = String(removed);
         const resultLabel = document.getElementById("missingSubtractResult");
-        resultLabel.textContent = removed === targetRemoved ? `Odjęto: ${targetRemoved}` : "";
-        resultLabel.classList.toggle("visible", removed === targetRemoved);
+        resultLabel.textContent = `Zostało: ${start - removed}`;
+        resultLabel.classList.add("visible");
       });
     });
     return;
