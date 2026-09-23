@@ -1021,9 +1021,8 @@ function renderOptions(task, formatter = null) {
   checkButton.addEventListener("click", () => {
     if (state.pendingAnswer == null) return;
 
-    const selectedButton = wrap.querySelector(
-      `.option[data-value="${CSS.escape(String(state.pendingAnswer))}"]`
-    );
+    const selectedButton = [...wrap.querySelectorAll(".option")]
+      .find(button => button.dataset.value === String(state.pendingAnswer));
 
     if (String(state.pendingAnswer) === String(task.correct_answer)) {
       success(selectedButton);
