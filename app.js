@@ -19,6 +19,7 @@ let state = {
   searchSelection: [],
   sudokuAnswers: [],
   sudokuActive: 0,
+  pendingAnswer: null,
   memoryTimer: null
 };
 
@@ -170,6 +171,7 @@ function renderTask() {
   state.searchSelection = [];
   state.sudokuAnswers = [];
   state.sudokuActive = 0;
+  state.pendingAnswer = null;
   const task = sessionTasks[state.index];
   const progress = Math.round((state.index / sessionTasks.length) * 100);
 
@@ -975,16 +977,7 @@ function renderMemory(task) {
 }
 
 function renderLocationOptions(task) {
-  const wrap = document.getElementById("options");
-  wrap.innerHTML = (task.options || []).map(value => `
-    <button class="option location-option" data-value="${escapeHtml(value)}">
-      ${locationSymbol(value)}
-    </button>
-  `).join("");
-
-  wrap.querySelectorAll(".option").forEach(button => {
-    button.addEventListener("click", () => checkAnswer(button.dataset.value, task.correct_answer, button));
-  });
+  renderOptions(task, value => locationSymbol(value));
 }
 
 function renderFallback(task) {
@@ -995,18 +988,49 @@ function renderFallback(task) {
 
 function renderOptions(task, formatter = null) {
   const wrap = document.getElementById("options");
-  wrap.style.display = "grid";
-
   const options = task.options || [];
-  wrap.innerHTML = options.map(option => {
-    const label = formatter ? formatter(option) : option;
-    return `<button class="option" data-value="${escapeHtml(option)}">${label}</button>`;
-  }).join("");
+  state.pendingAnswer = null;
+
+  wrap.style.display = "block";
+  wrap.innerHTML = `
+    <div class="option-grid">
+      ${options.map(option => {
+        const label = formatter ? formatter(option) : option;
+        return `<button class="option" data-value="${escapeHtml(option)}">${label}</button>`;
+      }).join("")}
+    </div>
+    <button class="check-btn answer-check-btn" id="checkSelectedAnswer" disabled>SPRAWDŹ</button>
+  `;
+
+  const checkButton = document.getElementById("checkSelectedAnswer");
 
   wrap.querySelectorAll(".option").forEach(button => {
     button.addEventListener("click", () => {
-      checkAnswer(button.dataset.value, task.correct_answer, button);
+      state.pendingAnswer = button.dataset.value;
+
+      wrap.querySelectorAll(".option").forEach(optionButton => {
+        optionButton.classList.toggle("selected-choice", optionButton === button);
+        optionButton.classList.remove("wrong-choice", "correct-choice");
+      });
+
+      checkButton.disabled = false;
+      clearFeedback();
     });
+  });
+
+  checkButton.addEventListener("click", () => {
+    if (state.pendingAnswer == null) return;
+
+    const selectedButton = wrap.querySelector(
+      `.option[data-value="${CSS.escape(String(state.pendingAnswer))}"]`
+    );
+
+    if (String(state.pendingAnswer) === String(task.correct_answer)) {
+      success(selectedButton);
+      return;
+    }
+
+    retry(selectedButton);
   });
 }
 
