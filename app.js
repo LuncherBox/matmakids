@@ -248,15 +248,14 @@ function renderEquationWithDots(task) {
     area.innerHTML = `
       <div class="math-stack">
         <div class="equation">${escapeHtml(data.expression)} = ?</div>
-        <div class="hint-card count-hint interactive-hint">
+        <div class="hint-card count-hint interactive-hint subtraction-count-hint">
           <div class="hint-label">Podpowiedź</div>
           <div class="hint-instruction">Odznacz <strong>${targetRemoved}</strong> kropek.</div>
           <div class="interactive-dots" id="subtractionDots">
             ${interactiveDots(total)}
           </div>
-          <div class="dot-status">
-            <span>Odjęto: <strong id="removedCount">0</strong> z ${targetRemoved}</span>
-            <span id="remainingResult" class="remaining-result visible">Zostało: ${total}</span>
+          <div class="live-equation subtraction-equation" id="subtractionEquation">
+            ${total} - 0 = ${total}
           </div>
         </div>
       </div>
@@ -305,9 +304,8 @@ function renderEquationWithDots(task) {
 
 function setupSubtractionDots(total, targetRemoved) {
   const wrap = document.getElementById("subtractionDots");
-  const removedLabel = document.getElementById("removedCount");
-  const resultLabel = document.getElementById("remainingResult");
-  if (!wrap) return;
+  const equation = document.getElementById("subtractionEquation");
+  if (!wrap || !equation) return;
 
   let removed = 0;
 
@@ -323,10 +321,8 @@ function setupSubtractionDots(total, targetRemoved) {
         removed += 1;
       }
 
-      removedLabel.textContent = String(removed);
-
-      resultLabel.textContent = `Zostało: ${total - removed}`;
-      resultLabel.classList.add("visible");
+      equation.textContent = `${total} - ${removed} = ${total - removed}`;
+      equation.classList.toggle("complete", removed === targetRemoved);
     });
   });
 }
