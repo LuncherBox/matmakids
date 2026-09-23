@@ -1,0 +1,3537 @@
+[
+  {
+    "id": "math_add_001",
+    "category": "math",
+    "subcategory": "addition",
+    "name": "Dodawanie do 20 - 1",
+    "skill": "addition_within_20",
+    "type": "single_choice",
+    "renderer": "equation_with_dots",
+    "difficulty": 1,
+    "instruction": "Oblicz działanie.",
+    "speech_text": "Oblicz działanie.",
+    "content": {
+      "expression": "3 + 4",
+      "left": 3,
+      "right": 4
+    },
+    "options": [
+      5,
+      6,
+      7,
+      8
+    ],
+    "correct_answer": 7,
+    "hint": {
+      "enabled": true,
+      "type": "dots"
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "addition",
+      "within_20",
+      "visual_hint"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "math_add_002",
+    "category": "math",
+    "subcategory": "addition",
+    "name": "Dodawanie do 20 - 2",
+    "skill": "addition_within_20",
+    "type": "single_choice",
+    "renderer": "equation_with_dots",
+    "difficulty": 1,
+    "instruction": "Oblicz działanie.",
+    "speech_text": "Oblicz działanie.",
+    "content": {
+      "expression": "6 + 5",
+      "left": 6,
+      "right": 5
+    },
+    "options": [
+      9,
+      10,
+      11,
+      12
+    ],
+    "correct_answer": 11,
+    "hint": {
+      "enabled": true,
+      "type": "dots"
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "addition",
+      "within_20",
+      "cross_10",
+      "visual_hint"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "math_add_003",
+    "category": "math",
+    "subcategory": "addition",
+    "name": "Dodawanie do 20 - 3",
+    "skill": "addition_within_20",
+    "type": "single_choice",
+    "renderer": "equation_with_dots",
+    "difficulty": 2,
+    "instruction": "Oblicz działanie.",
+    "speech_text": "Oblicz działanie.",
+    "content": {
+      "expression": "8 + 7",
+      "left": 8,
+      "right": 7
+    },
+    "options": [
+      13,
+      14,
+      15,
+      16
+    ],
+    "correct_answer": 15,
+    "hint": {
+      "enabled": true,
+      "type": "dots"
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "addition",
+      "within_20",
+      "cross_10",
+      "visual_hint"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "math_add_004",
+    "category": "math",
+    "subcategory": "addition",
+    "name": "Dodawanie do 20 - 4",
+    "skill": "addition_within_20",
+    "type": "single_choice",
+    "renderer": "equation_with_dots",
+    "difficulty": 2,
+    "instruction": "Oblicz działanie.",
+    "speech_text": "Oblicz działanie.",
+    "content": {
+      "expression": "9 + 9",
+      "left": 9,
+      "right": 9
+    },
+    "options": [
+      16,
+      17,
+      18,
+      19
+    ],
+    "correct_answer": 18,
+    "hint": {
+      "enabled": true,
+      "type": "dots"
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "addition",
+      "within_20",
+      "visual_hint"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "math_add_005",
+    "category": "math",
+    "subcategory": "addition",
+    "name": "Dodawanie do 20 - 5",
+    "skill": "addition_within_20",
+    "type": "single_choice",
+    "renderer": "equation_with_dots",
+    "difficulty": 2,
+    "instruction": "Oblicz działanie.",
+    "speech_text": "Oblicz działanie.",
+    "content": {
+      "expression": "12 + 5",
+      "left": 12,
+      "right": 5
+    },
+    "options": [
+      15,
+      16,
+      17,
+      18
+    ],
+    "correct_answer": 17,
+    "hint": {
+      "enabled": true,
+      "type": "dots"
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "addition",
+      "within_20",
+      "visual_hint"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "math_add_006",
+    "category": "math",
+    "subcategory": "addition",
+    "name": "Dodawanie do 20 - 6",
+    "skill": "addition_within_20",
+    "type": "single_choice",
+    "renderer": "equation_with_dots",
+    "difficulty": 2,
+    "instruction": "Oblicz działanie.",
+    "speech_text": "Oblicz działanie.",
+    "content": {
+      "expression": "14 + 6",
+      "left": 14,
+      "right": 6
+    },
+    "options": [
+      17,
+      18,
+      19,
+      20
+    ],
+    "correct_answer": 20,
+    "hint": {
+      "enabled": true,
+      "type": "dots"
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "addition",
+      "within_20",
+      "make_20",
+      "visual_hint"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "math_sub_001",
+    "category": "math",
+    "subcategory": "subtraction",
+    "name": "Odejmowanie do 20 - 1",
+    "skill": "subtraction_within_20",
+    "type": "single_choice",
+    "renderer": "equation_with_dots",
+    "difficulty": 1,
+    "instruction": "Oblicz działanie.",
+    "speech_text": "Oblicz działanie.",
+    "content": {
+      "expression": "9 - 3",
+      "left": 9,
+      "right": 3
+    },
+    "options": [
+      5,
+      6,
+      7,
+      8
+    ],
+    "correct_answer": 6,
+    "hint": {
+      "enabled": true,
+      "type": "dots"
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "subtraction",
+      "within_20",
+      "visual_hint"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "math_sub_002",
+    "category": "math",
+    "subcategory": "subtraction",
+    "name": "Odejmowanie do 20 - 2",
+    "skill": "subtraction_within_20",
+    "type": "single_choice",
+    "renderer": "equation_with_dots",
+    "difficulty": 1,
+    "instruction": "Oblicz działanie.",
+    "speech_text": "Oblicz działanie.",
+    "content": {
+      "expression": "12 - 5",
+      "left": 12,
+      "right": 5
+    },
+    "options": [
+      6,
+      7,
+      8,
+      9
+    ],
+    "correct_answer": 7,
+    "hint": {
+      "enabled": true,
+      "type": "dots"
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "subtraction",
+      "within_20",
+      "cross_10",
+      "visual_hint"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "math_sub_003",
+    "category": "math",
+    "subcategory": "subtraction",
+    "name": "Odejmowanie do 20 - 3",
+    "skill": "subtraction_within_20",
+    "type": "single_choice",
+    "renderer": "equation_with_dots",
+    "difficulty": 2,
+    "instruction": "Oblicz działanie.",
+    "speech_text": "Oblicz działanie.",
+    "content": {
+      "expression": "15 - 6",
+      "left": 15,
+      "right": 6
+    },
+    "options": [
+      8,
+      9,
+      10,
+      11
+    ],
+    "correct_answer": 9,
+    "hint": {
+      "enabled": true,
+      "type": "dots"
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "subtraction",
+      "within_20",
+      "cross_10",
+      "visual_hint"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "math_sub_004",
+    "category": "math",
+    "subcategory": "subtraction",
+    "name": "Odejmowanie do 20 - 4",
+    "skill": "subtraction_within_20",
+    "type": "single_choice",
+    "renderer": "equation_with_dots",
+    "difficulty": 2,
+    "instruction": "Oblicz działanie.",
+    "speech_text": "Oblicz działanie.",
+    "content": {
+      "expression": "18 - 7",
+      "left": 18,
+      "right": 7
+    },
+    "options": [
+      9,
+      10,
+      11,
+      12
+    ],
+    "correct_answer": 11,
+    "hint": {
+      "enabled": true,
+      "type": "dots"
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "subtraction",
+      "within_20",
+      "visual_hint"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "math_sub_005",
+    "category": "math",
+    "subcategory": "subtraction",
+    "name": "Odejmowanie do 20 - 5",
+    "skill": "subtraction_within_20",
+    "type": "single_choice",
+    "renderer": "equation_with_dots",
+    "difficulty": 2,
+    "instruction": "Oblicz działanie.",
+    "speech_text": "Oblicz działanie.",
+    "content": {
+      "expression": "20 - 8",
+      "left": 20,
+      "right": 8
+    },
+    "options": [
+      10,
+      11,
+      12,
+      13
+    ],
+    "correct_answer": 12,
+    "hint": {
+      "enabled": true,
+      "type": "dots"
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "subtraction",
+      "within_20",
+      "visual_hint"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "math_sub_006",
+    "category": "math",
+    "subcategory": "subtraction",
+    "name": "Odejmowanie do 20 - 6",
+    "skill": "subtraction_within_20",
+    "type": "single_choice",
+    "renderer": "equation_with_dots",
+    "difficulty": 2,
+    "instruction": "Oblicz działanie.",
+    "speech_text": "Oblicz działanie.",
+    "content": {
+      "expression": "17 - 9",
+      "left": 17,
+      "right": 9
+    },
+    "options": [
+      7,
+      8,
+      9,
+      10
+    ],
+    "correct_answer": 8,
+    "hint": {
+      "enabled": true,
+      "type": "dots"
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "subtraction",
+      "within_20",
+      "cross_10",
+      "visual_hint"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "math_missing_001",
+    "category": "math",
+    "subcategory": "missing_number",
+    "name": "Brakująca liczba - 1",
+    "skill": "missing_addend_within_20",
+    "type": "single_choice",
+    "renderer": "missing_number_equation",
+    "difficulty": 2,
+    "instruction": "Jaka liczba pasuje w wyróżnione miejsce?",
+    "speech_text": "Jaka liczba pasuje w wyróżnione miejsce?",
+    "content": {
+      "expression": "5 + ? = 13",
+      "a": 5,
+      "result": 13,
+      "missing": "b"
+    },
+    "options": [
+      6,
+      7,
+      8,
+      9
+    ],
+    "correct_answer": 8,
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "missing_number",
+      "addition",
+      "within_20"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "math_missing_002",
+    "category": "math",
+    "subcategory": "missing_number",
+    "name": "Brakująca liczba - 2",
+    "skill": "missing_addend_within_20",
+    "type": "single_choice",
+    "renderer": "missing_number_equation",
+    "difficulty": 2,
+    "instruction": "Jaka liczba pasuje w wyróżnione miejsce?",
+    "speech_text": "Jaka liczba pasuje w wyróżnione miejsce?",
+    "content": {
+      "expression": "? + 7 = 16",
+      "b": 7,
+      "result": 16,
+      "missing": "a"
+    },
+    "options": [
+      7,
+      8,
+      9,
+      10
+    ],
+    "correct_answer": 9,
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "missing_number",
+      "addition",
+      "within_20"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "math_missing_003",
+    "category": "math",
+    "subcategory": "missing_number",
+    "name": "Brakująca liczba - 3",
+    "skill": "missing_subtrahend_within_20",
+    "type": "single_choice",
+    "renderer": "missing_number_equation",
+    "difficulty": 2,
+    "instruction": "Jaka liczba pasuje w wyróżnione miejsce?",
+    "speech_text": "Jaka liczba pasuje w wyróżnione miejsce?",
+    "content": {
+      "expression": "14 - ? = 8",
+      "a": 14,
+      "result": 8,
+      "missing": "b"
+    },
+    "options": [
+      4,
+      5,
+      6,
+      7
+    ],
+    "correct_answer": 6,
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "missing_number",
+      "subtraction",
+      "within_20"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "math_missing_004",
+    "category": "math",
+    "subcategory": "missing_number",
+    "name": "Brakująca liczba - 4",
+    "skill": "missing_minuend_within_20",
+    "type": "single_choice",
+    "renderer": "missing_number_equation",
+    "difficulty": 2,
+    "instruction": "Jaka liczba pasuje w wyróżnione miejsce?",
+    "speech_text": "Jaka liczba pasuje w wyróżnione miejsce?",
+    "content": {
+      "expression": "? - 5 = 9",
+      "b": 5,
+      "result": 9,
+      "missing": "a"
+    },
+    "options": [
+      12,
+      13,
+      14,
+      15
+    ],
+    "correct_answer": 14,
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "missing_number",
+      "subtraction",
+      "within_20"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "math_order_001",
+    "category": "math",
+    "subcategory": "number_order",
+    "name": "Kolejność liczb - 1",
+    "skill": "number_sequence_within_20",
+    "type": "single_choice",
+    "renderer": "number_sequence",
+    "difficulty": 1,
+    "instruction": "Jaka liczba powinna być dalej?",
+    "speech_text": "Jaka liczba powinna być dalej?",
+    "content": {
+      "items": [
+        11,
+        12,
+        null,
+        14
+      ],
+      "missing_index": 2,
+      "step": 1
+    },
+    "options": [
+      12,
+      13,
+      14,
+      15
+    ],
+    "correct_answer": 13,
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "number_order",
+      "within_20",
+      "ascending"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "math_order_002",
+    "category": "math",
+    "subcategory": "number_order",
+    "name": "Kolejność liczb - 2",
+    "skill": "number_sequence_within_20",
+    "type": "single_choice",
+    "renderer": "number_sequence",
+    "difficulty": 2,
+    "instruction": "Jaka liczba powinna być dalej?",
+    "speech_text": "Jaka liczba powinna być dalej?",
+    "content": {
+      "items": [
+        17,
+        16,
+        null,
+        14
+      ],
+      "missing_index": 2,
+      "step": -1
+    },
+    "options": [
+      13,
+      14,
+      15,
+      16
+    ],
+    "correct_answer": 15,
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "number_order",
+      "within_20",
+      "descending"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "math_compare_001",
+    "category": "math",
+    "subcategory": "number_comparison",
+    "name": "Porównaj liczby - 1",
+    "skill": "number_comparison_within_20",
+    "type": "single_choice",
+    "renderer": "number_comparison",
+    "difficulty": 1,
+    "instruction": "Która liczba jest większa?",
+    "speech_text": "Która liczba jest większa?",
+    "content": {
+      "left": 13,
+      "right": 16,
+      "relation": "greater"
+    },
+    "options": [
+      13,
+      16
+    ],
+    "correct_answer": 16,
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "number_comparison",
+      "within_20"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "math_compare_002",
+    "category": "math",
+    "subcategory": "number_comparison",
+    "name": "Porównaj liczby - 2",
+    "skill": "number_comparison_within_20",
+    "type": "single_choice",
+    "renderer": "number_comparison",
+    "difficulty": 1,
+    "instruction": "Która liczba jest większa?",
+    "speech_text": "Która liczba jest większa?",
+    "content": {
+      "left": 18,
+      "right": 11,
+      "relation": "greater"
+    },
+    "options": [
+      18,
+      11
+    ],
+    "correct_answer": 18,
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "number_comparison",
+      "within_20"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "logic_sequence_001",
+    "category": "logic",
+    "subcategory": "logical_sequence",
+    "name": "Ciąg kolorów - 1",
+    "skill": "alternating_pattern",
+    "type": "single_choice",
+    "renderer": "visual_sequence",
+    "difficulty": 1,
+    "instruction": "Co będzie dalej?",
+    "speech_text": "Co będzie dalej?",
+    "content": {
+      "items": [
+        "🔴",
+        "🔵",
+        "🔴",
+        "🔵",
+        "🔴",
+        null
+      ],
+      "missing_index": 5,
+      "rule": "alternating"
+    },
+    "options": [
+      "🔴",
+      "🔵",
+      "🟢"
+    ],
+    "correct_answer": "🔵",
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "sequence",
+      "alternating",
+      "visual_pattern"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "logic_sequence_002",
+    "category": "logic",
+    "subcategory": "logical_sequence",
+    "name": "Ciąg figur - 1",
+    "skill": "alternating_pattern",
+    "type": "single_choice",
+    "renderer": "visual_sequence",
+    "difficulty": 1,
+    "instruction": "Co będzie dalej?",
+    "speech_text": "Co będzie dalej?",
+    "content": {
+      "items": [
+        "●",
+        "■",
+        "●",
+        "■",
+        "●",
+        null
+      ],
+      "missing_index": 5,
+      "rule": "alternating"
+    },
+    "options": [
+      "●",
+      "■",
+      "▲"
+    ],
+    "correct_answer": "■",
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "sequence",
+      "alternating",
+      "shapes"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "logic_sequence_003",
+    "category": "logic",
+    "subcategory": "logical_sequence",
+    "name": "Wzór AAB - 1",
+    "skill": "repeating_pattern_aab",
+    "type": "single_choice",
+    "renderer": "visual_sequence",
+    "difficulty": 1,
+    "instruction": "Co będzie dalej?",
+    "speech_text": "Co będzie dalej?",
+    "content": {
+      "items": [
+        "🍎",
+        "🍎",
+        "🍌",
+        "🍎",
+        "🍎",
+        null
+      ],
+      "missing_index": 5,
+      "rule": "AAB"
+    },
+    "options": [
+      "🍎",
+      "🍌",
+      "🍓"
+    ],
+    "correct_answer": "🍌",
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "sequence",
+      "AAB",
+      "visual_pattern"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "logic_sequence_004",
+    "category": "logic",
+    "subcategory": "logical_sequence",
+    "name": "Wzór ABC - 1",
+    "skill": "repeating_pattern_abc",
+    "type": "single_choice",
+    "renderer": "visual_sequence",
+    "difficulty": 2,
+    "instruction": "Co będzie dalej?",
+    "speech_text": "Co będzie dalej?",
+    "content": {
+      "items": [
+        "⭐",
+        "🔵",
+        "🔺",
+        "⭐",
+        "🔵",
+        null
+      ],
+      "missing_index": 5,
+      "rule": "ABC"
+    },
+    "options": [
+      "⭐",
+      "🔵",
+      "🔺"
+    ],
+    "correct_answer": "🔺",
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "sequence",
+      "ABC",
+      "visual_pattern"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "logic_sequence_005",
+    "category": "logic",
+    "subcategory": "logical_sequence",
+    "name": "Rosnący wzór - 1",
+    "skill": "growing_pattern",
+    "type": "single_choice",
+    "renderer": "visual_sequence",
+    "difficulty": 2,
+    "instruction": "Co będzie dalej?",
+    "speech_text": "Co będzie dalej?",
+    "content": {
+      "items": [
+        "●",
+        "●●",
+        "●●●",
+        null
+      ],
+      "missing_index": 3,
+      "rule": "add_one"
+    },
+    "options": [
+      "●●",
+      "●●●",
+      "●●●●"
+    ],
+    "correct_answer": "●●●●",
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "sequence",
+      "growing_pattern"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "logic_sequence_006",
+    "category": "logic",
+    "subcategory": "logical_sequence",
+    "name": "Ciąg liczb parzystych - 1",
+    "skill": "numeric_pattern_plus_2",
+    "type": "single_choice",
+    "renderer": "visual_sequence",
+    "difficulty": 2,
+    "instruction": "Co będzie dalej?",
+    "speech_text": "Co będzie dalej?",
+    "content": {
+      "items": [
+        2,
+        4,
+        6,
+        null
+      ],
+      "missing_index": 3,
+      "rule": "plus_2"
+    },
+    "options": [
+      7,
+      8,
+      9
+    ],
+    "correct_answer": 8,
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "sequence",
+      "numbers",
+      "plus_2"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "logic_odd_001",
+    "category": "logic",
+    "subcategory": "odd_one_out",
+    "name": "Znajdź niepasujący element - 1",
+    "skill": "semantic_classification",
+    "type": "single_choice",
+    "renderer": "odd_one_out",
+    "difficulty": 1,
+    "instruction": "Co nie pasuje?",
+    "speech_text": "Co nie pasuje?",
+    "content": {
+      "items": [
+        "🐶",
+        "🐱",
+        "🐰",
+        "🚗"
+      ],
+      "group": "animals"
+    },
+    "options": [
+      "🐶",
+      "🐱",
+      "🐰",
+      "🚗"
+    ],
+    "correct_answer": "🚗",
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "odd_one_out",
+      "semantic"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "logic_odd_002",
+    "category": "logic",
+    "subcategory": "odd_one_out",
+    "name": "Znajdź niepasujący element - 2",
+    "skill": "semantic_classification",
+    "type": "single_choice",
+    "renderer": "odd_one_out",
+    "difficulty": 1,
+    "instruction": "Co nie pasuje?",
+    "speech_text": "Co nie pasuje?",
+    "content": {
+      "items": [
+        "🍎",
+        "🍌",
+        "🍓",
+        "👟"
+      ],
+      "group": "fruit"
+    },
+    "options": [
+      "🍎",
+      "🍌",
+      "🍓",
+      "👟"
+    ],
+    "correct_answer": "👟",
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "odd_one_out",
+      "semantic"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "logic_odd_003",
+    "category": "logic",
+    "subcategory": "odd_one_out",
+    "name": "Znajdź niepasujący element - 3",
+    "skill": "semantic_classification",
+    "type": "single_choice",
+    "renderer": "odd_one_out",
+    "difficulty": 1,
+    "instruction": "Co nie pasuje?",
+    "speech_text": "Co nie pasuje?",
+    "content": {
+      "items": [
+        "🚗",
+        "🚲",
+        "🚌",
+        "🍌"
+      ],
+      "group": "vehicles"
+    },
+    "options": [
+      "🚗",
+      "🚲",
+      "🚌",
+      "🍌"
+    ],
+    "correct_answer": "🍌",
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "odd_one_out",
+      "semantic"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "logic_odd_004",
+    "category": "logic",
+    "subcategory": "odd_one_out",
+    "name": "Znajdź niepasujący element - 4",
+    "skill": "visual_property_classification",
+    "type": "single_choice",
+    "renderer": "odd_one_out",
+    "difficulty": 1,
+    "instruction": "Co nie pasuje?",
+    "speech_text": "Co nie pasuje?",
+    "content": {
+      "items": [
+        "🔴",
+        "❤️",
+        "🟥",
+        "🔵"
+      ],
+      "group": "red_items"
+    },
+    "options": [
+      "🔴",
+      "❤️",
+      "🟥",
+      "🔵"
+    ],
+    "correct_answer": "🔵",
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "odd_one_out",
+      "visual_property",
+      "color"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "logic_odd_005",
+    "category": "logic",
+    "subcategory": "odd_one_out",
+    "name": "Znajdź niepasujący element - 5",
+    "skill": "semantic_classification",
+    "type": "single_choice",
+    "renderer": "odd_one_out",
+    "difficulty": 2,
+    "instruction": "Co nie pasuje?",
+    "speech_text": "Co nie pasuje?",
+    "content": {
+      "items": [
+        "🦋",
+        "🐦",
+        "✈️",
+        "🐟"
+      ],
+      "group": "can_fly"
+    },
+    "options": [
+      "🦋",
+      "🐦",
+      "✈️",
+      "🐟"
+    ],
+    "correct_answer": "🐟",
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "odd_one_out",
+      "semantic",
+      "function"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "logic_class_001",
+    "category": "logic",
+    "subcategory": "classification",
+    "name": "Wybierz owoc - 1",
+    "skill": "category_membership",
+    "type": "single_choice",
+    "renderer": "classification",
+    "difficulty": 1,
+    "instruction": "Który element jest owocem?",
+    "speech_text": "Który element jest owocem?",
+    "content": {
+      "category": "fruit",
+      "items": [
+        "🍎",
+        "🚗",
+        "🐶",
+        "⚽"
+      ]
+    },
+    "options": [
+      "🍎",
+      "🚗",
+      "🐶",
+      "⚽"
+    ],
+    "correct_answer": "🍎",
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "classification",
+      "semantic"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "logic_class_002",
+    "category": "logic",
+    "subcategory": "classification",
+    "name": "Wybierz ubranie - 1",
+    "skill": "category_membership",
+    "type": "single_choice",
+    "renderer": "classification",
+    "difficulty": 1,
+    "instruction": "Który element jest ubraniem?",
+    "speech_text": "Który element jest ubraniem?",
+    "content": {
+      "category": "clothing",
+      "items": [
+        "👟",
+        "🍌",
+        "🐱",
+        "🚲"
+      ]
+    },
+    "options": [
+      "👟",
+      "🍌",
+      "🐱",
+      "🚲"
+    ],
+    "correct_answer": "👟",
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "classification",
+      "semantic"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "logic_class_003",
+    "category": "logic",
+    "subcategory": "classification",
+    "name": "Wybierz pojazd - 1",
+    "skill": "category_membership",
+    "type": "single_choice",
+    "renderer": "classification",
+    "difficulty": 1,
+    "instruction": "Który element jest pojazdem?",
+    "speech_text": "Który element jest pojazdem?",
+    "content": {
+      "category": "vehicle",
+      "items": [
+        "🚗",
+        "🐰",
+        "🍓",
+        "🌳"
+      ]
+    },
+    "options": [
+      "🚗",
+      "🐰",
+      "🍓",
+      "🌳"
+    ],
+    "correct_answer": "🚗",
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "classification",
+      "semantic"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "logic_spatial_001",
+    "category": "logic",
+    "subcategory": "spatial_relation",
+    "name": "Relacje przestrzenne - 1",
+    "skill": "relative_position",
+    "type": "single_choice",
+    "renderer": "spatial_relation_grid",
+    "difficulty": 2,
+    "instruction": "Co znajduje się nad gwiazdką?",
+    "speech_text": "Co znajduje się nad gwiazdką?",
+    "content": {
+      "grid_size": 3,
+      "objects": {
+        "1,1": "⭐",
+        "0,1": "🍎",
+        "2,1": "🚗",
+        "1,0": "🐶"
+      },
+      "reference": "⭐",
+      "relation": "above"
+    },
+    "options": [
+      "🍎",
+      "🚗",
+      "🐶"
+    ],
+    "correct_answer": "🍎",
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "spatial_relation",
+      "grid_3x3",
+      "above"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "logic_spatial_002",
+    "category": "logic",
+    "subcategory": "spatial_relation",
+    "name": "Relacje przestrzenne - 2",
+    "skill": "relative_position",
+    "type": "single_choice",
+    "renderer": "spatial_relation_grid",
+    "difficulty": 2,
+    "instruction": "Co znajduje się po prawej stronie kota?",
+    "speech_text": "Co znajduje się po prawej stronie kota?",
+    "content": {
+      "grid_size": 3,
+      "objects": {
+        "1,1": "🐱",
+        "1,2": "⚽",
+        "1,0": "🌳",
+        "0,1": "⭐"
+      },
+      "reference": "🐱",
+      "relation": "right"
+    },
+    "options": [
+      "⚽",
+      "🌳",
+      "⭐"
+    ],
+    "correct_answer": "⚽",
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "spatial_relation",
+      "grid_3x3",
+      "right"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "logic_pattern_001",
+    "category": "logic",
+    "subcategory": "missing_pattern_element",
+    "name": "Brakujący element wzoru - 1",
+    "skill": "matrix_pattern_completion",
+    "type": "single_choice",
+    "renderer": "pattern_matrix",
+    "difficulty": 2,
+    "instruction": "Czego brakuje?",
+    "speech_text": "Czego brakuje?",
+    "content": {
+      "grid": [
+        [
+          "🔴",
+          "🔵"
+        ],
+        [
+          "🔴",
+          null
+        ]
+      ],
+      "missing_position": [
+        1,
+        1
+      ],
+      "rule": "same_columns"
+    },
+    "options": [
+      "🔴",
+      "🔵",
+      "🟢"
+    ],
+    "correct_answer": "🔵",
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "pattern_completion",
+      "matrix_2x2"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "logic_pattern_002",
+    "category": "logic",
+    "subcategory": "missing_pattern_element",
+    "name": "Brakujący element wzoru - 2",
+    "skill": "matrix_pattern_completion",
+    "type": "single_choice",
+    "renderer": "pattern_matrix",
+    "difficulty": 2,
+    "instruction": "Czego brakuje?",
+    "speech_text": "Czego brakuje?",
+    "content": {
+      "grid": [
+        [
+          "⭐",
+          "🌙"
+        ],
+        [
+          "🌙",
+          null
+        ]
+      ],
+      "missing_position": [
+        1,
+        1
+      ],
+      "rule": "checker"
+    },
+    "options": [
+      "⭐",
+      "🌙",
+      "☀️"
+    ],
+    "correct_answer": "⭐",
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "pattern_completion",
+      "matrix_2x2",
+      "checker"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "logic_sudoku_001",
+    "category": "logic",
+    "subcategory": "sudoku_4x4",
+    "name": "Sudoku 4x4 - 1",
+    "skill": "latin_square_completion",
+    "type": "single_choice",
+    "renderer": "sudoku_4x4",
+    "difficulty": 2,
+    "instruction": "Jaka liczba pasuje w puste pole?",
+    "speech_text": "Jaka liczba pasuje w puste pole?",
+    "content": {
+      "grid": [
+        [
+          1,
+          null,
+          3,
+          4
+        ],
+        [
+          3,
+          4,
+          1,
+          2
+        ],
+        [
+          2,
+          1,
+          4,
+          3
+        ],
+        [
+          4,
+          3,
+          2,
+          1
+        ]
+      ],
+      "missing_position": [
+        0,
+        1
+      ]
+    },
+    "options": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "correct_answer": 2,
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "sudoku",
+      "grid_4x4",
+      "numbers"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "logic_sudoku_002",
+    "category": "logic",
+    "subcategory": "sudoku_4x4",
+    "name": "Sudoku 4x4 - 2",
+    "skill": "latin_square_completion",
+    "type": "single_choice",
+    "renderer": "sudoku_4x4",
+    "difficulty": 2,
+    "instruction": "Jaka liczba pasuje w puste pole?",
+    "speech_text": "Jaka liczba pasuje w puste pole?",
+    "content": {
+      "grid": [
+        [
+          1,
+          2,
+          3,
+          4
+        ],
+        [
+          3,
+          4,
+          1,
+          2
+        ],
+        [
+          2,
+          1,
+          null,
+          3
+        ],
+        [
+          4,
+          3,
+          2,
+          1
+        ]
+      ],
+      "missing_position": [
+        2,
+        2
+      ]
+    },
+    "options": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "correct_answer": 4,
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "sudoku",
+      "grid_4x4",
+      "numbers"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "coding_decode_001",
+    "category": "coding",
+    "subcategory": "symbol_decode",
+    "name": "Odczytaj kod - 1",
+    "skill": "symbol_to_letter_decoding",
+    "type": "letter_sequence",
+    "renderer": "symbol_code",
+    "difficulty": 1,
+    "instruction": "Odczytaj słowo i wybierz litery.",
+    "speech_text": "Odczytaj słowo i wybierz litery.",
+    "content": {
+      "legend": {
+        "★": "K",
+        "●": "O",
+        "▲": "T"
+      },
+      "code": [
+        "★",
+        "●",
+        "▲"
+      ]
+    },
+    "options": [],
+    "correct_answer": "KOT",
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "symbols",
+      "letters",
+      "three_letter_word"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "coding_decode_002",
+    "category": "coding",
+    "subcategory": "symbol_decode",
+    "name": "Odczytaj kod - 2",
+    "skill": "symbol_to_letter_decoding",
+    "type": "letter_sequence",
+    "renderer": "symbol_code",
+    "difficulty": 1,
+    "instruction": "Odczytaj słowo i wybierz litery.",
+    "speech_text": "Odczytaj słowo i wybierz litery.",
+    "content": {
+      "legend": {
+        "◆": "D",
+        "■": "O",
+        "●": "M"
+      },
+      "code": [
+        "◆",
+        "■",
+        "●"
+      ]
+    },
+    "options": [],
+    "correct_answer": "DOM",
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "symbols",
+      "letters",
+      "three_letter_word"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "coding_decode_003",
+    "category": "coding",
+    "subcategory": "symbol_decode",
+    "name": "Odczytaj kod - 3",
+    "skill": "symbol_to_letter_decoding",
+    "type": "letter_sequence",
+    "renderer": "symbol_code",
+    "difficulty": 1,
+    "instruction": "Odczytaj słowo i wybierz litery.",
+    "speech_text": "Odczytaj słowo i wybierz litery.",
+    "content": {
+      "legend": {
+        "▲": "L",
+        "★": "A",
+        "●": "S"
+      },
+      "code": [
+        "▲",
+        "★",
+        "●"
+      ]
+    },
+    "options": [],
+    "correct_answer": "LAS",
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "symbols",
+      "letters",
+      "three_letter_word"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "coding_decode_004",
+    "category": "coding",
+    "subcategory": "symbol_decode",
+    "name": "Odczytaj kod - 4",
+    "skill": "symbol_to_letter_decoding",
+    "type": "letter_sequence",
+    "renderer": "symbol_code",
+    "difficulty": 1,
+    "instruction": "Odczytaj słowo i wybierz litery.",
+    "speech_text": "Odczytaj słowo i wybierz litery.",
+    "content": {
+      "legend": {
+        "●": "O",
+        "★": "K"
+      },
+      "code": [
+        "●",
+        "★",
+        "●"
+      ]
+    },
+    "options": [],
+    "correct_answer": "OKO",
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "symbols",
+      "letters",
+      "three_letter_word"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "coding_decode_005",
+    "category": "coding",
+    "subcategory": "symbol_decode",
+    "name": "Odczytaj kod - 5",
+    "skill": "symbol_to_letter_decoding",
+    "type": "letter_sequence",
+    "renderer": "symbol_code",
+    "difficulty": 2,
+    "instruction": "Odczytaj słowo i wybierz litery.",
+    "speech_text": "Odczytaj słowo i wybierz litery.",
+    "content": {
+      "legend": {
+        "■": "B",
+        "▲": "U",
+        "●": "T"
+      },
+      "code": [
+        "■",
+        "▲",
+        "●"
+      ]
+    },
+    "options": [],
+    "correct_answer": "BUT",
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "symbols",
+      "letters",
+      "three_letter_word"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "coding_decode_006",
+    "category": "coding",
+    "subcategory": "symbol_decode",
+    "name": "Odczytaj kod - 6",
+    "skill": "symbol_to_letter_decoding",
+    "type": "letter_sequence",
+    "renderer": "symbol_code",
+    "difficulty": 2,
+    "instruction": "Odczytaj słowo i wybierz litery.",
+    "speech_text": "Odczytaj słowo i wybierz litery.",
+    "content": {
+      "legend": {
+        "◆": "N",
+        "●": "O",
+        "★": "S"
+      },
+      "code": [
+        "◆",
+        "●",
+        "★"
+      ]
+    },
+    "options": [],
+    "correct_answer": "NOS",
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "symbols",
+      "letters",
+      "three_letter_word"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "coding_follow_001",
+    "category": "coding",
+    "subcategory": "follow_commands",
+    "name": "Robot i komendy - 1",
+    "skill": "follow_command_sequence",
+    "type": "single_choice",
+    "renderer": "command_grid_follow",
+    "difficulty": 1,
+    "instruction": "Wykonaj komendy i wybierz, do czego dotrze robot.",
+    "speech_text": "Wykonaj komendy i wybierz, do czego dotrze robot.",
+    "content": {
+      "grid_size": 4,
+      "start": [
+        0,
+        0
+      ],
+      "commands": [
+        "right",
+        "right",
+        "down"
+      ],
+      "objects": {
+        "1,2": "⭐",
+        "2,1": "🍎",
+        "3,3": "🚗"
+      }
+    },
+    "options": [
+      "⭐",
+      "🍎",
+      "🚗"
+    ],
+    "correct_answer": "⭐",
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "commands",
+      "grid_4x4",
+      "path"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "coding_follow_002",
+    "category": "coding",
+    "subcategory": "follow_commands",
+    "name": "Robot i komendy - 2",
+    "skill": "follow_command_sequence",
+    "type": "single_choice",
+    "renderer": "command_grid_follow",
+    "difficulty": 1,
+    "instruction": "Wykonaj komendy i wybierz, do czego dotrze robot.",
+    "speech_text": "Wykonaj komendy i wybierz, do czego dotrze robot.",
+    "content": {
+      "grid_size": 4,
+      "start": [
+        3,
+        0
+      ],
+      "commands": [
+        "up",
+        "right",
+        "right"
+      ],
+      "objects": {
+        "2,2": "⚽",
+        "1,1": "🌳",
+        "0,3": "🌙"
+      }
+    },
+    "options": [
+      "⚽",
+      "🌳",
+      "🌙"
+    ],
+    "correct_answer": "⚽",
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "commands",
+      "grid_4x4",
+      "path"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "coding_follow_003",
+    "category": "coding",
+    "subcategory": "follow_commands",
+    "name": "Robot i komendy - 3",
+    "skill": "follow_command_sequence",
+    "type": "single_choice",
+    "renderer": "command_grid_follow",
+    "difficulty": 1,
+    "instruction": "Wykonaj komendy i wybierz, do czego dotrze robot.",
+    "speech_text": "Wykonaj komendy i wybierz, do czego dotrze robot.",
+    "content": {
+      "grid_size": 4,
+      "start": [
+        0,
+        3
+      ],
+      "commands": [
+        "down",
+        "down",
+        "left"
+      ],
+      "objects": {
+        "2,2": "🍎",
+        "1,1": "🐶",
+        "3,0": "🚲"
+      }
+    },
+    "options": [
+      "🍎",
+      "🐶",
+      "🚲"
+    ],
+    "correct_answer": "🍎",
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "commands",
+      "grid_4x4",
+      "path"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "coding_follow_004",
+    "category": "coding",
+    "subcategory": "follow_commands",
+    "name": "Robot i komendy - 4",
+    "skill": "follow_command_sequence",
+    "type": "single_choice",
+    "renderer": "command_grid_follow",
+    "difficulty": 2,
+    "instruction": "Wykonaj komendy i wybierz, do czego dotrze robot.",
+    "speech_text": "Wykonaj komendy i wybierz, do czego dotrze robot.",
+    "content": {
+      "grid_size": 4,
+      "start": [
+        2,
+        0
+      ],
+      "commands": [
+        "right",
+        "up",
+        "right"
+      ],
+      "objects": {
+        "1,2": "🐶",
+        "0,1": "⭐",
+        "3,2": "🍌"
+      }
+    },
+    "options": [
+      "🐶",
+      "⭐",
+      "🍌"
+    ],
+    "correct_answer": "🐶",
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "commands",
+      "grid_4x4",
+      "path"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "coding_follow_005",
+    "category": "coding",
+    "subcategory": "follow_commands",
+    "name": "Robot i komendy - 5",
+    "skill": "follow_command_sequence",
+    "type": "single_choice",
+    "renderer": "command_grid_follow",
+    "difficulty": 2,
+    "instruction": "Wykonaj komendy i wybierz, do czego dotrze robot.",
+    "speech_text": "Wykonaj komendy i wybierz, do czego dotrze robot.",
+    "content": {
+      "grid_size": 4,
+      "start": [
+        3,
+        3
+      ],
+      "commands": [
+        "left",
+        "left",
+        "up"
+      ],
+      "objects": {
+        "2,1": "🌳",
+        "1,2": "🚗",
+        "0,0": "☀️"
+      }
+    },
+    "options": [
+      "🌳",
+      "🚗",
+      "☀️"
+    ],
+    "correct_answer": "🌳",
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "commands",
+      "grid_4x4",
+      "path"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "coding_predict_001",
+    "category": "coding",
+    "subcategory": "predict_output",
+    "name": "Przewidź drogę robota - 1",
+    "skill": "predict_command_output",
+    "type": "single_choice",
+    "renderer": "command_grid_predict",
+    "difficulty": 1,
+    "instruction": "Gdzie dotrze robot?",
+    "speech_text": "Gdzie dotrze robot?",
+    "content": {
+      "grid_size": 4,
+      "start": [
+        1,
+        1
+      ],
+      "commands": [
+        "up",
+        "right"
+      ],
+      "objects": {
+        "0,2": "🌙",
+        "1,3": "⭐",
+        "2,0": "🍎"
+      }
+    },
+    "options": [
+      "🌙",
+      "⭐",
+      "🍎"
+    ],
+    "correct_answer": "🌙",
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "commands",
+      "predict_output",
+      "grid_4x4"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "coding_predict_002",
+    "category": "coding",
+    "subcategory": "predict_output",
+    "name": "Przewidź drogę robota - 2",
+    "skill": "predict_command_output",
+    "type": "single_choice",
+    "renderer": "command_grid_predict",
+    "difficulty": 2,
+    "instruction": "Gdzie dotrze robot?",
+    "speech_text": "Gdzie dotrze robot?",
+    "content": {
+      "grid_size": 4,
+      "start": [
+        2,
+        2
+      ],
+      "commands": [
+        "left",
+        "up",
+        "up"
+      ],
+      "objects": {
+        "0,1": "☀️",
+        "1,3": "🐱",
+        "3,0": "🚲"
+      }
+    },
+    "options": [
+      "☀️",
+      "🐱",
+      "🚲"
+    ],
+    "correct_answer": "☀️",
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "commands",
+      "predict_output",
+      "grid_4x4"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "coding_predict_003",
+    "category": "coding",
+    "subcategory": "predict_output",
+    "name": "Przewidź drogę robota - 3",
+    "skill": "predict_command_output",
+    "type": "single_choice",
+    "renderer": "command_grid_predict",
+    "difficulty": 2,
+    "instruction": "Gdzie dotrze robot?",
+    "speech_text": "Gdzie dotrze robot?",
+    "content": {
+      "grid_size": 4,
+      "start": [
+        0,
+        0
+      ],
+      "commands": [
+        "down",
+        "down",
+        "right",
+        "right"
+      ],
+      "objects": {
+        "2,2": "🚗",
+        "1,2": "⚽",
+        "3,1": "🌳"
+      }
+    },
+    "options": [
+      "🚗",
+      "⚽",
+      "🌳"
+    ],
+    "correct_answer": "🚗",
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "commands",
+      "predict_output",
+      "grid_4x4"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "coding_plan_001",
+    "category": "coding",
+    "subcategory": "command_sequence",
+    "name": "Wybierz drogę - 1",
+    "skill": "choose_command_sequence",
+    "type": "single_choice",
+    "renderer": "command_grid_plan",
+    "difficulty": 1,
+    "instruction": "Które komendy doprowadzą robota do celu?",
+    "speech_text": "Które komendy doprowadzą robota do celu?",
+    "content": {
+      "grid_size": 4,
+      "start": [
+        0,
+        0
+      ],
+      "target": [
+        0,
+        2
+      ]
+    },
+    "options": [
+      "→ →",
+      "↓ →",
+      "→ ↓"
+    ],
+    "correct_answer": "→ →",
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "commands",
+      "planning",
+      "grid_4x4"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "coding_plan_002",
+    "category": "coding",
+    "subcategory": "command_sequence",
+    "name": "Wybierz drogę - 2",
+    "skill": "choose_command_sequence",
+    "type": "single_choice",
+    "renderer": "command_grid_plan",
+    "difficulty": 2,
+    "instruction": "Które komendy doprowadzą robota do celu?",
+    "speech_text": "Które komendy doprowadzą robota do celu?",
+    "content": {
+      "grid_size": 4,
+      "start": [
+        2,
+        0
+      ],
+      "target": [
+        0,
+        1
+      ]
+    },
+    "options": [
+      "↑ ↑ →",
+      "→ ↑",
+      "↑ → →"
+    ],
+    "correct_answer": "↑ ↑ →",
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "commands",
+      "planning",
+      "grid_4x4"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "coding_plan_003",
+    "category": "coding",
+    "subcategory": "command_sequence",
+    "name": "Wybierz drogę - 3",
+    "skill": "choose_command_sequence",
+    "type": "single_choice",
+    "renderer": "command_grid_plan",
+    "difficulty": 2,
+    "instruction": "Które komendy doprowadzą robota do celu?",
+    "speech_text": "Które komendy doprowadzą robota do celu?",
+    "content": {
+      "grid_size": 4,
+      "start": [
+        0,
+        2
+      ],
+      "target": [
+        2,
+        1
+      ]
+    },
+    "options": [
+      "↓ ↓ ←",
+      "← ↓",
+      "↓ ← ←"
+    ],
+    "correct_answer": "↓ ↓ ←",
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "commands",
+      "planning",
+      "grid_4x4"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "coding_debug_001",
+    "category": "coding",
+    "subcategory": "debug_sequence",
+    "name": "Znajdź błąd - 1",
+    "skill": "debug_command_sequence",
+    "type": "single_choice",
+    "renderer": "command_grid_debug",
+    "difficulty": 2,
+    "instruction": "Która komenda jest błędna?",
+    "speech_text": "Która komenda jest błędna?",
+    "content": {
+      "grid_size": 4,
+      "start": [
+        0,
+        0
+      ],
+      "target": [
+        1,
+        2
+      ],
+      "commands": [
+        "right",
+        "down",
+        "down"
+      ],
+      "corrected_commands": [
+        "right",
+        "down",
+        "right"
+      ]
+    },
+    "options": [
+      1,
+      2,
+      3
+    ],
+    "correct_answer": 3,
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "commands",
+      "debugging",
+      "grid_4x4"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "coding_debug_002",
+    "category": "coding",
+    "subcategory": "debug_sequence",
+    "name": "Znajdź błąd - 2",
+    "skill": "debug_command_sequence",
+    "type": "single_choice",
+    "renderer": "command_grid_debug",
+    "difficulty": 2,
+    "instruction": "Która komenda jest błędna?",
+    "speech_text": "Która komenda jest błędna?",
+    "content": {
+      "grid_size": 4,
+      "start": [
+        2,
+        0
+      ],
+      "target": [
+        0,
+        1
+      ],
+      "commands": [
+        "up",
+        "right",
+        "right"
+      ],
+      "corrected_commands": [
+        "up",
+        "up",
+        "right"
+      ]
+    },
+    "options": [
+      1,
+      2,
+      3
+    ],
+    "correct_answer": 2,
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "commands",
+      "debugging",
+      "grid_4x4"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "coding_repeat_001",
+    "category": "coding",
+    "subcategory": "repeat_pattern",
+    "name": "Powtarzający się kod - 1",
+    "skill": "command_pattern_completion",
+    "type": "single_choice",
+    "renderer": "command_pattern",
+    "difficulty": 1,
+    "instruction": "Jaka komenda powinna być dalej?",
+    "speech_text": "Jaka komenda powinna być dalej?",
+    "content": {
+      "commands": [
+        "up",
+        "right",
+        "up",
+        "right",
+        "up",
+        null
+      ],
+      "missing_index": 5,
+      "rule": "alternating"
+    },
+    "options": [
+      "↑",
+      "→",
+      "↓"
+    ],
+    "correct_answer": "→",
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "commands",
+      "pattern",
+      "alternating"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "memory_image_001",
+    "category": "memory",
+    "subcategory": "image_memory",
+    "name": "Zapamiętaj obrazki - 1",
+    "skill": "visual_item_recognition",
+    "type": "single_choice",
+    "renderer": "image_memory",
+    "difficulty": 1,
+    "instruction": "Zapamiętaj obrazki.",
+    "speech_text": "Zapamiętaj obrazki.",
+    "content": {
+      "memorize_items": [
+        "🍎",
+        "🐶",
+        "⭐"
+      ],
+      "display_seconds": 3,
+      "answer_prompt": "Którego obrazka nie było?"
+    },
+    "options": [
+      "🍎",
+      "🚗",
+      "⭐"
+    ],
+    "correct_answer": "🚗",
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "visual_memory",
+      "item_recognition"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "memory_image_002",
+    "category": "memory",
+    "subcategory": "image_memory",
+    "name": "Zapamiętaj obrazki - 2",
+    "skill": "visual_item_recognition",
+    "type": "single_choice",
+    "renderer": "image_memory",
+    "difficulty": 1,
+    "instruction": "Zapamiętaj obrazki.",
+    "speech_text": "Zapamiętaj obrazki.",
+    "content": {
+      "memorize_items": [
+        "🚲",
+        "🌞",
+        "🍌"
+      ],
+      "display_seconds": 3,
+      "answer_prompt": "Którego obrazka nie było?"
+    },
+    "options": [
+      "🌞",
+      "🐶",
+      "🚲"
+    ],
+    "correct_answer": "🐶",
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "visual_memory",
+      "item_recognition"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "memory_image_003",
+    "category": "memory",
+    "subcategory": "image_memory",
+    "name": "Zapamiętaj obrazki - 3",
+    "skill": "visual_item_recognition",
+    "type": "single_choice",
+    "renderer": "image_memory",
+    "difficulty": 1,
+    "instruction": "Zapamiętaj obrazki.",
+    "speech_text": "Zapamiętaj obrazki.",
+    "content": {
+      "memorize_items": [
+        "🐱",
+        "🌳",
+        "⚽"
+      ],
+      "display_seconds": 3,
+      "answer_prompt": "Którego obrazka nie było?"
+    },
+    "options": [
+      "⚽",
+      "🌳",
+      "🚗"
+    ],
+    "correct_answer": "🚗",
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "visual_memory",
+      "item_recognition"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "memory_image_004",
+    "category": "memory",
+    "subcategory": "image_memory",
+    "name": "Zapamiętaj obrazki - 4",
+    "skill": "visual_item_recognition",
+    "type": "single_choice",
+    "renderer": "image_memory",
+    "difficulty": 2,
+    "instruction": "Zapamiętaj obrazki.",
+    "speech_text": "Zapamiętaj obrazki.",
+    "content": {
+      "memorize_items": [
+        "🦋",
+        "🍓",
+        "🚗",
+        "🌙"
+      ],
+      "display_seconds": 4,
+      "answer_prompt": "Którego obrazka nie było?"
+    },
+    "options": [
+      "🌙",
+      "🍓",
+      "🐟"
+    ],
+    "correct_answer": "🐟",
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "visual_memory",
+      "item_recognition",
+      "four_items"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "memory_image_005",
+    "category": "memory",
+    "subcategory": "image_memory",
+    "name": "Zapamiętaj obrazki - 5",
+    "skill": "visual_item_recognition",
+    "type": "single_choice",
+    "renderer": "image_memory",
+    "difficulty": 2,
+    "instruction": "Zapamiętaj obrazki.",
+    "speech_text": "Zapamiętaj obrazki.",
+    "content": {
+      "memorize_items": [
+        "👟",
+        "🐰",
+        "☂️",
+        "🍎"
+      ],
+      "display_seconds": 4,
+      "answer_prompt": "Którego obrazka nie było?"
+    },
+    "options": [
+      "🍎",
+      "👟",
+      "🚂"
+    ],
+    "correct_answer": "🚂",
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "visual_memory",
+      "item_recognition",
+      "four_items"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "memory_image_006",
+    "category": "memory",
+    "subcategory": "image_memory",
+    "name": "Zapamiętaj obrazki - 6",
+    "skill": "visual_item_recognition",
+    "type": "single_choice",
+    "renderer": "image_memory",
+    "difficulty": 2,
+    "instruction": "Zapamiętaj obrazki.",
+    "speech_text": "Zapamiętaj obrazki.",
+    "content": {
+      "memorize_items": [
+        "🚀",
+        "🐟",
+        "🌼",
+        "🏠"
+      ],
+      "display_seconds": 4,
+      "answer_prompt": "Którego obrazka nie było?"
+    },
+    "options": [
+      "🚀",
+      "🏠",
+      "🍌"
+    ],
+    "correct_answer": "🍌",
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "visual_memory",
+      "item_recognition",
+      "four_items"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "memory_location_001",
+    "category": "memory",
+    "subcategory": "location_memory",
+    "name": "Zapamiętaj położenie - 1",
+    "skill": "visual_location_recall",
+    "type": "single_choice",
+    "renderer": "location_memory_grid",
+    "difficulty": 1,
+    "instruction": "Zapamiętaj, gdzie jest gwiazdka.",
+    "speech_text": "Zapamiętaj, gdzie jest gwiazdka.",
+    "content": {
+      "grid_size": 3,
+      "item": "⭐",
+      "position": [
+        0,
+        0
+      ],
+      "display_seconds": 3,
+      "answer_prompt": "Gdzie była gwiazdka?"
+    },
+    "options": [
+      "top_left",
+      "top_right",
+      "bottom_left"
+    ],
+    "correct_answer": "top_left",
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "visual_memory",
+      "location_recall",
+      "grid_3x3"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "memory_location_002",
+    "category": "memory",
+    "subcategory": "location_memory",
+    "name": "Zapamiętaj położenie - 2",
+    "skill": "visual_location_recall",
+    "type": "single_choice",
+    "renderer": "location_memory_grid",
+    "difficulty": 1,
+    "instruction": "Zapamiętaj, gdzie jest jabłko.",
+    "speech_text": "Zapamiętaj, gdzie jest jabłko.",
+    "content": {
+      "grid_size": 3,
+      "item": "🍎",
+      "position": [
+        0,
+        2
+      ],
+      "display_seconds": 3,
+      "answer_prompt": "Gdzie było jabłko?"
+    },
+    "options": [
+      "center",
+      "top_right",
+      "bottom_right"
+    ],
+    "correct_answer": "top_right",
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "visual_memory",
+      "location_recall",
+      "grid_3x3"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "memory_location_003",
+    "category": "memory",
+    "subcategory": "location_memory",
+    "name": "Zapamiętaj położenie - 3",
+    "skill": "visual_location_recall",
+    "type": "single_choice",
+    "renderer": "location_memory_grid",
+    "difficulty": 1,
+    "instruction": "Zapamiętaj, gdzie jest kot.",
+    "speech_text": "Zapamiętaj, gdzie jest kot.",
+    "content": {
+      "grid_size": 3,
+      "item": "🐱",
+      "position": [
+        1,
+        1
+      ],
+      "display_seconds": 3,
+      "answer_prompt": "Gdzie był kot?"
+    },
+    "options": [
+      "top_left",
+      "center",
+      "bottom_right"
+    ],
+    "correct_answer": "center",
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "visual_memory",
+      "location_recall",
+      "grid_3x3"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "memory_location_004",
+    "category": "memory",
+    "subcategory": "location_memory",
+    "name": "Zapamiętaj położenie - 4",
+    "skill": "visual_location_recall",
+    "type": "single_choice",
+    "renderer": "location_memory_grid",
+    "difficulty": 2,
+    "instruction": "Zapamiętaj, gdzie jest piłka.",
+    "speech_text": "Zapamiętaj, gdzie jest piłka.",
+    "content": {
+      "grid_size": 3,
+      "item": "⚽",
+      "position": [
+        2,
+        0
+      ],
+      "display_seconds": 3,
+      "answer_prompt": "Gdzie była piłka?"
+    },
+    "options": [
+      "top_left",
+      "bottom_left",
+      "bottom_right"
+    ],
+    "correct_answer": "bottom_left",
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "visual_memory",
+      "location_recall",
+      "grid_3x3"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "memory_location_005",
+    "category": "memory",
+    "subcategory": "location_memory",
+    "name": "Zapamiętaj położenie - 5",
+    "skill": "visual_location_recall",
+    "type": "single_choice",
+    "renderer": "location_memory_grid",
+    "difficulty": 2,
+    "instruction": "Zapamiętaj, gdzie jest księżyc.",
+    "speech_text": "Zapamiętaj, gdzie jest księżyc.",
+    "content": {
+      "grid_size": 3,
+      "item": "🌙",
+      "position": [
+        2,
+        2
+      ],
+      "display_seconds": 3,
+      "answer_prompt": "Gdzie był księżyc?"
+    },
+    "options": [
+      "top_right",
+      "center",
+      "bottom_right"
+    ],
+    "correct_answer": "bottom_right",
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "visual_memory",
+      "location_recall",
+      "grid_3x3"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "memory_sequence_001",
+    "category": "memory",
+    "subcategory": "sequence_memory",
+    "name": "Zapamiętaj kolejność - 1",
+    "skill": "visual_sequence_recall",
+    "type": "single_choice",
+    "renderer": "sequence_memory",
+    "difficulty": 1,
+    "instruction": "Zapamiętaj kolejność.",
+    "speech_text": "Zapamiętaj kolejność.",
+    "content": {
+      "memorize_items": [
+        "🍎",
+        "🐶",
+        "⭐"
+      ],
+      "display_seconds": 3,
+      "answer_prompt": "Który obrazek był drugi?",
+      "answer_index": 1
+    },
+    "options": [
+      "🍎",
+      "🐶",
+      "⭐"
+    ],
+    "correct_answer": "🐶",
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "visual_memory",
+      "sequence_recall",
+      "three_items"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "memory_sequence_002",
+    "category": "memory",
+    "subcategory": "sequence_memory",
+    "name": "Zapamiętaj kolejność - 2",
+    "skill": "visual_sequence_recall",
+    "type": "single_choice",
+    "renderer": "sequence_memory",
+    "difficulty": 1,
+    "instruction": "Zapamiętaj kolejność.",
+    "speech_text": "Zapamiętaj kolejność.",
+    "content": {
+      "memorize_items": [
+        "🚗",
+        "🌙",
+        "🍌",
+        "🐱"
+      ],
+      "display_seconds": 4,
+      "answer_prompt": "Który obrazek był pierwszy?",
+      "answer_index": 0
+    },
+    "options": [
+      "🚗",
+      "🌙",
+      "🐱"
+    ],
+    "correct_answer": "🚗",
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "visual_memory",
+      "sequence_recall",
+      "four_items"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "memory_sequence_003",
+    "category": "memory",
+    "subcategory": "sequence_memory",
+    "name": "Zapamiętaj kolejność - 3",
+    "skill": "visual_sequence_recall",
+    "type": "single_choice",
+    "renderer": "sequence_memory",
+    "difficulty": 2,
+    "instruction": "Zapamiętaj kolejność.",
+    "speech_text": "Zapamiętaj kolejność.",
+    "content": {
+      "memorize_items": [
+        "⚽",
+        "🍓",
+        "☂️",
+        "🐰"
+      ],
+      "display_seconds": 4,
+      "answer_prompt": "Który obrazek był ostatni?",
+      "answer_index": 3
+    },
+    "options": [
+      "☂️",
+      "🐰",
+      "⚽"
+    ],
+    "correct_answer": "🐰",
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "visual_memory",
+      "sequence_recall",
+      "four_items"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "memory_sequence_004",
+    "category": "memory",
+    "subcategory": "sequence_memory",
+    "name": "Zapamiętaj kolejność - 4",
+    "skill": "visual_sequence_recall",
+    "type": "single_choice",
+    "renderer": "sequence_memory",
+    "difficulty": 2,
+    "instruction": "Zapamiętaj kolejność.",
+    "speech_text": "Zapamiętaj kolejność.",
+    "content": {
+      "memorize_items": [
+        "⭐",
+        "🌳",
+        "🚲",
+        "🍎"
+      ],
+      "display_seconds": 4,
+      "answer_prompt": "Który obrazek był trzeci?",
+      "answer_index": 2
+    },
+    "options": [
+      "🌳",
+      "🚲",
+      "🍎"
+    ],
+    "correct_answer": "🚲",
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "visual_memory",
+      "sequence_recall",
+      "four_items"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "memory_number_001",
+    "category": "memory",
+    "subcategory": "number_memory",
+    "name": "Zapamiętaj liczby - 1",
+    "skill": "number_sequence_recall",
+    "type": "single_choice",
+    "renderer": "number_memory",
+    "difficulty": 1,
+    "instruction": "Zapamiętaj liczby.",
+    "speech_text": "Zapamiętaj liczby.",
+    "content": {
+      "memorize_items": [
+        4,
+        7,
+        2
+      ],
+      "display_seconds": 3,
+      "answer_prompt": "Która liczba była druga?",
+      "answer_index": 1
+    },
+    "options": [
+      4,
+      7,
+      2
+    ],
+    "correct_answer": 7,
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "number_memory",
+      "sequence_recall",
+      "three_items"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "memory_number_002",
+    "category": "memory",
+    "subcategory": "number_memory",
+    "name": "Zapamiętaj liczby - 2",
+    "skill": "number_sequence_recall",
+    "type": "single_choice",
+    "renderer": "number_memory",
+    "difficulty": 2,
+    "instruction": "Zapamiętaj liczby.",
+    "speech_text": "Zapamiętaj liczby.",
+    "content": {
+      "memorize_items": [
+        9,
+        3,
+        6,
+        1
+      ],
+      "display_seconds": 4,
+      "answer_prompt": "Która liczba była pierwsza?",
+      "answer_index": 0
+    },
+    "options": [
+      9,
+      3,
+      6
+    ],
+    "correct_answer": 9,
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "number_memory",
+      "sequence_recall",
+      "four_items"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "memory_number_003",
+    "category": "memory",
+    "subcategory": "number_memory",
+    "name": "Zapamiętaj liczby - 3",
+    "skill": "number_sequence_recall",
+    "type": "single_choice",
+    "renderer": "number_memory",
+    "difficulty": 2,
+    "instruction": "Zapamiętaj liczby.",
+    "speech_text": "Zapamiętaj liczby.",
+    "content": {
+      "memorize_items": [
+        5,
+        8,
+        2,
+        7
+      ],
+      "display_seconds": 4,
+      "answer_prompt": "Która liczba była ostatnia?",
+      "answer_index": 3
+    },
+    "options": [
+      8,
+      2,
+      7
+    ],
+    "correct_answer": 7,
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "number_memory",
+      "sequence_recall",
+      "four_items"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "memory_pair_001",
+    "category": "memory",
+    "subcategory": "pair_memory",
+    "name": "Zapamiętaj pary - 1",
+    "skill": "visual_pair_recall",
+    "type": "single_choice",
+    "renderer": "pair_memory",
+    "difficulty": 2,
+    "instruction": "Zapamiętaj pary.",
+    "speech_text": "Zapamiętaj pary.",
+    "content": {
+      "memorize_pairs": [
+        {
+          "item": "🍎",
+          "pair": "🔴"
+        },
+        {
+          "item": "🍌",
+          "pair": "🟡"
+        },
+        {
+          "item": "🌳",
+          "pair": "🟢"
+        }
+      ],
+      "display_seconds": 4,
+      "answer_prompt": "Jaki kolor był połączony z bananem?",
+      "query_item": "🍌"
+    },
+    "options": [
+      "🔴",
+      "🟡",
+      "🟢"
+    ],
+    "correct_answer": "🟡",
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "visual_memory",
+      "pair_recall",
+      "associations"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  },
+  {
+    "id": "memory_pair_002",
+    "category": "memory",
+    "subcategory": "pair_memory",
+    "name": "Zapamiętaj pary - 2",
+    "skill": "visual_pair_recall",
+    "type": "single_choice",
+    "renderer": "pair_memory",
+    "difficulty": 2,
+    "instruction": "Zapamiętaj pary.",
+    "speech_text": "Zapamiętaj pary.",
+    "content": {
+      "memorize_pairs": [
+        {
+          "item": "🐶",
+          "pair": "🏠"
+        },
+        {
+          "item": "🐟",
+          "pair": "💧"
+        },
+        {
+          "item": "🐦",
+          "pair": "🌳"
+        }
+      ],
+      "display_seconds": 4,
+      "answer_prompt": "Z czym był połączony ptak?",
+      "query_item": "🐦"
+    },
+    "options": [
+      "🏠",
+      "💧",
+      "🌳"
+    ],
+    "correct_answer": "🌳",
+    "hint": {
+      "enabled": false
+    },
+    "assets": [],
+    "time_limit_seconds": null,
+    "points": 1,
+    "tags": [
+      "age_6",
+      "visual_memory",
+      "pair_recall",
+      "associations"
+    ],
+    "active": false,
+    "status": "draft",
+    "notes": ""
+  }
+]
