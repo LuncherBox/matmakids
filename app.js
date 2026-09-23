@@ -243,39 +243,7 @@ function renderTask() {
 }
 
 function getTaskSpeechText(t) {
-  if (t.speechText) return t.speechText;
-
-  if (t.type === "equation_with_dots" || t.type === "equation") {
-    const spokenExpression = String(t.expression)
-      .replaceAll("+", " plus ")
-      .replaceAll("-", " minus ");
-    return `${t.instruction} ${spokenExpression}. Jaki jest wynik?`;
-  }
-
-  if (t.type === "equation_with_gnome") {
-    return `Ile zostanie? Masz ${t.startCount}. Gnom zabiera ${t.removedCount}. Ile zostaje?`;
-  }
-
-  if (t.type === "sequence") {
-    const spokenItems = t.items
-      .map(item => item === "?" ? "puste miejsce" : item)
-      .join(", ");
-    return `${t.instruction} ${spokenItems}.`;
-  }
-
-  if (t.type === "code_input") {
-    return "Odczytaj zakodowane słowo. Skorzystaj z legendy i wybierz właściwe litery.";
-  }
-
-  if (t.type === "pattern_copy") {
-    return "Pokoloruj kropki tak, aby powstał dokładnie taki sam wzór jak u góry.";
-  }
-
-  if (t.type === "sudoku") {
-    return "Spójrz na wyróżnione miejsce. Wybierz symbol, który powinien się tam znaleźć.";
-  }
-
-  return t.instruction;
+  return t.speechText || t.instruction;
 }
 
 function speakTask(t) {
