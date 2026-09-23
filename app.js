@@ -15,10 +15,12 @@ const tasks = [
   },
   {
     id: "subtract_1",
-    type: "equation",
+    type: "equation_with_gnome",
     title: "Matematyka",
     instruction: "Ile zostanie?",
     expression: "9 - 4",
+    startCount: 9,
+    removedCount: 4,
     options: [4, 5, 6, 7],
     correct: 5
   },
@@ -26,7 +28,7 @@ const tasks = [
     id: "missing_1",
     type: "sequence",
     title: "Brakująca liczba",
-    instruction: "Jaka liczba pasuje?",
+    instruction: "Jaka liczba pasuje w wyróżnione miejsce?",
     items: [2, 4, 6, "?", 10],
     options: [7, 8, 9, 10],
     correct: 8
@@ -50,21 +52,10 @@ const tasks = [
     correct: "🚗"
   },
   {
-    id: "memory_1",
-    type: "memory",
-    title: "Pamięć",
-    instruction: "Zapamiętaj obrazki",
-    items: ["🍎", "🚗", "🐶", "⭐"],
-    question: "Co było na trzecim miejscu?",
-    options: ["🍎", "🚗", "🐶", "⭐"],
-    correct: "🐶",
-    showMs: 4000
-  },
-  {
     id: "code_1",
     type: "code_input",
     title: "Kodowanie",
-    instruction: "Odczytaj słowo i wpisz litery.",
+    instruction: "Odczytaj słowo i wybierz litery.",
     key: [
       ["○", "A"], ["□", "O"], ["△", "K"], ["◇", "L"],
       ["⬠", "M"], ["☆", "P"], ["♡", "R"], ["⬡", "S"]
@@ -89,7 +80,7 @@ const tasks = [
     id: "sudoku_1",
     type: "sudoku",
     title: "Sudoku",
-    instruction: "Co pasuje w puste miejsce?",
+    instruction: "Co pasuje w wyróżnione miejsce?",
     grid: [
       "🍎", null, "🍓", "🍐",
       "🍓", "🍐", "🍎", "🍌",
@@ -115,7 +106,8 @@ const tasks = [
 let state = {
   name: localStorage.getItem("kid_name") || "",
   index: 0,
-  patternSelection: []
+  patternSelection: [],
+  codeLetters: []
 };
 
 function escapeHtml(value) {
@@ -155,6 +147,7 @@ function renderTask() {
   }
 
   state.patternSelection = [];
+  state.codeLetters = [];
   const t = tasks[state.index];
   const progress = Math.round((state.index / tasks.length) * 100);
 
@@ -169,6 +162,7 @@ function renderTask() {
         <div class="instruction" id="instruction">${escapeHtml(t.instruction)}</div>
         <div class="task-area" id="taskArea"></div>
         <div class="options" id="options"></div>
+        <div class="feedback-slot" id="feedbackSlot" aria-live="polite"></div>
       </div>
     </section>
   `;
@@ -184,10 +178,28 @@ function renderTask() {
     area.innerHTML = `
       <div class="math-stack">
         <div class="equation">${escapeHtml(t.expression)} = ?</div>
-        <div class="hint-label">Podpowiedź</div>
-        <div class="domino">
-          ${dominoHalf(t.left)}
-          ${dominoHalf(t.right)}
+        <div class="hint-card">
+          <div class="hint-label">Podpowiedź</div>
+          <div class="domino">
+            ${dominoHalf(t.left)}
+            ${dominoHalf(t.right)}
+          </div>
+        </div>
+      </div>
+    `;
+    renderOptions(t);
+  }
+
+  if (t.type === "equation_with_gnome") {
+    area.innerHTML = `
+      <div class="math-stack">
+        <div class="equation">${escapeHtml(t.expression)} = ?</div>
+        <div class="hint-card gnome-hint">
+          <div class="gnome-line">
+            <span class="gnome-character">🧙‍♂️</span>
+            <span><strong>Gnom zabiera ${t.removedCount}</strong><br><small>Zobacz, ile zostaje.</small></span>
+          </div>
+          <div class="takeaway-dots">${takeawayDots(t.startCount, t.removedCount)}</div>
         </div>
       </div>
     `;
@@ -195,17 +207,18 @@ function renderTask() {
   }
 
   if (t.type === "sequence") {
-    area.innerHTML = `<div class="sequence">${t.items.map(x => `<div class="box">${escapeHtml(x)}</div>`).join("")}</div>`;
+    area.innerHTML = `<div class="sequence">${t.items.map(x => `<div class="box ${x === "?" ? "missing-box" : ""}">${escapeHtml(x)}</div>`).join("")}</div>`;
     renderOptions(t);
   }
 
-  if (t.type === "emoji_sequence" || t.type === "odd") {
+  if (t.type === "emoji_sequence") {
+    area.innerHTML = `<div class="sequence">${t.items.map(x => `<div class="box ${x === "?" ? "missing-box" : ""}">${x}</div>`).join("")}</div>`;
+    renderOptions(t);
+  }
+
+  if (t.type === "odd") {
     area.innerHTML = `<div class="sequence">${t.items.map(x => `<div class="box">${x}</div>`).join("")}</div>`;
     renderOptions(t);
-  }
-
-  if (t.type === "memory") {
-    renderMemoryTask(t);
   }
 
   if (t.type === "code_input") {
@@ -217,7 +230,7 @@ function renderTask() {
   }
 
   if (t.type === "sudoku") {
-    area.innerHTML = `<div class="sudoku">${t.grid.map(v => `<div class="sudoku-cell">${v ?? "?"}</div>`).join("")}</div>`;
+    area.innerHTML = `<div class="sudoku">${t.grid.map(v => `<div class="sudoku-cell ${v == null ? "missing-cell" : ""}">${v ?? "?"}</div>`).join("")}</div>`;
     renderOptions(t);
   }
 }
@@ -226,7 +239,7 @@ function renderOptions(t) {
   const wrap = document.getElementById("options");
   wrap.innerHTML = t.options.map(o => `<button class="option" data-value="${escapeHtml(o)}">${escapeHtml(o)}</button>`).join("");
   wrap.querySelectorAll(".option").forEach(btn => {
-    btn.addEventListener("click", () => checkAnswer(btn.dataset.value, t.correct));
+    btn.addEventListener("click", () => checkAnswer(btn.dataset.value, t.correct, btn));
   });
 }
 
@@ -258,8 +271,8 @@ function renderCodeInputTask(t) {
         ${t.key.map(([s,l]) => `<div class="code-item"><div class="code-symbol">${s}</div><div class="code-letter">${l}</div></div>`).join("")}
       </div>
       <div class="code-word">${t.symbols.map(s => `<span>${s}</span>`).join("")}</div>
-      <div class="code-inputs">
-        ${t.symbols.map((_,i) => `<input class="code-input" maxlength="1" inputmode="text" autocomplete="off" aria-label="Litera ${i+1}" />`).join("")}
+      <div class="code-inputs" id="codeInputs">
+        ${t.symbols.map((_,i) => `<div class="code-input-box" data-index="${i}" aria-label="Litera ${i+1}"></div>`).join("")}
       </div>
     </div>
   `;
@@ -267,38 +280,40 @@ function renderCodeInputTask(t) {
   wrap.innerHTML = `
     <div class="letter-pad">
       ${uniqueLetters.map(letter => `<button class="letter-btn" data-letter="${letter}">${letter}</button>`).join("")}
+      <button class="letter-btn erase-btn" id="eraseLetter" aria-label="Usuń ostatnią literę">⌫</button>
     </div>
     <button class="check-btn" id="checkCode">SPRAWDŹ</button>
   `;
 
-  const inputs = [...document.querySelectorAll(".code-input")];
-  const focusFirstEmpty = () => {
-    const target = inputs.find(i => !i.value) || inputs[inputs.length - 1];
-    target.focus();
-  };
-  setTimeout(() => inputs[0]?.focus(), 100);
+  function refreshCodeBoxes() {
+    document.querySelectorAll(".code-input-box").forEach((box, index) => {
+      box.textContent = state.codeLetters[index] || "";
+      box.classList.toggle("active", index === state.codeLetters.length && state.codeLetters.length < t.symbols.length);
+    });
+  }
 
-  document.querySelectorAll(".letter-btn").forEach(btn => {
+  document.querySelectorAll(".letter-btn[data-letter]").forEach(btn => {
     btn.addEventListener("click", () => {
-      const target = inputs.find(i => !i.value) || inputs[inputs.length - 1];
-      target.value = btn.dataset.letter;
-      const next = inputs.find(i => !i.value);
-      if (next) next.focus();
+      if (state.codeLetters.length >= t.symbols.length) return;
+      state.codeLetters.push(btn.dataset.letter);
+      clearFeedback();
+      refreshCodeBoxes();
     });
   });
 
-  inputs.forEach((input, idx) => {
-    input.addEventListener("input", e => {
-      e.target.value = e.target.value.toUpperCase().replace(/[^A-ZĄĆĘŁŃÓŚŹŻ]/g, "").slice(0,1);
-      if (e.target.value && inputs[idx+1]) inputs[idx+1].focus();
-    });
+  document.getElementById("eraseLetter").addEventListener("click", () => {
+    state.codeLetters.pop();
+    clearFeedback();
+    refreshCodeBoxes();
   });
 
   document.getElementById("checkCode").addEventListener("click", () => {
-    const value = inputs.map(i => i.value.trim().toUpperCase()).join("");
+    const value = state.codeLetters.join("");
     if (value === t.answer) success();
     else retry();
   });
+
+  refreshCodeBoxes();
 }
 
 function renderPatternCopyTask(t) {
@@ -321,6 +336,7 @@ function renderPatternCopyTask(t) {
     btn.addEventListener("click", () => {
       btn.classList.toggle("filled");
       state.patternSelection[idx] = btn.classList.contains("filled") ? 1 : 0;
+      clearFeedback();
     });
   });
 
@@ -340,34 +356,45 @@ function patternGridEditable(length) {
   return `<div class="grid-5">${Array.from({length}, (_,i) => `<button class="dot-button" aria-label="Kropka ${i+1}"></button>`).join("")}</div>`;
 }
 
-function showFeedback(text, kind) {
-  const old = document.querySelector(".feedback");
-  if (old) old.remove();
-  const el = document.createElement("div");
-  el.className = `feedback ${kind}`;
-  el.textContent = text;
-  document.body.appendChild(el);
-  return el;
+function feedbackSlot() {
+  return document.getElementById("feedbackSlot");
 }
 
-function success() {
-  const fb = showFeedback("Super! 🌟", "good");
-  document.querySelectorAll("button, input").forEach(el => el.disabled = true);
+function clearFeedback() {
+  const slot = feedbackSlot();
+  if (!slot) return;
+  slot.className = "feedback-slot";
+  slot.textContent = "";
+}
+
+function showFeedback(text, kind) {
+  const slot = feedbackSlot();
+  if (!slot) return;
+  slot.className = `feedback-slot visible ${kind}`;
+  slot.textContent = text;
+}
+
+function success(selectedButton = null) {
+  if (selectedButton) selectedButton.classList.add("correct-choice");
+  showFeedback("Super! 🌟", "good");
+  document.querySelectorAll("button").forEach(el => el.disabled = true);
   setTimeout(() => {
-    fb.remove();
     state.index += 1;
     renderTask();
   }, 850);
 }
 
-function retry() {
-  const fb = showFeedback("Spróbuj jeszcze raz", "retry");
-  setTimeout(() => fb.remove(), 900);
+function retry(selectedButton = null) {
+  if (selectedButton) {
+    selectedButton.classList.add("wrong-choice");
+    setTimeout(() => selectedButton.classList.remove("wrong-choice"), 700);
+  }
+  showFeedback("Spróbuj jeszcze raz", "retry");
 }
 
-function checkAnswer(value, correct) {
-  if (String(value) === String(correct)) success();
-  else retry();
+function checkAnswer(value, correct, selectedButton = null) {
+  if (String(value) === String(correct)) success(selectedButton);
+  else retry(selectedButton);
 }
 
 function dominoHalf(count) {
@@ -381,6 +408,13 @@ function dominoHalf(count) {
     6: [[25,20],[75,20],[25,50],[75,50],[25,80],[75,80]]
   };
   return `<div class="domino-half">${positions[count].map(([x,y]) => `<span class="pip" style="left:calc(${x}% - 6px);top:calc(${y}% - 6px)"></span>`).join("")}</div>`;
+}
+
+function takeawayDots(total, removed) {
+  return Array.from({length: total}, (_, index) => {
+    const removedClass = index >= total - removed ? "taken" : "";
+    return `<span class="takeaway-dot ${removedClass}"></span>`;
+  }).join("");
 }
 
 function renderFinish() {
