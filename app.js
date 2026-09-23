@@ -43,12 +43,11 @@ function previousTaskIds() {
 
 function buildSession() {
   const previous = previousTaskIds();
-  const categories = shuffle(["math", "logic", "coding", "memory"]);
+  const categories = shuffle(["math", "logic", "coding"]);
   const quotas = {
-    [categories[0]]: 3,
+    [categories[0]]: 4,
     [categories[1]]: 3,
-    [categories[2]]: 2,
-    [categories[3]]: 2
+    [categories[2]]: 3
   };
 
   const picked = [];
@@ -133,7 +132,7 @@ function stopCurrentTaskActivity() {
     clearTimeout(state.memoryTimer);
     state.memoryTimer = null;
   }
-  if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+  stopInstructionAudio();
 }
 
 function renderTask() {
@@ -160,7 +159,7 @@ function renderTask() {
 
         <div class="instruction-row">
           <div class="instruction" id="instruction">${escapeHtml(task.instruction)}</div>
-          <button class="speak-btn" id="speakTask" type="button" aria-label="Przeczytaj instrukcję">🔊</button>
+          <button class="speak-btn" id="speakTask" type="button" aria-label="Przeczytaj instrukcję" hidden>🔊</button>
         </div>
 
         <div class="task-area" id="taskArea"></div>
@@ -213,19 +212,27 @@ function renderEquationWithDots(task) {
   const isSubtraction = task.subcategory === "subtraction";
 
   if (isSubtraction) {
+    const total = Number(data.left) || 0;
+    const targetRemoved = Number(data.right) || 0;
+
     area.innerHTML = `
       <div class="math-stack">
         <div class="equation">${escapeHtml(data.expression)} = ?</div>
-        <div class="hint-card count-hint">
+        <div class="hint-card count-hint interactive-hint">
           <div class="hint-label">Podpowiedź</div>
-          <div class="gnome-line">
-            <span class="gnome-character">🧙‍♂️</span>
-            <span>Gnom zabiera <strong>${escapeHtml(data.right)}</strong></span>
+          <div class="hint-instruction">Odznacz <strong>${targetRemoved}</strong> kropek.</div>
+          <div class="interactive-dots" id="subtractionDots">
+            ${interactiveDots(total)}
           </div>
-          <div class="count-dots">${takeawayDots(data.left, data.right)}</div>
+          <div class="dot-status">
+            <span>Odjęto: <strong id="removedCount">0</strong> z ${targetRemoved}</span>
+            <span id="remainingResult" class="remaining-result"></span>
+          </div>
         </div>
       </div>
     `;
+
+    setupSubtractionDots(total, targetRemoved);
   } else {
     area.innerHTML = `
       <div class="math-stack">
@@ -233,9 +240,15 @@ function renderEquationWithDots(task) {
         <div class="hint-card count-hint">
           <div class="hint-label">Podpowiedź</div>
           <div class="addition-dots">
-            <div class="count-dots">${plainDots(data.left)}</div>
+            <div class="dot-group">
+              <div class="dot-group-label">${escapeHtml(data.left)}</div>
+              <div class="count-dots">${plainDots(data.left)}</div>
+            </div>
             <div class="dot-operator">+</div>
-            <div class="count-dots">${plainDots(data.right)}</div>
+            <div class="dot-group">
+              <div class="dot-group-label">${escapeHtml(data.right)}</div>
+              <div class="count-dots">${plainDots(data.right)}</div>
+            </div>
           </div>
         </div>
       </div>
@@ -245,11 +258,219 @@ function renderEquationWithDots(task) {
   renderOptions(task);
 }
 
+function setupSubtractionDots(total, targetRemoved) {
+  const wrap = document.getElementById("subtractionDots");
+  const removedLabel = document.getElementById("removedCount");
+  const resultLabel = document.getElementById("remainingResult");
+  if (!wrap) return;
+
+  let removed = 0;
+
+  wrap.querySelectorAll(".interactive-dot").forEach(dot => {
+    dot.addEventListener("click", () => {
+      const isRemoved = dot.classList.contains("removed");
+
+      if (isRemoved) {
+        dot.classList.remove("removed");
+        removed -= 1;
+      } else if (removed < targetRemoved) {
+        dot.classList.add("removed");
+        removed += 1;
+      }
+
+      removedLabel.textContent = String(removed);
+
+      if (removed === targetRemoved) {
+        resultLabel.textContent = `Zostało: ${total - removed}`;
+        resultLabel.classList.add("visible");
+      } else {
+        resultLabel.textContent = "";
+        resultLabel.classList.remove("visible");
+      }
+    });
+  });
+}
+
+function interactiveDots(count) {
+  return Array.from({ length: Number(count) || 0 }, (_, index) =>
+    `<button class="interactive-dot" type="button" aria-label="Kropka ${index + 1}"></button>`
+  ).join("");
+}
+
 function renderMissingEquation(task) {
   const area = document.getElementById("taskArea");
-  const expression = escapeHtml(task.content.expression).replace("?", '<span class="inline-missing">?</span>');
-  area.innerHTML = `<div class="equation missing-equation">${expression}</div>`;
+  const data = task.content;
+  const expression = escapeHtml(data.expression).replace("?", '<span class="inline-missing">?</span>');
+
+  area.innerHTML = `
+    <div class="math-stack">
+      <div class="equation missing-equation">${expression}</div>
+      <div class="hint-card count-hint interactive-hint" id="missingHint"></div>
+    </div>
+  `;
+
+  renderMissingNumberHint(task);
   renderOptions(task);
+}
+
+function renderMissingNumberHint(task) {
+  const hint = document.getElementById("missingHint");
+  const data = task.content;
+  if (!hint) return;
+
+  const expression = String(data.expression || "");
+
+  // a + ? = result
+  if (expression.includes("+") && data.missing === "b") {
+    const start = Number(data.a) || 0;
+    const result = Number(data.result) || 0;
+    const needed = Math.max(0, result - start);
+
+    hint.innerHTML = `
+      <div class="hint-label">Podpowiedź</div>
+      <div class="hint-instruction">Masz ${start}. Dodawaj kropki, aż będzie ${result}.</div>
+      <div class="missing-add-wrap">
+        <div class="count-dots fixed-dots">${plainDots(start)}</div>
+        <div class="interactive-dots add-dots" id="missingAddDots">${interactiveDots(needed)}</div>
+      </div>
+      <div class="dot-status">
+        <span>Dodano: <strong id="addedCount">0</strong></span>
+        <span id="missingAnswerResult" class="remaining-result"></span>
+      </div>
+    `;
+
+    let added = 0;
+    hint.querySelectorAll("#missingAddDots .interactive-dot").forEach(dot => {
+      dot.classList.add("empty");
+      dot.addEventListener("click", () => {
+        const filled = dot.classList.contains("filled");
+        if (filled) {
+          dot.classList.remove("filled");
+          dot.classList.add("empty");
+          added -= 1;
+        } else {
+          dot.classList.add("filled");
+          dot.classList.remove("empty");
+          added += 1;
+        }
+        document.getElementById("addedCount").textContent = String(added);
+        const resultLabel = document.getElementById("missingAnswerResult");
+        resultLabel.textContent = added === needed ? `Brakuje: ${needed}` : "";
+        resultLabel.classList.toggle("visible", added === needed);
+      });
+    });
+    return;
+  }
+
+  // ? + b = result
+  if (expression.includes("+") && data.missing === "a") {
+    const known = Number(data.b) || 0;
+    const result = Number(data.result) || 0;
+    const needed = Math.max(0, result - known);
+
+    hint.innerHTML = `
+      <div class="hint-label">Podpowiedź</div>
+      <div class="hint-instruction">Do ${known} dodaj tyle kropek, żeby razem było ${result}.</div>
+      <div class="missing-add-wrap">
+        <div class="count-dots fixed-dots">${plainDots(known)}</div>
+        <div class="interactive-dots add-dots" id="missingAddDots">${interactiveDots(needed)}</div>
+      </div>
+      <div class="dot-status">
+        <span>Dodano: <strong id="addedCount">0</strong></span>
+        <span id="missingAnswerResult" class="remaining-result"></span>
+      </div>
+    `;
+
+    let added = 0;
+    hint.querySelectorAll("#missingAddDots .interactive-dot").forEach(dot => {
+      dot.classList.add("empty");
+      dot.addEventListener("click", () => {
+        const filled = dot.classList.contains("filled");
+        if (filled) {
+          dot.classList.remove("filled");
+          dot.classList.add("empty");
+          added -= 1;
+        } else {
+          dot.classList.add("filled");
+          dot.classList.remove("empty");
+          added += 1;
+        }
+        document.getElementById("addedCount").textContent = String(added);
+        const resultLabel = document.getElementById("missingAnswerResult");
+        resultLabel.textContent = added === needed ? `Brakuje: ${needed}` : "";
+        resultLabel.classList.toggle("visible", added === needed);
+      });
+    });
+    return;
+  }
+
+  // a - ? = result
+  if (expression.includes("-") && data.missing === "b") {
+    const start = Number(data.a) || 0;
+    const result = Number(data.result) || 0;
+    const targetRemoved = Math.max(0, start - result);
+
+    hint.innerHTML = `
+      <div class="hint-label">Podpowiedź</div>
+      <div class="hint-instruction">Odznaczaj kropki, aż zostanie ${result}.</div>
+      <div class="interactive-dots" id="missingSubtractDots">${interactiveDots(start)}</div>
+      <div class="dot-status">
+        <span>Odjęto: <strong id="missingRemovedCount">0</strong></span>
+        <span id="missingSubtractResult" class="remaining-result"></span>
+      </div>
+    `;
+
+    let removed = 0;
+    hint.querySelectorAll("#missingSubtractDots .interactive-dot").forEach(dot => {
+      dot.addEventListener("click", () => {
+        const isRemoved = dot.classList.contains("removed");
+        if (isRemoved) {
+          dot.classList.remove("removed");
+          removed -= 1;
+        } else if (start - removed > result) {
+          dot.classList.add("removed");
+          removed += 1;
+        }
+
+        document.getElementById("missingRemovedCount").textContent = String(removed);
+        const resultLabel = document.getElementById("missingSubtractResult");
+        resultLabel.textContent = removed === targetRemoved ? `Odjęto: ${targetRemoved}` : "";
+        resultLabel.classList.toggle("visible", removed === targetRemoved);
+      });
+    });
+    return;
+  }
+
+  // ? - b = result
+  if (expression.includes("-") && data.missing === "a") {
+    const removed = Number(data.b) || 0;
+    const result = Number(data.result) || 0;
+
+    hint.innerHTML = `
+      <div class="hint-label">Podpowiedź</div>
+      <div class="hint-instruction">Po odjęciu ${removed} zostało ${result}. Policz wszystkie kropki razem.</div>
+      <div class="reverse-subtraction">
+        <div>
+          <div class="mini-label">Zostało</div>
+          <div class="count-dots">${plainDots(result)}</div>
+        </div>
+        <div>
+          <div class="mini-label">Odjęto</div>
+          <div class="count-dots removed-group">${removedDots(removed)}</div>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  hint.innerHTML = `
+    <div class="hint-label">Podpowiedź</div>
+    <div class="hint-instruction">Policz elementy krok po kroku.</div>
+  `;
+}
+
+function removedDots(count) {
+  return Array.from({ length: Number(count) || 0 }, () => '<span class="takeaway-dot taken"></span>').join("");
 }
 
 function renderSequence(task) {
@@ -527,7 +748,17 @@ function renderGrid(size, objects = {}, start = null, target = null) {
       if (isStart) value = value ? `🤖${value}` : "🤖";
       if (isTarget) value = value ? `${value}🏁` : "🏁";
 
-      cells.push(`<div class="command-cell">${escapeHtml(value)}</div>`);
+      const classes = [
+        "command-cell",
+        isStart ? "start-cell" : "",
+        isTarget ? "target-cell" : ""
+      ].filter(Boolean).join(" ");
+
+      const badge = isStart
+        ? '<span class="cell-badge">START</span>'
+        : (isTarget ? '<span class="cell-badge">CEL</span>' : "");
+
+      cells.push(`<div class="${classes}">${badge}<span class="cell-content">${escapeHtml(value)}</span></div>`);
     }
   }
 
@@ -569,41 +800,65 @@ function locationSymbol(value) {
   return map[value] || escapeHtml(value);
 }
 
+const INSTRUCTION_AUDIO = {
+  "Oblicz działanie.": "audio/oblicz-dzialanie.mp3",
+  "Jaka liczba pasuje w wyróżnione miejsce?": "audio/jaka-liczba-pasuje.mp3",
+  "Jaka liczba powinna być dalej?": "audio/jaka-liczba-dalej.mp3",
+  "Która liczba jest większa?": "audio/ktora-liczba-wieksza.mp3",
+  "Co będzie dalej?": "audio/co-bedzie-dalej.mp3",
+  "Co nie pasuje?": "audio/co-nie-pasuje.mp3",
+  "Który element jest owocem?": "audio/ktory-element-owocem.mp3",
+  "Który element jest ubraniem?": "audio/ktory-element-ubraniem.mp3",
+  "Który element jest pojazdem?": "audio/ktory-element-pojazdem.mp3",
+  "Czego brakuje?": "audio/czego-brakuje.mp3",
+  "Jaka liczba pasuje w puste pole?": "audio/jaka-liczba-puste-pole.mp3",
+  "Odczytaj słowo i wybierz litery.": "audio/odczytaj-slowo.mp3",
+  "Wykonaj komendy i wybierz, do czego dotrze robot.": "audio/wykonaj-komendy.mp3",
+  "Gdzie dotrze robot?": "audio/gdzie-dotrze-robot.mp3",
+  "Które komendy doprowadzą robota do celu?": "audio/ktore-komendy.mp3",
+  "Która komenda jest błędna?": "audio/ktora-komenda-bledna.mp3",
+  "Jaka komenda powinna być dalej?": "audio/jaka-komenda-dalej.mp3"
+};
+
+let instructionAudio = null;
+
 function setupTaskSpeech() {
   const button = document.getElementById("speakTask");
-  if (!button) return;
+  const instruction = document.getElementById("instruction")?.textContent?.trim();
+  if (!button || !instruction) return;
 
-  if (!("speechSynthesis" in window)) {
+  const audioUrl = INSTRUCTION_AUDIO[instruction];
+  if (!audioUrl) {
     button.hidden = true;
     return;
   }
 
-  button.addEventListener("click", speakCurrentInstruction);
+  const audio = new Audio(audioUrl);
+  audio.preload = "metadata";
+
+  audio.addEventListener("canplaythrough", () => {
+    button.hidden = false;
+  }, { once: true });
+
+  audio.addEventListener("error", () => {
+    button.hidden = true;
+  }, { once: true });
+
+  button.addEventListener("click", () => {
+    stopInstructionAudio();
+    instructionAudio = new Audio(audioUrl);
+    button.classList.add("speaking");
+    instructionAudio.addEventListener("ended", () => button.classList.remove("speaking"), { once: true });
+    instructionAudio.addEventListener("error", () => button.classList.remove("speaking"), { once: true });
+    instructionAudio.play().catch(() => button.classList.remove("speaking"));
+  });
 }
 
-function speakCurrentInstruction() {
-  if (!("speechSynthesis" in window)) return;
-
-  const text = document.getElementById("instruction")?.textContent?.trim();
-  if (!text) return;
-
-  window.speechSynthesis.cancel();
-
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = "pl-PL";
-  utterance.rate = 0.88;
-  utterance.pitch = 1.02;
-
-  const voices = window.speechSynthesis.getVoices();
-  const polishVoice = voices.find(voice => voice.lang?.toLowerCase().startsWith("pl"));
-  if (polishVoice) utterance.voice = polishVoice;
-
-  const button = document.getElementById("speakTask");
-  button?.classList.add("speaking");
-  utterance.onend = () => button?.classList.remove("speaking");
-  utterance.onerror = () => button?.classList.remove("speaking");
-
-  window.speechSynthesis.speak(utterance);
+function stopInstructionAudio() {
+  if (!instructionAudio) return;
+  instructionAudio.pause();
+  instructionAudio.currentTime = 0;
+  instructionAudio = null;
 }
 
 function feedbackSlot() {
