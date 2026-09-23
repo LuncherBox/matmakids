@@ -1625,3 +1625,31 @@ body {
   color: #456F59;
   box-shadow: inset 0 0 0 2px rgba(69,111,89,.18);
 }
+
+
+/* Unified answer confirmation flow */
+.options {
+  display: block;
+}
+
+.option-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 9px;
+  width: 100%;
+}
+
+.option.selected-choice {
+  border-color: var(--accent);
+  background: #EEF4FA;
+  box-shadow: inset 0 0 0 2px rgba(140, 183, 168, .18);
+}
+
+.answer-check-btn {
+  margin-top: 10px;
+}
+
+.answer-check-btn:disabled {
+  opacity: .45;
+  cursor: default;
+}
