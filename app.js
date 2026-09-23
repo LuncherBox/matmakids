@@ -17,6 +17,8 @@ let state = {
   codeLetters: [],
   gridSelection: [],
   searchSelection: [],
+  sudokuAnswers: [],
+  sudokuActive: 0,
   memoryTimer: null
 };
 
@@ -166,6 +168,8 @@ function renderTask() {
   state.codeLetters = [];
   state.gridSelection = [];
   state.searchSelection = [];
+  state.sudokuAnswers = [];
+  state.sudokuActive = 0;
   const task = sessionTasks[state.index];
   const progress = Math.round((state.index / sessionTasks.length) * 100);
 
@@ -260,25 +264,41 @@ function renderEquationWithDots(task) {
 
     setupSubtractionDots(total, targetRemoved);
   } else {
+    const left = Number(data.left) || 0;
+    const right = Number(data.right) || 0;
+    const total = left + right;
+
     area.innerHTML = `
-      <div class="math-stack">
+      <div class="math-stack math-centered">
         <div class="equation">${escapeHtml(data.expression)} = ?</div>
-        <div class="hint-card count-hint">
+        <div class="hint-card count-hint interactive-hint addition-count-hint">
           <div class="hint-label">Podpowiedź</div>
-          <div class="addition-dots">
+          <div class="hint-instruction">Dotykaj kropek i policz wszystkie.</div>
+
+          <div class="addition-interactive-groups" id="additionDots">
             <div class="dot-group">
-              <div class="dot-group-label">${escapeHtml(data.left)}</div>
-              <div class="count-dots">${plainDots(data.left)}</div>
+              <div class="dot-group-label">${left}</div>
+              <div class="interactive-dots">${countingDots(left, "left")}</div>
             </div>
+
             <div class="dot-operator">+</div>
+
             <div class="dot-group">
-              <div class="dot-group-label">${escapeHtml(data.right)}</div>
-              <div class="count-dots">${plainDots(data.right)}</div>
+              <div class="dot-group-label">${right}</div>
+              <div class="interactive-dots">${countingDots(right, "right")}</div>
             </div>
+          </div>
+
+          <div class="live-count-box">
+            <span>Policzono</span>
+            <strong id="additionCount">0</strong>
+            <span class="count-target">z ${total}</span>
           </div>
         </div>
       </div>
     `;
+
+    setupAdditionCounting(total);
   }
 
   renderOptions(task);
@@ -317,6 +337,40 @@ function interactiveDots(count) {
     `<button class="interactive-dot" type="button" aria-label="Kropka ${index + 1}"></button>`
   ).join("");
 }
+
+function countingDots(count, group) {
+  return Array.from({ length: Number(count) || 0 }, (_, index) =>
+    `<button class="interactive-dot counting-dot empty" type="button" data-group="${group}" aria-label="Kropka ${index + 1}"></button>`
+  ).join("");
+}
+
+function setupAdditionCounting(total) {
+  const wrap = document.getElementById("additionDots");
+  const counter = document.getElementById("additionCount");
+  if (!wrap || !counter) return;
+
+  let counted = 0;
+
+  wrap.querySelectorAll(".counting-dot").forEach(dot => {
+    dot.addEventListener("click", () => {
+      const selected = dot.classList.contains("filled");
+
+      if (selected) {
+        dot.classList.remove("filled");
+        dot.classList.add("empty");
+        counted -= 1;
+      } else {
+        dot.classList.add("filled");
+        dot.classList.remove("empty");
+        counted += 1;
+      }
+
+      counter.textContent = String(counted);
+      counter.parentElement?.classList.toggle("complete", counted === total);
+    });
+  });
+}
+
 
 function renderMissingEquation(task) {
   const area = document.getElementById("taskArea");
@@ -512,15 +566,93 @@ function renderPatternMatrix(task) {
 
 function renderSudoku(task) {
   const area = document.getElementById("taskArea");
+  const wrap = document.getElementById("options");
   const grid = (task.content.grid || []).flat();
-  const size = Number(task.content.size) || Math.sqrt(grid.length) || 4;
+  const size = Number(task.content.size) || 4;
+  const correct = Array.isArray(task.correct_answer)
+    ? task.correct_answer.map(String)
+    : [String(task.correct_answer)];
+
+  const missingIndexes = [];
+  grid.forEach((value, index) => {
+    if (value == null) missingIndexes.push(index);
+  });
+
+  state.sudokuAnswers = Array(missingIndexes.length).fill("");
+  state.sudokuActive = 0;
 
   area.innerHTML = `
-    <div class="sudoku sudoku-dynamic" style="--sudoku-size:${size}">
-      ${grid.map(value => `<div class="sudoku-cell ${value == null ? "missing-cell" : ""}">${value == null ? "?" : escapeHtml(value)}</div>`).join("")}
+    <div class="sudoku-wrap">
+      <div class="sudoku sudoku-dynamic" style="--sudoku-size:${size}">
+        ${grid.map((value,index) => {
+          if (value != null) {
+            return `<div class="sudoku-cell">${escapeHtml(value)}</div>`;
+          }
+
+          const missingIndex = missingIndexes.indexOf(index);
+          return `
+            <button class="sudoku-cell sudoku-input-cell ${missingIndex === 0 ? "active" : ""}"
+                    data-missing-index="${missingIndex}"
+                    type="button"
+                    aria-label="Puste pole ${missingIndex + 1}">
+              <span class="sudoku-answer-value"></span>
+            </button>
+          `;
+        }).join("")}
+      </div>
+      <div class="sudoku-help">Uzupełnij oba wyróżnione pola.</div>
     </div>
   `;
-  renderOptions(task);
+
+  wrap.style.display = "block";
+  wrap.innerHTML = `
+    <div class="sudoku-number-pad">
+      ${(task.options || [1,2,3,4]).map(value => `
+        <button class="sudoku-number-btn" data-value="${escapeHtml(value)}">${escapeHtml(value)}</button>
+      `).join("")}
+    </div>
+    <button class="check-btn" id="checkSudoku">SPRAWDŹ</button>
+  `;
+
+  function refreshSudoku() {
+    area.querySelectorAll(".sudoku-input-cell").forEach(cell => {
+      const index = Number(cell.dataset.missingIndex);
+      cell.classList.toggle("active", index === state.sudokuActive);
+      cell.querySelector(".sudoku-answer-value").textContent = state.sudokuAnswers[index] || "";
+    });
+  }
+
+  area.querySelectorAll(".sudoku-input-cell").forEach(cell => {
+    cell.addEventListener("click", () => {
+      state.sudokuActive = Number(cell.dataset.missingIndex);
+      refreshSudoku();
+    });
+  });
+
+  wrap.querySelectorAll(".sudoku-number-btn").forEach(button => {
+    button.addEventListener("click", () => {
+      state.sudokuAnswers[state.sudokuActive] = button.dataset.value;
+
+      const nextEmpty = state.sudokuAnswers.findIndex((value,index) => !value && index !== state.sudokuActive);
+      if (nextEmpty >= 0) state.sudokuActive = nextEmpty;
+
+      refreshSudoku();
+      clearFeedback();
+    });
+  });
+
+  document.getElementById("checkSudoku").addEventListener("click", () => {
+    const complete = state.sudokuAnswers.every(Boolean);
+    if (!complete) {
+      retry();
+      return;
+    }
+
+    const ok = state.sudokuAnswers.every((value,index) => String(value) === String(correct[index]));
+    if (ok) success(); else retry();
+  });
+
+  refreshSudoku();
 }
 
 function renderBinaryGridCopy(task) {
