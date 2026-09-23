@@ -104,6 +104,17 @@ Reason:
 ### Sudoku
 - the missing target cell must be clearly highlighted
 
+
+### Read-aloud accessibility
+- every task should offer a clear speaker button so a child can hear the instruction without adult help
+- the app should read the child-facing instruction and, when useful, the essential task context
+- reading should start only after the child taps the speaker button
+- MVP should use the browser/device `SpeechSynthesis` API first, with Polish language (`pl-PL`) and a suitable available voice
+- do not require ElevenLabs or another paid TTS provider for the MVP
+- keep the speech layer abstracted so a higher-quality provider such as ElevenLabs can replace browser TTS later without changing task data or UI structure
+- task data should support a dedicated `speech_text` / `speechText` value when the spoken wording should differ from the on-screen instruction
+- the speaker control should be large, obvious and available consistently on every task screen
+
 ## 6. UX principles
 - one clear action per screen
 - minimal reading burden
