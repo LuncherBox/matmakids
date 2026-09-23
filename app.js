@@ -141,6 +141,8 @@ function renderName() {
 }
 
 function renderTask() {
+  if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+
   if (state.index >= tasks.length) {
     renderFinish();
     return;
@@ -159,7 +161,10 @@ function renderTask() {
       </div>
       <div class="task-card">
         <div class="task-title">${escapeHtml(t.title)}</div>
-        <div class="instruction" id="instruction">${escapeHtml(t.instruction)}</div>
+        <div class="instruction-row">
+          <div class="instruction" id="instruction">${escapeHtml(t.instruction)}</div>
+          <button class="speak-btn" id="speakTask" type="button" aria-label="Przeczytaj zadanie">🔊</button>
+        </div>
         <div class="task-area" id="taskArea"></div>
         <div class="options" id="options"></div>
         <div class="feedback-slot" id="feedbackSlot" aria-live="polite"></div>
@@ -233,6 +238,79 @@ function renderTask() {
     area.innerHTML = `<div class="sudoku">${t.grid.map(v => `<div class="sudoku-cell ${v == null ? "missing-cell" : ""}">${v ?? "?"}</div>`).join("")}</div>`;
     renderOptions(t);
   }
+
+  setupTaskSpeech(t);
+}
+
+function getTaskSpeechText(t) {
+  if (t.speechText) return t.speechText;
+
+  if (t.type === "equation_with_dots" || t.type === "equation") {
+    const spokenExpression = String(t.expression)
+      .replaceAll("+", " plus ")
+      .replaceAll("-", " minus ");
+    return `${t.instruction} ${spokenExpression}. Jaki jest wynik?`;
+  }
+
+  if (t.type === "equation_with_gnome") {
+    return `Ile zostanie? Masz ${t.startCount}. Gnom zabiera ${t.removedCount}. Ile zostaje?`;
+  }
+
+  if (t.type === "sequence") {
+    const spokenItems = t.items
+      .map(item => item === "?" ? "puste miejsce" : item)
+      .join(", ");
+    return `${t.instruction} ${spokenItems}.`;
+  }
+
+  if (t.type === "code_input") {
+    return "Odczytaj zakodowane słowo. Skorzystaj z legendy i wybierz właściwe litery.";
+  }
+
+  if (t.type === "pattern_copy") {
+    return "Pokoloruj kropki tak, aby powstał dokładnie taki sam wzór jak u góry.";
+  }
+
+  if (t.type === "sudoku") {
+    return "Spójrz na wyróżnione miejsce. Wybierz symbol, który powinien się tam znaleźć.";
+  }
+
+  return t.instruction;
+}
+
+function speakTask(t) {
+  if (!("speechSynthesis" in window)) return;
+
+  window.speechSynthesis.cancel();
+
+  const utterance = new SpeechSynthesisUtterance(getTaskSpeechText(t));
+  utterance.lang = "pl-PL";
+  utterance.rate = 0.88;
+  utterance.pitch = 1.02;
+
+  const voices = window.speechSynthesis.getVoices();
+  const polishVoice = voices.find(voice => voice.lang?.toLowerCase().startsWith("pl"));
+  if (polishVoice) utterance.voice = polishVoice;
+
+  const button = document.getElementById("speakTask");
+  if (button) button.classList.add("speaking");
+
+  utterance.onend = () => button?.classList.remove("speaking");
+  utterance.onerror = () => button?.classList.remove("speaking");
+
+  window.speechSynthesis.speak(utterance);
+}
+
+function setupTaskSpeech(t) {
+  const button = document.getElementById("speakTask");
+  if (!button) return;
+
+  if (!("speechSynthesis" in window)) {
+    button.hidden = true;
+    return;
+  }
+
+  button.addEventListener("click", () => speakTask(t));
 }
 
 function renderOptions(t) {
