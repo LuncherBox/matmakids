@@ -1382,3 +1382,142 @@ body {
     min-height: 36px;
   }
 }
+
+
+/* Center core task content more consistently */
+.task-card {
+  justify-content: flex-start;
+}
+
+.task-area {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.math-centered {
+  justify-content: center;
+}
+
+.addition-count-hint {
+  max-width: 380px;
+}
+
+.addition-interactive-groups {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+}
+
+.live-count-box {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 8px;
+  min-width: 180px;
+  padding: 8px 14px;
+  border-radius: 14px;
+  background: #F0F3F6;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.live-count-box strong {
+  color: var(--text);
+  font-size: 24px;
+}
+
+.live-count-box.complete {
+  background: var(--good-bg);
+  color: #456F59;
+}
+
+.count-target {
+  font-size: 13px;
+}
+
+.code-wrap {
+  align-items: center;
+  justify-content: center;
+}
+
+.code-key {
+  max-width: 430px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.code-word,
+.code-inputs {
+  width: 100%;
+}
+
+.sudoku-wrap {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.sudoku-input-cell {
+  border: 0;
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.sudoku-input-cell.active {
+  background: #FFF0CF;
+  box-shadow: inset 0 0 0 4px var(--highlight-border);
+}
+
+.sudoku-answer-value {
+  font-size: inherit;
+  font-weight: 950;
+}
+
+.sudoku-help {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.sudoku-number-pad {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.sudoku-number-btn {
+  min-height: 50px;
+  border: 2px solid var(--border);
+  background: #fff;
+  border-radius: 14px;
+  font-size: 24px;
+  font-weight: 900;
+}
+
+@media (max-height: 760px) {
+  .code-key {
+    gap: 6px;
+  }
+
+  .code-item {
+    padding: 6px 4px;
+  }
+
+  .code-symbol {
+    font-size: 22px;
+  }
+
+  .code-word {
+    font-size: 32px;
+  }
+
+  .live-count-box {
+    padding: 6px 12px;
+  }
+}
