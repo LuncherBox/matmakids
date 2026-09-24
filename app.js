@@ -530,14 +530,35 @@ function renderSequence(task) {
 function renderNumberComparison(task) {
   const area = document.getElementById("taskArea");
   const data = task.content;
+  const left = Number(data.left) || 0;
+  const right = Number(data.right) || 0;
+
+  const instruction = document.getElementById("instruction");
+  if (instruction) {
+    let html = escapeHtml(task.instruction);
+    html = html.replace("większa", '<span class="comparison-keyword bigger-word">większa</span>');
+    html = html.replace("mniejsza", '<span class="comparison-keyword smaller-word">mniejsza</span>');
+    instruction.innerHTML = html;
+  }
+
   area.innerHTML = `
-    <div class="number-compare">
-      <div class="compare-number">${escapeHtml(data.left)}</div>
+    <div class="number-compare number-compare-visual">
+      <div class="compare-card">
+        <div class="compare-number">${left}</div>
+        <div class="quantity-dots">${quantityDots(left)}</div>
+      </div>
       <div class="compare-vs">czy</div>
-      <div class="compare-number">${escapeHtml(data.right)}</div>
+      <div class="compare-card">
+        <div class="compare-number">${right}</div>
+        <div class="quantity-dots">${quantityDots(right)}</div>
+      </div>
     </div>
   `;
   renderOptions(task);
+}
+
+function quantityDots(count) {
+  return Array.from({ length: Number(count) || 0 }, () => '<span class="quantity-dot"></span>').join("");
 }
 
 function renderItemRow(task) {
