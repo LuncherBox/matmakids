@@ -672,12 +672,11 @@ function renderBinaryGridCopy(task) {
 
   area.innerHTML = `
     <div class="copy-grid-task">
-      <div>
+      <div class="copy-grid-block">
         <div class="pattern-label">WZÓR</div>
         ${renderBinaryGrid(pattern, rows, columns, false)}
       </div>
-      <div class="copy-arrow">→</div>
-      <div>
+      <div class="copy-grid-block">
         <div class="pattern-label">TWÓJ KOD</div>
         ${renderBinaryGrid(state.gridSelection, rows, columns, true)}
       </div>
