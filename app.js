@@ -793,7 +793,7 @@ function renderVisualSearch(task) {
   const columns = Number(task.content.columns) || 5;
   const grid = task.content.grid || [];
   const target = task.content.target || [];
-  const correct = (task.content.correct_positions || []).map(Number);
+  const validMatches = findVisualSearchMatches(grid, rows, columns, target);
   state.searchSelection = [];
 
   area.innerHTML = `
@@ -815,27 +815,50 @@ function renderVisualSearch(task) {
     cell.addEventListener("click", () => {
       const index = Number(cell.dataset.index);
       const existing = state.searchSelection.indexOf(index);
+
       if (existing >= 0) {
-        state.searchSelection.splice(existing,1);
+        state.searchSelection.splice(existing, 1);
         cell.classList.remove("selected");
       } else {
         if (state.searchSelection.length >= target.length) {
           const removed = state.searchSelection.shift();
           area.querySelector(`.search-cell[data-index="${removed}"]`)?.classList.remove("selected");
         }
+
         state.searchSelection.push(index);
         cell.classList.add("selected");
       }
+
       clearFeedback();
     });
   });
 
   document.getElementById("checkVisualSearch").addEventListener("click", () => {
-    const selected=[...state.searchSelection].sort((a,b)=>a-b);
-    const expected=[...correct].sort((a,b)=>a-b);
-    const ok=selected.length===expected.length && selected.every((v,i)=>v===expected[i]);
-    if(ok) success(); else retry();
+    const selected = [...state.searchSelection].sort((a,b) => a - b);
+
+    const ok = validMatches.some(match => {
+      const expected = [...match].sort((a,b) => a - b);
+      return selected.length === expected.length &&
+        selected.every((value,index) => value === expected[index]);
+    });
+
+    if (ok) success(); else retry();
   });
+}
+
+function findVisualSearchMatches(grid, rows, columns, target) {
+  const matches = [];
+  if (!target.length) return matches;
+
+  for (let row = 0; row < rows; row += 1) {
+    for (let col = 0; col <= columns - target.length; col += 1) {
+      const indexes = target.map((_, offset) => row * columns + col + offset);
+      const isMatch = indexes.every((index, offset) => String(grid[index]) === String(target[offset]));
+      if (isMatch) matches.push(indexes);
+    }
+  }
+
+  return matches;
 }
 
 function renderSymbolCode(task) {
