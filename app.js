@@ -1040,6 +1040,7 @@ function renderTask(preserveTaskState = false) {
   app.innerHTML = `
     <section class="screen">
       <div class="topbar">
+        ${state.sessionMode === "mission" ? '<button class="mission-exit-btn" id="exitMission" type="button">WYJDŹ</button>' : ""}
         <div class="progress-shell"><div class="progress-bar" style="width:${progress}%"></div></div>
         <div class="counter">${state.index + 1}/${sessionTasks.length}</div>
       </div>
@@ -1077,8 +1078,48 @@ function renderTask(preserveTaskState = false) {
   `;
 
   renderByType(task);
-  if (state.sessionMode === "mission") setupMissionHint(task);
+  if (state.sessionMode === "mission") {
+    setupMissionHint(task);
+    document.getElementById("exitMission")?.addEventListener("click", confirmExitMission);
+  }
   setupTaskSpeech();
+}
+
+function confirmExitMission() {
+  if (state.sessionMode !== "mission") return;
+
+  const confirmed = window.confirm("Wyjść z misji? Aktualna misja zostanie zakończona.");
+
+  if (!confirmed) return;
+
+  abandonCurrentMission();
+}
+
+async function abandonCurrentMission() {
+  stopCurrentTaskActivity();
+
+  if (state.sessionId) {
+    const { error } = await supabaseClient
+      .from("sessions")
+      .update({
+        status: "abandoned",
+        completed_at: new Date().toISOString(),
+        correct_first_try_count: state.sessionStats.correctFirstTry,
+        mistake_count: state.sessionStats.mistakes,
+        child_points: state.sessionStats.childPoints,
+        gobi_points: state.sessionStats.gobiPoints,
+        winner: null
+      })
+      .eq("id", state.sessionId);
+
+    if (error) console.error("Nie udało się oznaczyć misji jako przerwanej:", error);
+  }
+
+  clearMissionSnapshot();
+  state.sessionId = null;
+  state.sessionMode = "mission";
+  state.index = 0;
+  renderChildHome();
 }
 
 function updateMissionHud() {
