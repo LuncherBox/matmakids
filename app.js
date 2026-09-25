@@ -800,7 +800,6 @@ async function markCurrentMechanicLearned() {
   if (error) console.error("Nie udało się zapisać treningu:", error);
 }
 
-async 
 async function startNewSession() {
   stopCurrentTaskActivity();
 
