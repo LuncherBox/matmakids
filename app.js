@@ -15,6 +15,26 @@ const CATEGORY_LABELS = {
   memory: "Pamięć"
 };
 
+const MECHANIC_LABELS = {
+  "math:addition": "Dodawanie",
+  "math:subtraction": "Odejmowanie",
+  "math:missing_number": "Brakująca liczba",
+  "math:number_order": "Kolejność liczb",
+  "math:number_comparison": "Porównywanie liczb",
+  "logic:sudoku_4x4": "Sudoku 4×4",
+  "logic:color_grid_copy": "Kopiowanie wzoru",
+  "logic:visual_search": "Znajdź układ",
+  "logic:logical_sequence": "Sekwencje",
+  "coding:symbol_decode": "Odczytaj kod",
+  "coding:grid_code": "Kod na siatce",
+  "coding:repeat_pattern": "Powtarzanie komend",
+  "coding:path_code": "Droga robota"
+};
+
+function taskMechanicId(task) {
+  return `${task.category}:${task.subcategory || task.renderer || task.type || "unknown"}`;
+}
+
 let taskBank = [];
 let sessionTasks = [];
 
@@ -28,6 +48,9 @@ let state = {
   sudokuActive: 0,
   pendingAnswer: null,
   activeChild: null,
+  sessionMode: "mission",
+  activeCategory: null,
+  activeMechanic: null,
   sessionId: null,
   taskAttempts: 0,
   taskHadError: false,
@@ -612,9 +635,25 @@ function renderChildHome() {
         <div class="child-home-avatar">${escapeHtml((child.display_name || "?").charAt(0).toUpperCase())}</div>
         <div class="brand">Eduli</div>
         <h1>Cześć, ${escapeHtml(child.display_name)}! 👋</h1>
-        <p class="subtle">Gotowa na 10 zadań?</p>
+        <p class="subtle">Co dzisiaj robimy?</p>
 
-        <button class="primary child-start-btn" id="startChildSession" type="button">ZACZYNAM</button>
+        <div class="mode-cards">
+          <button class="mode-card mission-mode-card" id="startMission" type="button">
+            <span class="mode-icon">⚔️</span>
+            <span class="mode-copy">
+              <strong>MISJA</strong>
+              <small>Pokonaj Gobiego w 10 zadaniach</small>
+            </span>
+          </button>
+
+          <button class="mode-card practice-mode-card" id="openPractice" type="button">
+            <span class="mode-icon">🧠</span>
+            <span class="mode-copy">
+              <strong>ĆWICZ</strong>
+              <small>Ucz się nowych zadań i trenuj</small>
+            </span>
+          </button>
+        </div>
 
         <div class="share-code-box">
           <span>Kod profilu</span>
@@ -634,9 +673,134 @@ function renderChildHome() {
     renderEditChild(child);
   });
 
-  document.getElementById("startChildSession").addEventListener("click", startNewSession);
+  document.getElementById("startMission").addEventListener("click", startNewSession);
+  document.getElementById("openPractice").addEventListener("click", renderPracticeCategories);
 }
 
+function renderPracticeCategories() {
+  app.innerHTML = `
+    <section class="screen centered">
+      <button class="back-link" id="backFromPractice" type="button">← Wróć</button>
+      <div class="brand">Eduli</div>
+      <h1>Ćwicz</h1>
+      <p class="subtle">Wybierz, co chcesz poćwiczyć.</p>
+
+      <div class="practice-category-grid">
+        <button class="practice-category-card" data-category="math">
+          <span>➕</span><strong>Matematyka</strong>
+        </button>
+        <button class="practice-category-card" data-category="logic">
+          <span>🧩</span><strong>Logika</strong>
+        </button>
+        <button class="practice-category-card" data-category="coding">
+          <span>🤖</span><strong>Kodowanie</strong>
+        </button>
+      </div>
+    </section>
+  `;
+
+  document.getElementById("backFromPractice").addEventListener("click", renderChildHome);
+
+  document.querySelectorAll(".practice-category-card").forEach(button => {
+    button.addEventListener("click", () => renderPracticeMechanics(button.dataset.category));
+  });
+}
+
+async function renderPracticeMechanics(category) {
+  state.activeCategory = category;
+
+  const mechanics = [...new Map(
+    taskBank
+      .filter(task => task.category === category && task.status !== "archived")
+      .map(task => [taskMechanicId(task), {
+        id: taskMechanicId(task),
+        label: MECHANIC_LABELS[taskMechanicId(task)] || task.subcategory || task.name
+      }])
+  ).values()];
+
+  const { data, error } = await supabaseClient
+    .from("child_task_type_progress")
+    .select("task_type, training_status")
+    .eq("child_id", state.activeChild.id);
+
+  if (error) console.error(error);
+
+  const progress = new Map((data || []).map(row => [row.task_type, row.training_status]));
+
+  app.innerHTML = `
+    <section class="screen centered">
+      <button class="back-link" id="backToPracticeCategories" type="button">← Kategorie</button>
+      <div class="brand">Eduli</div>
+      <h1>${escapeHtml(CATEGORY_LABELS[category] || category)}</h1>
+      <p class="subtle">Nowe typy najpierw poznasz na krótkim treningu.</p>
+
+      <div class="mechanic-list">
+        ${mechanics.map(mechanic => {
+          const learned = progress.get(mechanic.id) === "learned";
+          return `
+            <button class="mechanic-card" data-mechanic="${escapeHtml(mechanic.id)}">
+              <span class="mechanic-status">${learned ? "✓" : "NOWE"}</span>
+              <span class="mechanic-copy">
+                <strong>${escapeHtml(mechanic.label)}</strong>
+                <small>${learned ? "Ćwicz" : "Najpierw krótki trening"}</small>
+              </span>
+              <span class="child-card-arrow">›</span>
+            </button>
+          `;
+        }).join("")}
+      </div>
+    </section>
+  `;
+
+  document.getElementById("backToPracticeCategories").addEventListener("click", renderPracticeCategories);
+
+  document.querySelectorAll(".mechanic-card").forEach(button => {
+    button.addEventListener("click", () => startPracticeMechanic(button.dataset.mechanic, progress.get(button.dataset.mechanic) === "learned"));
+  });
+}
+
+function startPracticeMechanic(mechanicId, learned) {
+  const candidates = taskBank.filter(task =>
+    task.status !== "archived" &&
+    taskMechanicId(task) === mechanicId
+  );
+
+  if (!candidates.length) return;
+
+  state.sessionMode = learned ? "practice" : "training";
+  state.activeMechanic = mechanicId;
+  state.sessionId = null;
+  state.index = 0;
+  state.sessionStats = {
+    correctFirstTry: 0,
+    mistakes: 0,
+    childPoints: 0,
+    gobiPoints: 0
+  };
+
+  sessionTasks = shuffle(candidates).slice(0, learned ? 5 : 2);
+  renderTask();
+}
+
+async function markCurrentMechanicLearned() {
+  if (!state.activeChild || !state.activeMechanic) return;
+
+  const { error } = await supabaseClient
+    .from("child_task_type_progress")
+    .upsert({
+      child_id: state.activeChild.id,
+      task_type: state.activeMechanic,
+      training_status: "learned",
+      trained_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }, {
+      onConflict: "child_id,task_type"
+    });
+
+  if (error) console.error("Nie udało się zapisać treningu:", error);
+}
+
+async 
 async function startNewSession() {
   stopCurrentTaskActivity();
 
@@ -645,8 +809,55 @@ async function startNewSession() {
     return;
   }
 
-  buildSession();
+  const { data: learnedRows, error: learnedError } = await supabaseClient
+    .from("child_task_type_progress")
+    .select("task_type")
+    .eq("child_id", state.activeChild.id)
+    .eq("training_status", "learned");
 
+  if (learnedError) {
+    console.error(learnedError);
+  }
+
+  const learned = new Set((learnedRows || []).map(row => row.task_type));
+  const allowed = taskBank.filter(task =>
+    task.status !== "archived" &&
+    task.category !== "memory" &&
+    learned.has(taskMechanicId(task))
+  );
+
+  if (!allowed.length) {
+    app.innerHTML = `
+      <section class="screen centered">
+        <div class="finish-card">
+          <div class="big-emoji">🧠</div>
+          <h1>Najpierw trening</h1>
+          <p>Zanim rozpoczniesz misję z Gobim, poznaj przynajmniej jeden typ zadania.</p>
+          <div style="height:20px"></div>
+          <button class="primary" id="goToPractice">PRZEJDŹ DO ĆWICZEŃ</button>
+          <button class="text-btn" id="missionBackHome">WRÓĆ</button>
+        </div>
+      </section>
+    `;
+
+    document.getElementById("goToPractice").addEventListener("click", renderPracticeCategories);
+    document.getElementById("missionBackHome").addEventListener("click", renderChildHome);
+    return;
+  }
+
+  state.sessionMode = "mission";
+  state.activeMechanic = null;
+  sessionTasks = shuffle(allowed).slice(0, SESSION_SIZE);
+
+  if (sessionTasks.length < SESSION_SIZE) {
+    while (sessionTasks.length < SESSION_SIZE) {
+      sessionTasks.push(...shuffle(allowed).slice(0, Math.min(SESSION_SIZE - sessionTasks.length, allowed.length)));
+    }
+    sessionTasks = sessionTasks.slice(0, SESSION_SIZE);
+  }
+
+  localStorage.setItem("last_task_ids", JSON.stringify(sessionTasks.map(task => task.id)));
+  state.index = 0;
   state.sessionId = null;
   state.taskAttempts = 0;
   state.taskHadError = false;
@@ -660,9 +871,9 @@ async function startNewSession() {
   app.innerHTML = `
     <section class="screen centered">
       <div class="finish-card">
-        <div class="big-emoji">⚙️</div>
-        <h1>Przygotowuję zadania</h1>
-        <p>Chwileczkę...</p>
+        <div class="big-emoji">⚔️</div>
+        <h1>Misja z Gobim</h1>
+        <p>Przygotowuję 10 zadań...</p>
       </div>
     </section>
   `;
@@ -690,7 +901,7 @@ async function startNewSession() {
       <section class="screen centered">
         <div class="finish-card">
           <div class="big-emoji">🛠️</div>
-          <h1>Nie udało się rozpocząć sesji</h1>
+          <h1>Nie udało się rozpocząć misji</h1>
           <p>Spróbuj ponownie.</p>
           <div style="height:20px"></div>
           <button class="primary" id="retrySessionStart">SPRÓBUJ PONOWNIE</button>
@@ -704,7 +915,6 @@ async function startNewSession() {
   state.sessionId = data.id;
   renderTask();
 }
-
 function stopCurrentTaskActivity() {
   if (state.memoryTimer) {
     clearTimeout(state.memoryTimer);
@@ -741,6 +951,8 @@ function renderTask() {
 
       <div class="task-card">
         <div class="task-title">${escapeHtml(CATEGORY_LABELS[task.category] || task.category)}</div>
+        ${state.sessionMode === "training" ? '<div class="training-banner">TRENING - uczymy się tego typu zadania</div>' : ""}
+        ${state.sessionMode === "practice" ? '<div class="practice-banner">ĆWICZENIE - bez punktów i Gobiego</div>' : ""}
 
         <div class="instruction-row">
           <div class="instruction" id="instruction">${escapeHtml(task.instruction)}</div>
@@ -1796,7 +2008,7 @@ async function persistCompletedTask(task, result) {
     .insert({
       session_id: state.sessionId,
       task_id: task.id,
-      task_type: task.type || task.renderer || task.subcategory || "unknown",
+      task_type: taskMechanicId(task),
       category: task.category,
       attempts: result.attempts,
       correct_first_try: result.correctFirstTry,
@@ -1833,12 +2045,15 @@ async function success(selectedButton = null) {
   state.taskAttempts += 1;
 
   const correctFirstTry = !state.taskHadError && state.taskAttempts === 1;
-  const pointsChild = correctFirstTry ? 2 : 1;
-  const pointsGobi = state.taskHadError ? 1 : 0;
+  const isMission = state.sessionMode === "mission";
+  const pointsChild = isMission ? (correctFirstTry ? 2 : 1) : 0;
+  const pointsGobi = isMission && state.taskHadError ? 1 : 0;
 
-  if (correctFirstTry) state.sessionStats.correctFirstTry += 1;
-  state.sessionStats.childPoints += pointsChild;
-  state.sessionStats.gobiPoints += pointsGobi;
+  if (isMission && correctFirstTry) state.sessionStats.correctFirstTry += 1;
+  if (isMission) {
+    state.sessionStats.childPoints += pointsChild;
+    state.sessionStats.gobiPoints += pointsGobi;
+  }
 
   if (selectedButton) selectedButton.classList.add("correct-choice");
   showFeedback("Super! 🌟", "good");
@@ -1847,12 +2062,14 @@ async function success(selectedButton = null) {
     button.disabled = true;
   });
 
-  await persistCompletedTask(task, {
-    attempts: state.taskAttempts,
-    correctFirstTry,
-    pointsChild,
-    pointsGobi
-  });
+  if (isMission) {
+    await persistCompletedTask(task, {
+      attempts: state.taskAttempts,
+      correctFirstTry,
+      pointsChild,
+      pointsGobi
+    });
+  }
 
   setTimeout(() => {
     state.index += 1;
@@ -1877,6 +2094,46 @@ function retry(selectedButton = null) {
 
 async function renderFinish() {
   stopCurrentTaskActivity();
+
+  if (state.sessionMode === "training") {
+    await markCurrentMechanicLearned();
+
+    app.innerHTML = `
+      <section class="screen centered">
+        <div class="finish-card">
+          <div class="big-emoji">🌟</div>
+          <h1>Już umiesz!</h1>
+          <p>Ten typ zadania jest teraz odblokowany w misjach z Gobim.</p>
+          <div style="height:20px"></div>
+          <button class="primary" id="practiceThisMechanic">POĆWICZ JESZCZE</button>
+          <button class="text-btn" id="trainingHome">WRÓĆ</button>
+        </div>
+      </section>
+    `;
+
+    document.getElementById("practiceThisMechanic").addEventListener("click", () => startPracticeMechanic(state.activeMechanic, true));
+    document.getElementById("trainingHome").addEventListener("click", renderChildHome);
+    return;
+  }
+
+  if (state.sessionMode === "practice") {
+    app.innerHTML = `
+      <section class="screen centered">
+        <div class="finish-card">
+          <div class="big-emoji">👏</div>
+          <h1>Dobra robota!</h1>
+          <p>Ćwiczenie zakończone.</p>
+          <div style="height:20px"></div>
+          <button class="primary" id="practiceAgain">JESZCZE RAZ</button>
+          <button class="text-btn" id="practiceHome">WRÓĆ</button>
+        </div>
+      </section>
+    `;
+
+    document.getElementById("practiceAgain").addEventListener("click", () => startPracticeMechanic(state.activeMechanic, true));
+    document.getElementById("practiceHome").addEventListener("click", renderChildHome);
+    return;
+  }
 
   const childPoints = state.sessionStats.childPoints;
   const gobiPoints = state.sessionStats.gobiPoints;
@@ -1906,7 +2163,7 @@ async function renderFinish() {
       <div class="finish-card">
         <div class="big-emoji">🎉</div>
         <h1>Super, ${escapeHtml(state.name)}!</h1>
-        <p>10 zadań gotowe.</p>
+        <p>Misja zakończona.</p>
         <p class="session-save-note">Wynik zapisany.</p>
         <div style="height:20px"></div>
         <button class="primary" id="again">JESZCZE RAZ</button>
