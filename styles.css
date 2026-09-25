@@ -1753,3 +1753,154 @@ body {
     padding: 10px 8px;
   }
 }
+
+
+/* Parent authentication */
+.auth-screen {
+  justify-content: center;
+}
+
+.auth-card {
+  background: var(--card);
+  border: 1px solid rgba(216, 222, 229, .8);
+  box-shadow: var(--shadow);
+  border-radius: 26px;
+  padding: 24px;
+}
+
+.auth-card h1 {
+  margin-bottom: 8px;
+}
+
+.auth-message,
+.auth-status {
+  margin-top: 12px;
+  border-radius: 14px;
+  padding: 10px 12px;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.auth-message {
+  background: #EEF4FA;
+}
+
+.auth-status:empty {
+  display: none;
+}
+
+.auth-status.error {
+  background: var(--retry-bg);
+  color: #9C543A;
+}
+
+.auth-status.success {
+  background: var(--good-bg);
+  color: #456F59;
+}
+
+.google-btn {
+  width: 100%;
+  margin-top: 20px;
+  min-height: 54px;
+  border: 2px solid var(--border);
+  border-radius: 16px;
+  background: #fff;
+  color: var(--text);
+  font-weight: 900;
+  font-size: 17px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.google-mark {
+  font-size: 21px;
+  font-weight: 950;
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+  margin: 16px 0;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  height: 1px;
+  background: var(--border);
+  flex: 1;
+}
+
+.auth-label {
+  display: block;
+  margin: 10px 0 6px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.auth-input {
+  width: 100%;
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  padding: 13px 14px;
+  font-size: 17px;
+  outline: none;
+  background: #fff;
+}
+
+.auth-input:focus {
+  border-color: var(--accent);
+}
+
+.auth-primary {
+  margin-top: 16px;
+}
+
+.text-btn {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font-weight: 850;
+  padding: 12px 8px 4px;
+}
+
+.muted-link {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.account-row {
+  width: 100%;
+  max-width: 520px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.account-email {
+  color: var(--muted);
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.logout-btn {
+  flex: 0 0 auto;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 850;
+}
