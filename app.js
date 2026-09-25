@@ -2450,14 +2450,53 @@ async function renderFinish() {
 
   clearMissionSnapshot();
 
+  const winnerTitle = winner === "child"
+    ? "Wygrywasz!"
+    : (winner === "gobi" ? "Gobi wygrywa tę rundę" : "Remis!");
+
+  const gobiReaction = winner === "child"
+    ? "O nie! Gobi już szykuje rewanż."
+    : (winner === "gobi"
+      ? "Gobi się cieszy, ale możesz spróbować jeszcze raz."
+      : "Ale było blisko! Gobi chce dogrywki.");
+
+  const firstTry = state.sessionStats.correctFirstTry;
+
   app.innerHTML = `
-    <section class="screen centered">
-      <div class="finish-card">
-        <div class="big-emoji">🎉</div>
-        <h1>Super, ${escapeHtml(state.name)}!</h1>
-        <p>Misja zakończona.</p>
-        <p class="session-save-note">Wynik zapisany.</p>
-        <div style="height:20px"></div>
+    <section class="screen centered mission-finish-screen">
+      <div class="mission-result-card">
+        <div class="result-kicker">MISJA ZAKOŃCZONA</div>
+        <h1>${winnerTitle}</h1>
+
+        <div class="final-score">
+          <div class="final-player">
+            <span>${escapeHtml(state.name)}</span>
+            <strong>${childPoints}</strong>
+          </div>
+
+          <div class="final-score-divider">:</div>
+
+          <div class="final-player final-gobi">
+            <span>Gobi</span>
+            <strong>${gobiPoints}</strong>
+          </div>
+        </div>
+
+        <div class="result-coin-row">
+          <span class="result-coin-label">Zdobyte punkty</span>
+          <strong>${childPoints}</strong>
+        </div>
+
+        <div class="result-stat">
+          <span>Bez błędu za pierwszym razem</span>
+          <strong>${firstTry}/${SESSION_SIZE}</strong>
+        </div>
+
+        <div class="gobi-reaction">
+          <div class="gobi-face">G</div>
+          <p>${gobiReaction}</p>
+        </div>
+
         <button class="primary" id="again">JESZCZE RAZ</button>
         <button class="text-btn" id="backToChildHome">WRÓĆ</button>
       </div>
