@@ -2688,3 +2688,64 @@ body {
     font-size: 44px;
   }
 }
+
+
+/* Interactive subtraction hint in Mission */
+.mission-subtraction-hint {
+  width: 100%;
+}
+
+.mission-subtract-dots {
+  width: 100%;
+  max-width: 300px;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 9px;
+  justify-items: center;
+}
+
+.mission-subtract-dot {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 2px solid #596273;
+  border-radius: 50%;
+  background: #596273;
+  position: relative;
+}
+
+.mission-subtract-dot.removed {
+  background: #fff;
+  opacity: .42;
+}
+
+.mission-subtract-dot.removed::after {
+  content: "";
+  position: absolute;
+  left: 1px;
+  top: 10px;
+  width: 21px;
+  height: 2px;
+  border-radius: 2px;
+  background: #B76749;
+  transform: rotate(-35deg);
+}
+
+.mission-subtract-counter {
+  padding: 7px 12px;
+  border-radius: 12px;
+  background: #F3F4F2;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.mission-subtract-counter strong {
+  color: var(--text);
+  font-size: 16px;
+}
+
+.mission-subtract-counter.complete {
+  background: #E8F3ED;
+  color: #456F59;
+}
