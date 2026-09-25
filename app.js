@@ -266,30 +266,21 @@ function renderAuth(message = "") {
   });
 }
 
-function currentYear() {
-  return new Date().getFullYear();
-}
+function ageFromBirthDate(birthDate) {
+  if (!birthDate) return null;
 
-function ageFromBirthYear(birthYear) {
-  const year = Number(birthYear);
-  if (!year) return "";
-  return Math.max(0, currentYear() - year);
-}
+  const birth = new Date(`${birthDate}T00:00:00`);
+  if (Number.isNaN(birth.getTime())) return null;
 
-function birthYearOptions(selected = "") {
-  const now = currentYear();
-  const years = [];
+  const today = new Date();
+  let age = today.getFullYear() - birth.getFullYear();
 
-  for (let year = now - 4; year >= now - 8; year -= 1) {
-    years.push(year);
-  }
+  const birthdayPassed =
+    today.getMonth() > birth.getMonth() ||
+    (today.getMonth() === birth.getMonth() && today.getDate() >= birth.getDate());
 
-  return [
-    '<option value="">Wybierz rok</option>',
-    ...years.map(year =>
-      `<option value="${year}" ${String(selected) === String(year) ? "selected" : ""}>${year}</option>`
-    )
-  ].join("");
+  if (!birthdayPassed) age -= 1;
+  return Math.max(0, age);
 }
 
 async function renderChildProfiles(message = "") {
@@ -320,10 +311,8 @@ async function renderChildProfiles(message = "") {
         <label class="auth-label" for="childName">Imię lub pseudonim</label>
         <input id="childName" class="auth-input" maxlength="40" autocomplete="off" />
 
-        <label class="auth-label" for="childBirthYear">Rok urodzenia</label>
-        <select id="childBirthYear" class="auth-input child-select">
-          ${birthYearOptions()}
-        </select>
+        <label class="auth-label" for="childBirthDate">Data urodzenia</label>
+        <input id="childBirthDate" class="auth-input" type="date" />
 
         <button class="primary form-submit" id="createChild" type="button">UTWÓRZ PROFIL</button>
         <button class="text-btn" id="cancelCreateChild" type="button">Anuluj</button>
@@ -376,11 +365,11 @@ async function renderChildProfiles(message = "") {
 
   document.getElementById("createChild").addEventListener("click", async () => {
     const name = document.getElementById("childName").value.trim();
-    const birthYear = Number(document.getElementById("childBirthYear").value);
+    const birthDate = document.getElementById("childBirthDate").value;
     const status = document.getElementById("createChildStatus");
 
-    if (!name || !birthYear) {
-      status.textContent = "Wpisz imię i wybierz rok urodzenia.";
+    if (!name || !birthDate) {
+      status.textContent = "Wpisz imię i pełną datę urodzenia.";
       status.className = "auth-status error";
       return;
     }
@@ -390,7 +379,7 @@ async function renderChildProfiles(message = "") {
 
     const { data, error } = await supabaseClient.rpc("create_child_profile", {
       p_display_name: name,
-      p_birth_year: birthYear
+      p_birth_date: birthDate
     });
 
     if (error) {
@@ -448,7 +437,7 @@ async function loadChildCards() {
 
   const { data, error } = await supabaseClient
     .from("children")
-    .select("id, display_name, birth_year, share_code, created_at")
+    .select("id, display_name, birth_date, share_code, gobi_level, created_at")
     .order("created_at", { ascending: true });
 
   if (error) {
@@ -471,7 +460,10 @@ async function loadChildCards() {
   }
 
   list.innerHTML = children.map(child => {
-    const age = ageFromBirthYear(child.birth_year);
+    const age = ageFromBirthDate(child.birth_date);
+    const ageLabel = age == null
+      ? '<span class="birth-date-warning">Uzupełnij datę urodzenia</span>'
+      : `<span>${escapeHtml(age)} lat</span>`;
 
     return `
       <div class="child-card">
@@ -479,7 +471,7 @@ async function loadChildCards() {
           <div class="child-avatar">${escapeHtml((child.display_name || "?").charAt(0).toUpperCase())}</div>
           <div class="child-card-copy">
             <strong>${escapeHtml(child.display_name)}</strong>
-            <span>Rok ${escapeHtml(child.birth_year)} · ${escapeHtml(age)} lat</span>
+            ${ageLabel}
           </div>
         </div>
 
@@ -524,10 +516,10 @@ function renderEditChild(child) {
         <input id="editChildName" class="auth-input" maxlength="40" autocomplete="off"
                value="${escapeHtml(child.display_name)}" />
 
-        <label class="auth-label" for="editChildBirthYear">Rok urodzenia</label>
-        <select id="editChildBirthYear" class="auth-input child-select">
-          ${birthYearOptions(child.birth_year)}
-        </select>
+        <label class="auth-label" for="editChildBirthDate">Data urodzenia</label>
+        <input id="editChildBirthDate" class="auth-input" type="date"
+               value="${escapeHtml(child.birth_date || "")}" />
+        ${child.birth_date ? "" : '<div class="profile-warning">Uzupełnij pełną datę urodzenia.</div>'}
 
         <button class="primary form-submit" id="saveChildProfile" type="button">ZAPISZ ZMIANY</button>
 
@@ -548,11 +540,11 @@ function renderEditChild(child) {
 
   document.getElementById("saveChildProfile").addEventListener("click", async () => {
     const name = document.getElementById("editChildName").value.trim();
-    const birthYear = Number(document.getElementById("editChildBirthYear").value);
+    const birthDate = document.getElementById("editChildBirthDate").value;
     const status = document.getElementById("editChildStatus");
 
-    if (!name || !birthYear) {
-      status.textContent = "Wpisz imię i wybierz rok urodzenia.";
+    if (!name || !birthDate) {
+      status.textContent = "Wpisz imię i pełną datę urodzenia.";
       status.className = "auth-status error";
       return;
     }
@@ -560,17 +552,19 @@ function renderEditChild(child) {
     status.textContent = "Zapisuję...";
     status.className = "auth-status";
 
-    const age = ageFromBirthYear(birthYear);
+    const age = ageFromBirthDate(birthDate);
+    const birthYear = Number(birthDate.slice(0, 4));
 
     const { data, error } = await supabaseClient
       .from("children")
       .update({
         display_name: name,
+        birth_date: birthDate,
         birth_year: birthYear,
         age
       })
       .eq("id", child.id)
-      .select("id, display_name, birth_year, share_code, created_at")
+      .select("id, display_name, birth_date, share_code, gobi_level, created_at")
       .single();
 
     if (error) {
