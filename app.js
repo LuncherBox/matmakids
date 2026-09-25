@@ -28,6 +28,15 @@ let state = {
   sudokuActive: 0,
   pendingAnswer: null,
   activeChild: null,
+  sessionId: null,
+  taskAttempts: 0,
+  taskHadError: false,
+  sessionStats: {
+    correctFirstTry: 0,
+    mistakes: 0,
+    childPoints: 0,
+    gobiPoints: 0
+  },
   memoryTimer: null
 };
 
@@ -628,9 +637,71 @@ function renderChildHome() {
   document.getElementById("startChildSession").addEventListener("click", startNewSession);
 }
 
-function startNewSession() {
+async function startNewSession() {
   stopCurrentTaskActivity();
+
+  if (!state.activeChild) {
+    await renderChildProfiles("Najpierw wybierz profil dziecka.");
+    return;
+  }
+
   buildSession();
+
+  state.sessionId = null;
+  state.taskAttempts = 0;
+  state.taskHadError = false;
+  state.sessionStats = {
+    correctFirstTry: 0,
+    mistakes: 0,
+    childPoints: 0,
+    gobiPoints: 0
+  };
+
+  app.innerHTML = `
+    <section class="screen centered">
+      <div class="finish-card">
+        <div class="big-emoji">⚙️</div>
+        <h1>Przygotowuję zadania</h1>
+        <p>Chwileczkę...</p>
+      </div>
+    </section>
+  `;
+
+  const { data, error } = await supabaseClient
+    .from("sessions")
+    .insert({
+      child_id: state.activeChild.id,
+      status: "started",
+      task_count: sessionTasks.length,
+      correct_first_try_count: 0,
+      mistake_count: 0,
+      child_points: 0,
+      gobi_points: 0,
+      mode: "mixed",
+      category: null,
+      gobi_level: Number(state.activeChild.gobi_level) || 1
+    })
+    .select("id")
+    .single();
+
+  if (error) {
+    console.error(error);
+    app.innerHTML = `
+      <section class="screen centered">
+        <div class="finish-card">
+          <div class="big-emoji">🛠️</div>
+          <h1>Nie udało się rozpocząć sesji</h1>
+          <p>Spróbuj ponownie.</p>
+          <div style="height:20px"></div>
+          <button class="primary" id="retrySessionStart">SPRÓBUJ PONOWNIE</button>
+        </div>
+      </section>
+    `;
+    document.getElementById("retrySessionStart").addEventListener("click", startNewSession);
+    return;
+  }
+
+  state.sessionId = data.id;
   renderTask();
 }
 
@@ -656,6 +727,8 @@ function renderTask() {
   state.sudokuAnswers = [];
   state.sudokuActive = 0;
   state.pendingAnswer = null;
+  state.taskAttempts = 0;
+  state.taskHadError = false;
   const task = sessionTasks[state.index];
   const progress = Math.round((state.index / sessionTasks.length) * 100);
 
@@ -1715,14 +1788,70 @@ function checkAnswer(value, correct, selectedButton = null) {
   }
 }
 
-function success(selectedButton = null) {
+async function persistCompletedTask(task, result) {
+  if (!state.sessionId) return;
+
+  const { error: answerError } = await supabaseClient
+    .from("session_answers")
+    .insert({
+      session_id: state.sessionId,
+      task_id: task.id,
+      task_type: task.type || task.renderer || task.subcategory || "unknown",
+      category: task.category,
+      attempts: result.attempts,
+      correct_first_try: result.correctFirstTry,
+      used_hint: false,
+      used_guided_help: false,
+      points_child: result.pointsChild,
+      points_gobi: result.pointsGobi
+    });
+
+  if (answerError) {
+    console.error("Nie udało się zapisać odpowiedzi:", answerError);
+    return;
+  }
+
+  const { error: sessionError } = await supabaseClient
+    .from("sessions")
+    .update({
+      correct_first_try_count: state.sessionStats.correctFirstTry,
+      mistake_count: state.sessionStats.mistakes,
+      child_points: state.sessionStats.childPoints,
+      gobi_points: state.sessionStats.gobiPoints
+    })
+    .eq("id", state.sessionId);
+
+  if (sessionError) {
+    console.error("Nie udało się zaktualizować sesji:", sessionError);
+  }
+}
+
+async function success(selectedButton = null) {
   stopCurrentTaskActivity();
+
+  const task = sessionTasks[state.index];
+  state.taskAttempts += 1;
+
+  const correctFirstTry = !state.taskHadError && state.taskAttempts === 1;
+  const pointsChild = correctFirstTry ? 2 : 1;
+  const pointsGobi = state.taskHadError ? 1 : 0;
+
+  if (correctFirstTry) state.sessionStats.correctFirstTry += 1;
+  state.sessionStats.childPoints += pointsChild;
+  state.sessionStats.gobiPoints += pointsGobi;
 
   if (selectedButton) selectedButton.classList.add("correct-choice");
   showFeedback("Super! 🌟", "good");
 
   document.querySelectorAll("button").forEach(button => {
     button.disabled = true;
+  });
+
+  await persistCompletedTask(task, {
+    attempts: state.taskAttempts,
+    correctFirstTry,
+    pointsChild,
+    pointsGobi
   });
 
   setTimeout(() => {
@@ -1732,6 +1861,13 @@ function success(selectedButton = null) {
 }
 
 function retry(selectedButton = null) {
+  state.taskAttempts += 1;
+
+  if (!state.taskHadError) {
+    state.taskHadError = true;
+    state.sessionStats.mistakes += 1;
+  }
+
   if (selectedButton) {
     selectedButton.classList.add("wrong-choice");
     setTimeout(() => selectedButton.classList.remove("wrong-choice"), 700);
@@ -1739,8 +1875,31 @@ function retry(selectedButton = null) {
   showFeedback("Spróbuj jeszcze raz", "retry");
 }
 
-function renderFinish() {
+async function renderFinish() {
   stopCurrentTaskActivity();
+
+  const childPoints = state.sessionStats.childPoints;
+  const gobiPoints = state.sessionStats.gobiPoints;
+  const winner = childPoints > gobiPoints
+    ? "child"
+    : (gobiPoints > childPoints ? "gobi" : "draw");
+
+  if (state.sessionId) {
+    const { error } = await supabaseClient
+      .from("sessions")
+      .update({
+        status: "completed",
+        completed_at: new Date().toISOString(),
+        correct_first_try_count: state.sessionStats.correctFirstTry,
+        mistake_count: state.sessionStats.mistakes,
+        child_points: childPoints,
+        gobi_points: gobiPoints,
+        winner
+      })
+      .eq("id", state.sessionId);
+
+    if (error) console.error("Nie udało się zamknąć sesji:", error);
+  }
 
   app.innerHTML = `
     <section class="screen centered">
@@ -1748,13 +1907,16 @@ function renderFinish() {
         <div class="big-emoji">🎉</div>
         <h1>Super, ${escapeHtml(state.name)}!</h1>
         <p>10 zadań gotowe.</p>
+        <p class="session-save-note">Wynik zapisany.</p>
         <div style="height:20px"></div>
         <button class="primary" id="again">JESZCZE RAZ</button>
+        <button class="text-btn" id="backToChildHome">WRÓĆ</button>
       </div>
     </section>
   `;
 
   document.getElementById("again").addEventListener("click", startNewSession);
+  document.getElementById("backToChildHome").addEventListener("click", renderChildHome);
 }
 
 supabaseClient.auth.onAuthStateChange(async (event, session) => {
