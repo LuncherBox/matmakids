@@ -1198,7 +1198,7 @@ function revealGuidedHelpAfterError() {
   state.taskUsedGuidedHelp = true;
 
   const hintWrap = document.querySelector(".mission-hint-wrap");
-  if (hintWrap) hintWrap.hidden = true;
+  if (hintWrap) hintWrap.remove();
 }
 
 function renderByType(task) {
