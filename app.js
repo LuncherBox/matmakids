@@ -54,6 +54,10 @@ let state = {
   sessionId: null,
   taskAttempts: 0,
   taskHadError: false,
+  taskUsedHint: false,
+  taskUsedGuidedHelp: false,
+  taskGobiPoint: 0,
+  taskPotentialCoins: 2,
   sessionStats: {
     correctFirstTry: 0,
     mistakes: 0,
@@ -957,6 +961,10 @@ function renderTask() {
   state.pendingAnswer = null;
   state.taskAttempts = 0;
   state.taskHadError = false;
+  state.taskUsedHint = false;
+  state.taskUsedGuidedHelp = false;
+  state.taskGobiPoint = 0;
+  state.taskPotentialCoins = 2;
   const task = sessionTasks[state.index];
   const progress = Math.round((state.index / sessionTasks.length) * 100);
 
@@ -969,6 +977,19 @@ function renderTask() {
 
       <div class="task-card">
         <div class="task-title">${escapeHtml(CATEGORY_LABELS[task.category] || task.category)}</div>
+        ${state.sessionMode === "mission" ? `
+          <div class="mission-scoreboard">
+            <div class="score-side child-score-side">
+              <span class="score-name">${escapeHtml(state.name)}</span>
+              <strong id="childScore">${state.sessionStats.childPoints}</strong>
+            </div>
+            <div class="task-coins" id="taskCoins" aria-label="Monety do zdobycia">🪙 🪙</div>
+            <div class="score-side gobi-score-side">
+              <span class="score-name">Gobi</span>
+              <strong id="gobiScore">${state.sessionStats.gobiPoints}</strong>
+            </div>
+          </div>
+        ` : ""}
         ${state.sessionMode === "training" ? '<div class="training-banner">TRENING - uczymy się tego typu zadania</div>' : ""}
         ${state.sessionMode === "practice" ? '<div class="practice-banner">ĆWICZENIE - bez punktów i Gobiego</div>' : ""}
 
@@ -985,7 +1006,96 @@ function renderTask() {
   `;
 
   renderByType(task);
+  if (state.sessionMode === "mission") setupMissionHint(task);
   setupTaskSpeech();
+}
+
+function updateMissionHud() {
+  if (state.sessionMode !== "mission") return;
+
+  const childScore = document.getElementById("childScore");
+  const gobiScore = document.getElementById("gobiScore");
+  const taskCoins = document.getElementById("taskCoins");
+
+  if (childScore) childScore.textContent = String(state.sessionStats.childPoints);
+  if (gobiScore) gobiScore.textContent = String(state.sessionStats.gobiPoints);
+
+  if (taskCoins) {
+    taskCoins.textContent = state.taskPotentialCoins === 2
+      ? "🪙 🪙"
+      : (state.taskPotentialCoins === 1 ? "🪙" : "");
+  }
+}
+
+function missionHintText(task) {
+  if (task.renderer === "equation_with_dots") {
+    const left = Number(task.content?.left) || 0;
+    const right = Number(task.content?.right) || 0;
+
+    if (task.subcategory === "subtraction") {
+      return `Zacznij od ${left} i odejmij ${right}.`;
+    }
+
+    return `Policz ${left}, a potem dodaj jeszcze ${right}.`;
+  }
+
+  if (task.renderer === "missing_number_equation") {
+    return "Spójrz na wynik i zastanów się, jakiej liczby brakuje.";
+  }
+
+  return "";
+}
+
+function setupMissionHint(task) {
+  const strongHint = document.querySelector(".hint-card");
+  if (strongHint) strongHint.classList.add("mission-hidden-help");
+
+  const hintText = missionHintText(task);
+  if (!hintText) return;
+
+  const taskArea = document.getElementById("taskArea");
+  if (!taskArea) return;
+
+  const hintWrap = document.createElement("div");
+  hintWrap.className = "mission-hint-wrap";
+  hintWrap.innerHTML = `
+    <button class="mission-hint-btn" id="missionHintButton" type="button">
+      💡 PODPOWIEDŹ <span class="hint-cost">🪙</span>
+    </button>
+    <div class="mission-hint-text" id="missionHintText" hidden>${escapeHtml(hintText)}</div>
+  `;
+
+  taskArea.appendChild(hintWrap);
+
+  document.getElementById("missionHintButton").addEventListener("click", () => {
+    if (state.taskUsedHint || state.taskHadError) return;
+
+    state.taskUsedHint = true;
+    state.taskPotentialCoins = 1;
+
+    const gobiLevel = Number(state.activeChild?.gobi_level) || 1;
+    if (gobiLevel >= 2 && state.taskGobiPoint === 0) {
+      state.taskGobiPoint = 1;
+      state.sessionStats.gobiPoints += 1;
+    }
+
+    document.getElementById("missionHintText").hidden = false;
+    document.getElementById("missionHintButton").disabled = true;
+    updateMissionHud();
+  });
+}
+
+function revealGuidedHelpAfterError() {
+  if (state.sessionMode !== "mission") return;
+
+  const strongHint = document.querySelector(".hint-card");
+  if (!strongHint) return;
+
+  strongHint.classList.remove("mission-hidden-help");
+  state.taskUsedGuidedHelp = true;
+
+  const hintButton = document.getElementById("missionHintButton");
+  if (hintButton) hintButton.disabled = true;
 }
 
 function renderByType(task) {
@@ -2030,8 +2140,8 @@ async function persistCompletedTask(task, result) {
       category: task.category,
       attempts: result.attempts,
       correct_first_try: result.correctFirstTry,
-      used_hint: false,
-      used_guided_help: false,
+      used_hint: result.usedHint,
+      used_guided_help: result.usedGuidedHelp,
       points_child: result.pointsChild,
       points_gobi: result.pointsGobi
     });
@@ -2064,13 +2174,18 @@ async function success(selectedButton = null) {
 
   const correctFirstTry = !state.taskHadError && state.taskAttempts === 1;
   const isMission = state.sessionMode === "mission";
-  const pointsChild = isMission ? (correctFirstTry ? 2 : 1) : 0;
-  const pointsGobi = isMission && state.taskHadError ? 1 : 0;
+
+  let pointsChild = 0;
+  if (isMission) {
+    pointsChild = state.taskUsedHint || state.taskHadError ? 1 : 2;
+  }
+
+  const pointsGobi = isMission ? state.taskGobiPoint : 0;
 
   if (isMission && correctFirstTry) state.sessionStats.correctFirstTry += 1;
   if (isMission) {
     state.sessionStats.childPoints += pointsChild;
-    state.sessionStats.gobiPoints += pointsGobi;
+    updateMissionHud();
   }
 
   if (selectedButton) selectedButton.classList.add("correct-choice");
@@ -2085,7 +2200,9 @@ async function success(selectedButton = null) {
       attempts: state.taskAttempts,
       correctFirstTry,
       pointsChild,
-      pointsGobi
+      pointsGobi,
+      usedHint: state.taskUsedHint,
+      usedGuidedHelp: state.taskUsedGuidedHelp
     });
   }
 
@@ -2101,6 +2218,15 @@ function retry(selectedButton = null) {
   if (!state.taskHadError) {
     state.taskHadError = true;
     state.sessionStats.mistakes += 1;
+
+    if (state.sessionMode === "mission" && !state.taskUsedHint && state.taskGobiPoint === 0) {
+      state.taskGobiPoint = 1;
+      state.sessionStats.gobiPoints += 1;
+      state.taskPotentialCoins = 1;
+      updateMissionHud();
+    }
+
+    revealGuidedHelpAfterError();
   }
 
   if (selectedButton) {
