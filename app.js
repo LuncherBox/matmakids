@@ -35,6 +35,67 @@ function taskMechanicId(task) {
   return `${task.category}:${task.subcategory || task.renderer || task.type || "unknown"}`;
 }
 
+function saveMissionSnapshot() {
+  if (state.sessionMode !== "mission" || !state.activeChild || !state.sessionId) return;
+
+  sessionStorage.setItem("eduli_active_mission", JSON.stringify({
+    child: state.activeChild,
+    sessionId: state.sessionId,
+    taskIds: sessionTasks.map(task => task.id),
+    index: state.index,
+    sessionStats: state.sessionStats,
+    taskAttempts: state.taskAttempts,
+    taskHadError: state.taskHadError,
+    taskUsedHint: state.taskUsedHint,
+    taskUsedGuidedHelp: state.taskUsedGuidedHelp,
+    taskGobiPoint: state.taskGobiPoint,
+    taskPotentialCoins: state.taskPotentialCoins
+  }));
+}
+
+function clearMissionSnapshot() {
+  sessionStorage.removeItem("eduli_active_mission");
+}
+
+function restoreMissionSnapshot() {
+  try {
+    const raw = sessionStorage.getItem("eduli_active_mission");
+    if (!raw) return false;
+
+    const snapshot = JSON.parse(raw);
+    const restoredTasks = (snapshot.taskIds || [])
+      .map(id => taskBank.find(task => task.id === id))
+      .filter(Boolean);
+
+    if (!snapshot.child || !snapshot.sessionId || !restoredTasks.length) return false;
+
+    state.activeChild = snapshot.child;
+    state.name = snapshot.child.display_name || state.name;
+    state.sessionMode = "mission";
+    state.sessionId = snapshot.sessionId;
+    state.index = Number(snapshot.index) || 0;
+    state.sessionStats = snapshot.sessionStats || {
+      correctFirstTry: 0,
+      mistakes: 0,
+      childPoints: 0,
+      gobiPoints: 0
+    };
+    state.taskAttempts = Number(snapshot.taskAttempts) || 0;
+    state.taskHadError = Boolean(snapshot.taskHadError);
+    state.taskUsedHint = Boolean(snapshot.taskUsedHint);
+    state.taskUsedGuidedHelp = Boolean(snapshot.taskUsedGuidedHelp);
+    state.taskGobiPoint = Number(snapshot.taskGobiPoint) || 0;
+    state.taskPotentialCoins = Number(snapshot.taskPotentialCoins) || 2;
+    sessionTasks = restoredTasks;
+
+    return true;
+  } catch (error) {
+    console.error("Nie udało się przywrócić misji:", error);
+    clearMissionSnapshot();
+    return false;
+  }
+}
+
 let taskBank = [];
 let sessionTasks = [];
 
@@ -185,6 +246,11 @@ async function renderEntryPoint() {
 
   if (!authUser) {
     renderAuth();
+    return;
+  }
+
+  if (restoreMissionSnapshot()) {
+    renderTask(true);
     return;
   }
 
@@ -935,6 +1001,7 @@ async function startNewSession() {
   }
 
   state.sessionId = data.id;
+  saveMissionSnapshot();
   renderTask();
 }
 function stopCurrentTaskActivity() {
@@ -945,7 +1012,7 @@ function stopCurrentTaskActivity() {
   stopInstructionAudio();
 }
 
-function renderTask() {
+function renderTask(preserveTaskState = false) {
   stopCurrentTaskActivity();
 
   if (state.index >= sessionTasks.length) {
@@ -959,12 +1026,14 @@ function renderTask() {
   state.sudokuAnswers = [];
   state.sudokuActive = 0;
   state.pendingAnswer = null;
-  state.taskAttempts = 0;
-  state.taskHadError = false;
-  state.taskUsedHint = false;
-  state.taskUsedGuidedHelp = false;
-  state.taskGobiPoint = 0;
-  state.taskPotentialCoins = 2;
+  if (!preserveTaskState) {
+    state.taskAttempts = 0;
+    state.taskHadError = false;
+    state.taskUsedHint = false;
+    state.taskUsedGuidedHelp = false;
+    state.taskGobiPoint = 0;
+    state.taskPotentialCoins = 2;
+  }
   const task = sessionTasks[state.index];
   const progress = Math.round((state.index / sessionTasks.length) * 100);
 
@@ -983,7 +1052,9 @@ function renderTask() {
               <span class="score-name">${escapeHtml(state.name)}</span>
               <strong id="childScore">${state.sessionStats.childPoints}</strong>
             </div>
-            <div class="task-coins" id="taskCoins" aria-label="Monety do zdobycia">🪙 🪙</div>
+            <div class="task-coins" id="taskCoins" aria-label="Monety do zdobycia">
+              <span class="coin-token"></span><span class="coin-token"></span>
+            </div>
             <div class="score-side gobi-score-side">
               <span class="score-name">Gobi</span>
               <strong id="gobiScore">${state.sessionStats.gobiPoints}</strong>
@@ -1021,9 +1092,9 @@ function updateMissionHud() {
   if (gobiScore) gobiScore.textContent = String(state.sessionStats.gobiPoints);
 
   if (taskCoins) {
-    taskCoins.textContent = state.taskPotentialCoins === 2
-      ? "🪙 🪙"
-      : (state.taskPotentialCoins === 1 ? "🪙" : "");
+    taskCoins.innerHTML = state.taskPotentialCoins === 2
+      ? '<span class="coin-token"></span><span class="coin-token"></span>'
+      : (state.taskPotentialCoins === 1 ? '<span class="coin-token"></span>' : '');
   }
 }
 
@@ -1060,7 +1131,7 @@ function setupMissionHint(task) {
   hintWrap.className = "mission-hint-wrap";
   hintWrap.innerHTML = `
     <button class="mission-hint-btn" id="missionHintButton" type="button">
-      💡 PODPOWIEDŹ <span class="hint-cost">🪙</span>
+      <span class="hint-bulb">?</span> PODPOWIEDŹ <span class="hint-cost"><span class="coin-token coin-token-small"></span></span>
     </button>
     <div class="mission-hint-text" id="missionHintText" hidden>${escapeHtml(hintText)}</div>
   `;
@@ -1082,6 +1153,7 @@ function setupMissionHint(task) {
     document.getElementById("missionHintText").hidden = false;
     document.getElementById("missionHintButton").disabled = true;
     updateMissionHud();
+    saveMissionSnapshot();
   });
 }
 
@@ -2208,6 +2280,7 @@ async function success(selectedButton = null) {
 
   setTimeout(() => {
     state.index += 1;
+    saveMissionSnapshot();
     renderTask();
   }, 850);
 }
@@ -2227,6 +2300,7 @@ function retry(selectedButton = null) {
     }
 
     revealGuidedHelpAfterError();
+    saveMissionSnapshot();
   }
 
   if (selectedButton) {
@@ -2302,6 +2376,8 @@ async function renderFinish() {
     if (error) console.error("Nie udało się zamknąć sesji:", error);
   }
 
+  clearMissionSnapshot();
+
   app.innerHTML = `
     <section class="screen centered">
       <div class="finish-card">
@@ -2324,6 +2400,7 @@ supabaseClient.auth.onAuthStateChange(async (event, session) => {
   authUser = session?.user || null;
 
   if (event === "SIGNED_IN" && taskBank.length) {
+    if (state.sessionMode === "mission" && state.sessionId && state.activeChild) return;
     await renderChildProfiles();
   }
 
