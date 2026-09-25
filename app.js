@@ -156,9 +156,28 @@ async function loadTaskBank() {
   }
 }
 
+function cleanOAuthErrorFromUrl() {
+  const url = new URL(window.location.href);
+  const authErrorParams = ["error", "error_code", "error_description"];
+  let changed = false;
+
+  authErrorParams.forEach(param => {
+    if (url.searchParams.has(param)) {
+      url.searchParams.delete(param);
+      changed = true;
+    }
+  });
+
+  if (changed) {
+    const cleanUrl = url.pathname + (url.search ? url.search : "") + (url.hash ? url.hash : "");
+    window.history.replaceState({}, document.title, cleanUrl);
+  }
+}
+
 async function renderEntryPoint() {
   const { data: { session } } = await supabaseClient.auth.getSession();
   authUser = session?.user || null;
+  cleanOAuthErrorFromUrl();
 
   if (!authUser) {
     renderAuth();
