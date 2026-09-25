@@ -266,6 +266,32 @@ function renderAuth(message = "") {
   });
 }
 
+function currentYear() {
+  return new Date().getFullYear();
+}
+
+function ageFromBirthYear(birthYear) {
+  const year = Number(birthYear);
+  if (!year) return "";
+  return Math.max(0, currentYear() - year);
+}
+
+function birthYearOptions(selected = "") {
+  const now = currentYear();
+  const years = [];
+
+  for (let year = now - 4; year >= now - 8; year -= 1) {
+    years.push(year);
+  }
+
+  return [
+    '<option value="">Wybierz rok</option>',
+    ...years.map(year =>
+      `<option value="${year}" ${String(selected) === String(year) ? "selected" : ""}>${year}</option>`
+    )
+  ].join("");
+}
+
 async function renderChildProfiles(message = "") {
   app.innerHTML = `
     <section class="screen centered">
@@ -294,14 +320,9 @@ async function renderChildProfiles(message = "") {
         <label class="auth-label" for="childName">Imię lub pseudonim</label>
         <input id="childName" class="auth-input" maxlength="40" autocomplete="off" />
 
-        <label class="auth-label" for="childAge">Wiek</label>
-        <select id="childAge" class="auth-input child-select">
-          <option value="">Wybierz wiek</option>
-          <option value="4">4 lata</option>
-          <option value="5">5 lat</option>
-          <option value="6">6 lat</option>
-          <option value="7">7 lat</option>
-          <option value="8">8 lat</option>
+        <label class="auth-label" for="childBirthYear">Rok urodzenia</label>
+        <select id="childBirthYear" class="auth-input child-select">
+          ${birthYearOptions()}
         </select>
 
         <button class="primary form-submit" id="createChild" type="button">UTWÓRZ PROFIL</button>
@@ -355,11 +376,11 @@ async function renderChildProfiles(message = "") {
 
   document.getElementById("createChild").addEventListener("click", async () => {
     const name = document.getElementById("childName").value.trim();
-    const age = Number(document.getElementById("childAge").value);
+    const birthYear = Number(document.getElementById("childBirthYear").value);
     const status = document.getElementById("createChildStatus");
 
-    if (!name || !age) {
-      status.textContent = "Wpisz imię i wybierz wiek.";
+    if (!name || !birthYear) {
+      status.textContent = "Wpisz imię i wybierz rok urodzenia.";
       status.className = "auth-status error";
       return;
     }
@@ -369,7 +390,7 @@ async function renderChildProfiles(message = "") {
 
     const { data, error } = await supabaseClient.rpc("create_child_profile", {
       p_display_name: name,
-      p_age: age
+      p_birth_year: birthYear
     });
 
     if (error) {
@@ -427,7 +448,7 @@ async function loadChildCards() {
 
   const { data, error } = await supabaseClient
     .from("children")
-    .select("id, display_name, age, share_code, created_at")
+    .select("id, display_name, birth_year, share_code, created_at")
     .order("created_at", { ascending: true });
 
   if (error) {
@@ -449,20 +470,28 @@ async function loadChildCards() {
     return;
   }
 
-  list.innerHTML = children.map(child => `
-    <button class="child-card" type="button" data-child-id="${escapeHtml(child.id)}">
-      <div class="child-card-main">
-        <div class="child-avatar">${escapeHtml((child.display_name || "?").charAt(0).toUpperCase())}</div>
-        <div class="child-card-copy">
-          <strong>${escapeHtml(child.display_name)}</strong>
-          <span>${escapeHtml(child.age)} lat</span>
+  list.innerHTML = children.map(child => {
+    const age = ageFromBirthYear(child.birth_year);
+
+    return `
+      <div class="child-card">
+        <div class="child-card-main">
+          <div class="child-avatar">${escapeHtml((child.display_name || "?").charAt(0).toUpperCase())}</div>
+          <div class="child-card-copy">
+            <strong>${escapeHtml(child.display_name)}</strong>
+            <span>Rok ${escapeHtml(child.birth_year)} · ${escapeHtml(age)} lat</span>
+          </div>
+        </div>
+
+        <div class="child-card-actions">
+          <button class="child-task-btn" type="button" data-action="tasks" data-child-id="${escapeHtml(child.id)}">ZADANIA</button>
+          <button class="child-edit-btn" type="button" data-action="edit" data-child-id="${escapeHtml(child.id)}">EDYTUJ</button>
         </div>
       </div>
-      <span class="child-card-arrow">›</span>
-    </button>
-  `).join("");
+    `;
+  }).join("");
 
-  list.querySelectorAll(".child-card").forEach(button => {
+  list.querySelectorAll("[data-action='tasks']").forEach(button => {
     button.addEventListener("click", () => {
       const child = children.find(item => item.id === button.dataset.childId);
       if (!child) return;
@@ -472,6 +501,92 @@ async function loadChildCards() {
       localStorage.setItem("kid_name", state.name);
       renderChildHome();
     });
+  });
+
+  list.querySelectorAll("[data-action='edit']").forEach(button => {
+    button.addEventListener("click", () => {
+      const child = children.find(item => item.id === button.dataset.childId);
+      if (child) renderEditChild(child);
+    });
+  });
+}
+
+function renderEditChild(child) {
+  app.innerHTML = `
+    <section class="screen centered">
+      <button class="back-link" id="backToChildren" type="button">← Wróć do profili</button>
+
+      <div class="child-form-card profile-edit-card">
+        <div class="brand">Eduli</div>
+        <h1>Edytuj profil</h1>
+
+        <label class="auth-label" for="editChildName">Imię lub pseudonim</label>
+        <input id="editChildName" class="auth-input" maxlength="40" autocomplete="off"
+               value="${escapeHtml(child.display_name)}" />
+
+        <label class="auth-label" for="editChildBirthYear">Rok urodzenia</label>
+        <select id="editChildBirthYear" class="auth-input child-select">
+          ${birthYearOptions(child.birth_year)}
+        </select>
+
+        <button class="primary form-submit" id="saveChildProfile" type="button">ZAPISZ ZMIANY</button>
+
+        <div class="share-code-box compact-share-code">
+          <span>Kod profilu</span>
+          <strong>${escapeHtml(child.share_code || "—")}</strong>
+          <small>Kodu profilu nie zmieniamy przy zwykłej edycji.</small>
+        </div>
+
+        <div class="auth-status" id="editChildStatus" aria-live="polite"></div>
+      </div>
+    </section>
+  `;
+
+  document.getElementById("backToChildren").addEventListener("click", () => {
+    renderChildProfiles();
+  });
+
+  document.getElementById("saveChildProfile").addEventListener("click", async () => {
+    const name = document.getElementById("editChildName").value.trim();
+    const birthYear = Number(document.getElementById("editChildBirthYear").value);
+    const status = document.getElementById("editChildStatus");
+
+    if (!name || !birthYear) {
+      status.textContent = "Wpisz imię i wybierz rok urodzenia.";
+      status.className = "auth-status error";
+      return;
+    }
+
+    status.textContent = "Zapisuję...";
+    status.className = "auth-status";
+
+    const age = ageFromBirthYear(birthYear);
+
+    const { data, error } = await supabaseClient
+      .from("children")
+      .update({
+        display_name: name,
+        birth_year: birthYear,
+        age
+      })
+      .eq("id", child.id)
+      .select("id, display_name, birth_year, share_code, created_at")
+      .single();
+
+    if (error) {
+      console.error(error);
+      status.textContent = "Nie udało się zapisać zmian.";
+      status.className = "auth-status error";
+      return;
+    }
+
+    if (state.activeChild?.id === child.id) {
+      state.activeChild = data;
+      state.name = data.display_name;
+      localStorage.setItem("kid_name", state.name);
+    }
+
+    await renderChildProfiles("Zmiany zostały zapisane.");
   });
 }
 
@@ -487,6 +602,7 @@ function renderChildHome() {
     <section class="screen centered child-home-screen">
       <div class="child-home-top">
         <button class="back-link" id="changeChild" type="button">← Zmień profil</button>
+        <button class="small-edit-link" id="editCurrentChild" type="button">Edytuj profil</button>
       </div>
 
       <div class="child-home-card">
@@ -509,6 +625,10 @@ function renderChildHome() {
   document.getElementById("changeChild").addEventListener("click", () => {
     state.activeChild = null;
     renderChildProfiles();
+  });
+
+  document.getElementById("editCurrentChild").addEventListener("click", () => {
+    renderEditChild(child);
   });
 
   document.getElementById("startChildSession").addEventListener("click", startNewSession);
