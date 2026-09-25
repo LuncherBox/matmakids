@@ -8,6 +8,7 @@ const supabaseClient = window.supabase.createClient(
 let authUser = null;
 
 const SESSION_SIZE = 10;
+const MISSION_UNLOCK_MECHANICS = 3;
 const CATEGORY_LABELS = {
   math: "Matematyka",
   logic: "Logika",
@@ -705,13 +706,31 @@ function renderEditChild(child) {
   });
 }
 
-function renderChildHome() {
+async function renderChildHome() {
   const child = state.activeChild;
 
   if (!child) {
     renderChildProfiles();
     return;
   }
+
+  const { data: learnedRows, error: learnedError } = await supabaseClient
+    .from("child_task_type_progress")
+    .select("task_type")
+    .eq("child_id", child.id)
+    .eq("training_status", "learned");
+
+  if (learnedError) console.error(learnedError);
+
+  const learnedMechanics = new Set(
+    (learnedRows || [])
+      .map(row => row.task_type)
+      .filter(Boolean)
+  );
+
+  const learnedCount = learnedMechanics.size;
+  const missionUnlocked = learnedCount >= MISSION_UNLOCK_MECHANICS;
+  const missingCount = Math.max(0, MISSION_UNLOCK_MECHANICS - learnedCount);
 
   app.innerHTML = `
     <section class="screen centered child-home-screen">
@@ -727,19 +746,36 @@ function renderChildHome() {
         <p class="subtle">Co dzisiaj robimy?</p>
 
         <div class="mode-cards">
-          <button class="mode-card mission-mode-card" id="startMission" type="button">
-            <span class="mode-icon">⚔️</span>
+          <button class="mode-card mission-mode-card ${missionUnlocked ? "" : "locked"}"
+                  id="startMission"
+                  type="button"
+                  ${missionUnlocked ? "" : "disabled"}>
+            <span class="mode-icon">${missionUnlocked ? "⚔️" : "🔒"}</span>
             <span class="mode-copy">
               <strong>MISJA</strong>
-              <small>Pokonaj Gobiego w 10 zadaniach</small>
+              <small>
+                ${missionUnlocked
+                  ? "Pokonaj Gobiego w 10 zadaniach"
+                  : `Odblokuj jeszcze ${missingCount} ${missingCount === 1 ? "typ zadania" : "typy zadań"}`}
+              </small>
             </span>
           </button>
+
+          <div class="mission-unlock-progress" aria-label="Postęp odblokowania misji">
+            <div class="mission-unlock-copy">
+              <span>Misja</span>
+              <strong>${Math.min(learnedCount, MISSION_UNLOCK_MECHANICS)}/${MISSION_UNLOCK_MECHANICS}</strong>
+            </div>
+            <div class="mission-unlock-track">
+              <div class="mission-unlock-fill" style="width:${Math.min(100, (learnedCount / MISSION_UNLOCK_MECHANICS) * 100)}%"></div>
+            </div>
+          </div>
 
           <button class="mode-card practice-mode-card" id="openPractice" type="button">
             <span class="mode-icon">🧠</span>
             <span class="mode-copy">
               <strong>ĆWICZ</strong>
-              <small>Ucz się nowych zadań i trenuj</small>
+              <small>${missionUnlocked ? "Poznawaj kolejne typy zadań" : "Trenuj, żeby odblokować misję"}</small>
             </span>
           </button>
         </div>
@@ -762,7 +798,10 @@ function renderChildHome() {
     renderEditChild(child);
   });
 
-  document.getElementById("startMission").addEventListener("click", startNewSession);
+  if (missionUnlocked) {
+    document.getElementById("startMission").addEventListener("click", startNewSession);
+  }
+
   document.getElementById("openPractice").addEventListener("click", renderPracticeCategories);
 }
 
@@ -914,13 +953,20 @@ async function startNewSession() {
     learned.has(taskMechanicId(task))
   );
 
-  if (!allowed.length) {
+  if (learned.size < MISSION_UNLOCK_MECHANICS) {
+    const missingCount = MISSION_UNLOCK_MECHANICS - learned.size;
+
     app.innerHTML = `
       <section class="screen centered">
         <div class="finish-card">
-          <div class="big-emoji">🧠</div>
-          <h1>Najpierw trening</h1>
-          <p>Zanim rozpoczniesz misję z Gobim, poznaj przynajmniej jeden typ zadania.</p>
+          <div class="big-emoji">🔒</div>
+          <h1>Misja jeszcze zablokowana</h1>
+          <p>
+            Poznaj jeszcze ${missingCount}
+            ${missingCount === 1 ? "typ zadania" : "typy zadań"},
+            żeby odblokować pojedynek z Gobim.
+          </p>
+          <div class="mission-lock-count">${learned.size}/${MISSION_UNLOCK_MECHANICS}</div>
           <div style="height:20px"></div>
           <button class="primary" id="goToPractice">PRZEJDŹ DO ĆWICZEŃ</button>
           <button class="text-btn" id="missionBackHome">WRÓĆ</button>
