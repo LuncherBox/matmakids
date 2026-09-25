@@ -1146,9 +1146,16 @@ function missionHintContent(task) {
 
     if (task.subcategory === "subtraction") {
       return `
-        <div class="mission-visual-hint">
-          <div class="mission-hint-caption">Policz kropki i zabierz ${right}.</div>
-          <div class="mission-hint-dot-row">${plainDots(left)}</div>
+        <div class="mission-visual-hint mission-subtraction-hint">
+          <div class="mission-hint-caption">Odznacz ${right} kropek, a potem policz te, które zostały.</div>
+          <div class="mission-subtract-dots" id="missionSubtractDots">
+            ${Array.from({ length: left }, (_, index) =>
+              `<button class="mission-subtract-dot" type="button" data-index="${index}" aria-label="Kropka ${index + 1}"></button>`
+            ).join("")}
+          </div>
+          <div class="mission-subtract-counter" id="missionSubtractCounter">
+            Odznaczono: <strong>0</strong> z ${right}
+          </div>
         </div>
       `;
     }
@@ -1223,6 +1230,32 @@ function setupMissionHint(task) {
     document.getElementById("missionHintPanel").hidden = false;
     document.getElementById("missionHintButton").classList.add("used");
     document.getElementById("missionHintButton").disabled = true;
+
+    if (task.renderer === "equation_with_dots" && task.subcategory === "subtraction") {
+      const targetRemoved = Number(task.content?.right) || 0;
+      let removed = 0;
+      const counter = document.getElementById("missionSubtractCounter");
+
+      document.querySelectorAll(".mission-subtract-dot").forEach(dot => {
+        dot.addEventListener("click", () => {
+          const isRemoved = dot.classList.contains("removed");
+
+          if (isRemoved) {
+            dot.classList.remove("removed");
+            removed -= 1;
+          } else if (removed < targetRemoved) {
+            dot.classList.add("removed");
+            removed += 1;
+          }
+
+          if (counter) {
+            counter.innerHTML = `Odznaczono: <strong>${removed}</strong> z ${targetRemoved}`;
+            counter.classList.toggle("complete", removed === targetRemoved);
+          }
+        });
+      });
+    }
+
     updateMissionHud();
     saveMissionSnapshot();
   });
