@@ -27,6 +27,7 @@ let state = {
   sudokuAnswers: [],
   sudokuActive: 0,
   pendingAnswer: null,
+  activeChild: null,
   memoryTimer: null
 };
 
@@ -132,7 +133,7 @@ async function renderEntryPoint() {
     return;
   }
 
-  renderName();
+  await renderChildProfiles();
 }
 
 function renderAuth(message = "") {
@@ -197,7 +198,7 @@ function renderAuth(message = "") {
     }
 
     authUser = data.user;
-    renderName();
+    await renderChildProfiles();
   });
 
   document.getElementById("emailSignup").addEventListener("click", async () => {
@@ -229,7 +230,7 @@ function renderAuth(message = "") {
     }
 
     authUser = data.user;
-    renderName();
+    await renderChildProfiles();
   });
 
   document.getElementById("googleLogin").addEventListener("click", async () => {
@@ -265,7 +266,7 @@ function renderAuth(message = "") {
   });
 }
 
-function renderName() {
+async function renderChildProfiles(message = "") {
   app.innerHTML = `
     <section class="screen centered">
       <div class="account-row">
@@ -273,35 +274,244 @@ function renderName() {
         <button class="logout-btn" id="logout" type="button">Wyloguj</button>
       </div>
 
-      <div class="brand">Mały Trening</div>
-      <h1>Cześć 👋</h1>
-      <p class="subtle">Wpisz imię dziecka i zaczynamy.</p>
-      <div class="name-card">
-        <label for="name" class="task-title">Jak masz na imię?</label>
-        <input id="name" class="name-input" autocomplete="off" inputmode="text" maxlength="20" value="${escapeHtml(state.name)}" />
-        <button id="start" class="primary" ${state.name.trim() ? "" : "disabled"}>ZACZYNAM</button>
+      <div class="brand">Eduli</div>
+      <h1>Twoje dzieci</h1>
+      <p class="subtle">Wybierz profil dziecka albo dodaj nowy.</p>
+
+      <div class="children-status" id="childrenStatus">${escapeHtml(message)}</div>
+      <div class="children-list" id="childrenList">
+        <div class="loading-card">Wczytuję profile...</div>
+      </div>
+
+      <div class="child-actions">
+        <button class="primary" id="showCreateChild" type="button">UTWÓRZ NOWY PROFIL</button>
+        <button class="secondary-action" id="showJoinChild" type="button">POŁĄCZ Z ISTNIEJĄCYM</button>
+      </div>
+
+      <div class="child-form-card" id="createChildCard" hidden>
+        <h2>Nowy profil dziecka</h2>
+
+        <label class="auth-label" for="childName">Imię lub pseudonim</label>
+        <input id="childName" class="auth-input" maxlength="40" autocomplete="off" />
+
+        <label class="auth-label" for="childAge">Wiek</label>
+        <select id="childAge" class="auth-input child-select">
+          <option value="">Wybierz wiek</option>
+          <option value="4">4 lata</option>
+          <option value="5">5 lat</option>
+          <option value="6">6 lat</option>
+          <option value="7">7 lat</option>
+          <option value="8">8 lat</option>
+        </select>
+
+        <button class="primary form-submit" id="createChild" type="button">UTWÓRZ PROFIL</button>
+        <button class="text-btn" id="cancelCreateChild" type="button">Anuluj</button>
+        <div class="auth-status" id="createChildStatus" aria-live="polite"></div>
+      </div>
+
+      <div class="child-form-card" id="joinChildCard" hidden>
+        <h2>Połącz z profilem dziecka</h2>
+        <p class="subtle small-copy">Wpisz kod otrzymany od osoby, która utworzyła profil.</p>
+
+        <label class="auth-label" for="childCode">Kod profilu</label>
+        <input id="childCode" class="auth-input code-input" maxlength="12" autocomplete="off" placeholder="np. K7M4PQ2X" />
+
+        <button class="primary form-submit" id="joinChild" type="button">POŁĄCZ PROFIL</button>
+        <button class="text-btn" id="cancelJoinChild" type="button">Anuluj</button>
+        <div class="auth-status" id="joinChildStatus" aria-live="polite"></div>
       </div>
     </section>
   `;
 
-  const input = document.getElementById("name");
-  const btn = document.getElementById("start");
-
-  input.addEventListener("input", event => {
-    state.name = event.target.value;
-    btn.disabled = !state.name.trim();
-  });
-
-  btn.addEventListener("click", () => {
-    localStorage.setItem("kid_name", state.name.trim());
-    startNewSession();
-  });
-
   document.getElementById("logout").addEventListener("click", async () => {
     await supabaseClient.auth.signOut();
     authUser = null;
+    state.activeChild = null;
     renderAuth("Wylogowano.");
   });
+
+  const createCard = document.getElementById("createChildCard");
+  const joinCard = document.getElementById("joinChildCard");
+
+  document.getElementById("showCreateChild").addEventListener("click", () => {
+    createCard.hidden = false;
+    joinCard.hidden = true;
+    document.getElementById("childName").focus();
+  });
+
+  document.getElementById("showJoinChild").addEventListener("click", () => {
+    joinCard.hidden = false;
+    createCard.hidden = true;
+    document.getElementById("childCode").focus();
+  });
+
+  document.getElementById("cancelCreateChild").addEventListener("click", () => {
+    createCard.hidden = true;
+  });
+
+  document.getElementById("cancelJoinChild").addEventListener("click", () => {
+    joinCard.hidden = true;
+  });
+
+  document.getElementById("createChild").addEventListener("click", async () => {
+    const name = document.getElementById("childName").value.trim();
+    const age = Number(document.getElementById("childAge").value);
+    const status = document.getElementById("createChildStatus");
+
+    if (!name || !age) {
+      status.textContent = "Wpisz imię i wybierz wiek.";
+      status.className = "auth-status error";
+      return;
+    }
+
+    status.textContent = "Tworzę profil...";
+    status.className = "auth-status";
+
+    const { data, error } = await supabaseClient.rpc("create_child_profile", {
+      p_display_name: name,
+      p_age: age
+    });
+
+    if (error) {
+      console.error(error);
+      status.textContent = "Nie udało się utworzyć profilu.";
+      status.className = "auth-status error";
+      return;
+    }
+
+    const child = Array.isArray(data) ? data[0] : data;
+    state.activeChild = child || null;
+    state.name = child?.display_name || name;
+    localStorage.setItem("kid_name", state.name);
+
+    await renderChildProfiles("Profil został utworzony.");
+  });
+
+  document.getElementById("joinChild").addEventListener("click", async () => {
+    const code = document.getElementById("childCode").value.trim().replace(/\s+/g, "");
+    const status = document.getElementById("joinChildStatus");
+
+    if (!code) {
+      status.textContent = "Wpisz kod profilu dziecka.";
+      status.className = "auth-status error";
+      return;
+    }
+
+    status.textContent = "Łączę profil...";
+    status.className = "auth-status";
+
+    const { data, error } = await supabaseClient.rpc("join_child_by_code", {
+      p_share_code: code
+    });
+
+    if (error) {
+      console.error(error);
+      status.textContent = "Nie znaleziono profilu z takim kodem.";
+      status.className = "auth-status error";
+      return;
+    }
+
+    const child = Array.isArray(data) ? data[0] : data;
+    state.activeChild = child || null;
+    state.name = child?.display_name || state.name;
+
+    await renderChildProfiles("Profil został połączony z Twoim kontem.");
+  });
+
+  await loadChildCards();
+}
+
+async function loadChildCards() {
+  const list = document.getElementById("childrenList");
+  if (!list) return;
+
+  const { data, error } = await supabaseClient
+    .from("children")
+    .select("id, display_name, age, share_code, created_at")
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    console.error(error);
+    list.innerHTML = '<div class="error-card">Nie udało się wczytać profili dzieci.</div>';
+    return;
+  }
+
+  const children = data || [];
+
+  if (!children.length) {
+    list.innerHTML = `
+      <div class="empty-children">
+        <div class="empty-icon">👧</div>
+        <strong>Nie masz jeszcze profilu dziecka.</strong>
+        <span>Utwórz nowy profil albo połącz się z istniejącym.</span>
+      </div>
+    `;
+    return;
+  }
+
+  list.innerHTML = children.map(child => `
+    <button class="child-card" type="button" data-child-id="${escapeHtml(child.id)}">
+      <div class="child-card-main">
+        <div class="child-avatar">${escapeHtml((child.display_name || "?").charAt(0).toUpperCase())}</div>
+        <div class="child-card-copy">
+          <strong>${escapeHtml(child.display_name)}</strong>
+          <span>${escapeHtml(child.age)} lat</span>
+        </div>
+      </div>
+      <span class="child-card-arrow">›</span>
+    </button>
+  `).join("");
+
+  list.querySelectorAll(".child-card").forEach(button => {
+    button.addEventListener("click", () => {
+      const child = children.find(item => item.id === button.dataset.childId);
+      if (!child) return;
+
+      state.activeChild = child;
+      state.name = child.display_name;
+      localStorage.setItem("kid_name", state.name);
+      renderChildHome();
+    });
+  });
+}
+
+function renderChildHome() {
+  const child = state.activeChild;
+
+  if (!child) {
+    renderChildProfiles();
+    return;
+  }
+
+  app.innerHTML = `
+    <section class="screen centered child-home-screen">
+      <div class="child-home-top">
+        <button class="back-link" id="changeChild" type="button">← Zmień profil</button>
+      </div>
+
+      <div class="child-home-card">
+        <div class="child-home-avatar">${escapeHtml((child.display_name || "?").charAt(0).toUpperCase())}</div>
+        <div class="brand">Eduli</div>
+        <h1>Cześć, ${escapeHtml(child.display_name)}! 👋</h1>
+        <p class="subtle">Gotowa na 10 zadań?</p>
+
+        <button class="primary child-start-btn" id="startChildSession" type="button">ZACZYNAM</button>
+
+        <div class="share-code-box">
+          <span>Kod profilu</span>
+          <strong>${escapeHtml(child.share_code || "—")}</strong>
+          <small>Ten kod możesz przekazać drugiemu rodzicowi lub dziadkom.</small>
+        </div>
+      </div>
+    </section>
+  `;
+
+  document.getElementById("changeChild").addEventListener("click", () => {
+    state.activeChild = null;
+    renderChildProfiles();
+  });
+
+  document.getElementById("startChildSession").addEventListener("click", startNewSession);
 }
 
 function startNewSession() {
@@ -1437,7 +1647,7 @@ supabaseClient.auth.onAuthStateChange((event, session) => {
   authUser = session?.user || null;
 
   if (event === "SIGNED_IN" && taskBank.length) {
-    renderName();
+    await renderChildProfiles();
   }
 
   if (event === "SIGNED_OUT" && taskBank.length) {
