@@ -1643,7 +1643,7 @@ function renderFinish() {
   document.getElementById("again").addEventListener("click", startNewSession);
 }
 
-supabaseClient.auth.onAuthStateChange((event, session) => {
+supabaseClient.auth.onAuthStateChange(async (event, session) => {
   authUser = session?.user || null;
 
   if (event === "SIGNED_IN" && taskBank.length) {
