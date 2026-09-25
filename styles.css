@@ -2105,3 +2105,68 @@ body {
   font-size: 26px;
   letter-spacing: .12em;
 }
+
+
+/* Child profile actions and editing */
+.child-card {
+  align-items: stretch;
+  flex-direction: column;
+}
+
+.child-card-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.child-task-btn,
+.child-edit-btn,
+.small-edit-link {
+  border-radius: 14px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.child-task-btn {
+  border: 0;
+  background: var(--accent);
+  color: #fff;
+  min-height: 44px;
+}
+
+.child-edit-btn {
+  border: 2px solid var(--border);
+  background: #fff;
+  color: var(--text);
+  min-height: 44px;
+}
+
+.child-home-top {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.small-edit-link {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  padding: 0;
+}
+
+.profile-edit-card {
+  margin-top: 14px;
+}
+
+.compact-share-code {
+  margin-top: 16px;
+}
+
+@media (max-width: 360px) {
+  .child-card-actions {
+    grid-template-columns: 1fr;
+  }
+}
