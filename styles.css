@@ -2749,3 +2749,65 @@ body {
   background: #E8F3ED;
   color: #456F59;
 }
+
+
+/* Mission unlock progression */
+.mission-mode-card.locked {
+  opacity: .72;
+  background: #F5F5F2;
+  border-color: var(--border);
+  cursor: default;
+}
+
+.mission-mode-card.locked .mode-icon {
+  filter: grayscale(1);
+}
+
+.mission-unlock-progress {
+  margin-top: -2px;
+  padding: 0 4px 2px;
+}
+
+.mission-unlock-copy {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.mission-unlock-copy strong {
+  color: var(--text);
+}
+
+.mission-unlock-track {
+  height: 8px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: #E8ECE8;
+}
+
+.mission-unlock-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+  transition: width .2s ease;
+}
+
+.mission-lock-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 14px;
+  min-width: 70px;
+  min-height: 44px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: #EEF3EF;
+  color: #456F59;
+  font-size: 20px;
+  font-weight: 950;
+}
