@@ -2170,3 +2170,15 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+
+.birth-date-warning,
+.profile-warning {
+  color: #A45C27;
+  font-weight: 850;
+}
+
+.profile-warning {
+  margin-top: 8px;
+  font-size: 14px;
+}
