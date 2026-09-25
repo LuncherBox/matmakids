@@ -1098,20 +1098,44 @@ function updateMissionHud() {
   }
 }
 
-function missionHintText(task) {
+function missionHintContent(task) {
   if (task.renderer === "equation_with_dots") {
     const left = Number(task.content?.left) || 0;
     const right = Number(task.content?.right) || 0;
 
     if (task.subcategory === "subtraction") {
-      return `Zacznij od ${left} i odejmij ${right}.`;
+      return `
+        <div class="mission-visual-hint">
+          <div class="mission-hint-caption">Policz kropki i zabierz ${right}.</div>
+          <div class="mission-hint-dot-row">${plainDots(left)}</div>
+        </div>
+      `;
     }
 
-    return `Policz ${left}, a potem dodaj jeszcze ${right}.`;
+    return `
+      <div class="mission-visual-hint">
+        <div class="mission-hint-caption">Policz wszystkie kropki.</div>
+        <div class="mission-add-groups">
+          <div class="mission-dot-group">
+            <span class="mission-dot-label">${left}</span>
+            <div class="mission-hint-dot-row">${plainDots(left)}</div>
+          </div>
+          <div class="mission-plus">+</div>
+          <div class="mission-dot-group">
+            <span class="mission-dot-label">${right}</span>
+            <div class="mission-hint-dot-row">${plainDots(right)}</div>
+          </div>
+        </div>
+      </div>
+    `;
   }
 
   if (task.renderer === "missing_number_equation") {
-    return "Spójrz na wynik i zastanów się, jakiej liczby brakuje.";
+    return `
+      <div class="mission-visual-hint">
+        <div class="mission-hint-caption">Spójrz na wynik i policz, jakiej liczby brakuje.</div>
+      </div>
+    `;
   }
 
   return "";
@@ -1121,19 +1145,24 @@ function setupMissionHint(task) {
   const strongHint = document.querySelector(".hint-card");
   if (strongHint) strongHint.classList.add("mission-hidden-help");
 
-  const hintText = missionHintText(task);
-  if (!hintText) return;
+  const hintContent = missionHintContent(task);
+  if (!hintContent) return;
 
   const taskArea = document.getElementById("taskArea");
   if (!taskArea) return;
+  taskArea.classList.add("mission-task-area");
 
   const hintWrap = document.createElement("div");
   hintWrap.className = "mission-hint-wrap";
   hintWrap.innerHTML = `
     <button class="mission-hint-btn" id="missionHintButton" type="button">
-      <span class="hint-bulb">?</span> PODPOWIEDŹ <span class="hint-cost"><span class="coin-token coin-token-small"></span></span>
+      <span class="hint-bulb">?</span>
+      <span>PODPOWIEDŹ</span>
+      <span class="hint-cost"><span class="coin-token coin-token-small"></span></span>
     </button>
-    <div class="mission-hint-text" id="missionHintText" hidden>${escapeHtml(hintText)}</div>
+    <div class="mission-hint-panel" id="missionHintPanel" hidden>
+      ${hintContent}
+    </div>
   `;
 
   taskArea.appendChild(hintWrap);
@@ -1150,7 +1179,8 @@ function setupMissionHint(task) {
       state.sessionStats.gobiPoints += 1;
     }
 
-    document.getElementById("missionHintText").hidden = false;
+    document.getElementById("missionHintPanel").hidden = false;
+    document.getElementById("missionHintButton").classList.add("used");
     document.getElementById("missionHintButton").disabled = true;
     updateMissionHud();
     saveMissionSnapshot();
@@ -1164,10 +1194,11 @@ function revealGuidedHelpAfterError() {
   if (!strongHint) return;
 
   strongHint.classList.remove("mission-hidden-help");
+  strongHint.classList.add("mission-guided-help");
   state.taskUsedGuidedHelp = true;
 
-  const hintButton = document.getElementById("missionHintButton");
-  if (hintButton) hintButton.disabled = true;
+  const hintWrap = document.querySelector(".mission-hint-wrap");
+  if (hintWrap) hintWrap.hidden = true;
 }
 
 function renderByType(task) {
