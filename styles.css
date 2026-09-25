@@ -2554,3 +2554,15 @@ body {
     gap: 8px;
   }
 }
+
+
+.mission-exit-btn {
+  flex: 0 0 auto;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+  padding: 4px 2px;
+  cursor: pointer;
+}
