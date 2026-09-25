@@ -1,5 +1,12 @@
 const app = document.getElementById("app");
 
+const supabaseClient = window.supabase.createClient(
+  window.EDULI_CONFIG.supabaseUrl,
+  window.EDULI_CONFIG.supabasePublishableKey
+);
+
+let authUser = null;
+
 const SESSION_SIZE = 10;
 const CATEGORY_LABELS = {
   math: "Matematyka",
@@ -101,7 +108,7 @@ async function loadTaskBank() {
       throw new Error("Baza zadań jest niepełna.");
     }
 
-    renderName();
+    await renderEntryPoint();
   } catch (error) {
     app.innerHTML = `
       <section class="screen centered">
@@ -116,12 +123,159 @@ async function loadTaskBank() {
   }
 }
 
+async function renderEntryPoint() {
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  authUser = session?.user || null;
+
+  if (!authUser) {
+    renderAuth();
+    return;
+  }
+
+  renderName();
+}
+
+function renderAuth(message = "") {
+  app.innerHTML = `
+    <section class="screen centered auth-screen">
+      <div class="brand">Eduli</div>
+      <div class="auth-card">
+        <h1>Witaj 👋</h1>
+        <p class="subtle">Zaloguj się jako rodzic.</p>
+
+        ${message ? `<div class="auth-message">${escapeHtml(message)}</div>` : ""}
+
+        <button class="google-btn" id="googleLogin" type="button">
+          <span class="google-mark">G</span>
+          Kontynuuj z Google
+        </button>
+
+        <div class="auth-divider"><span>lub</span></div>
+
+        <label class="auth-label" for="authEmail">Email</label>
+        <input id="authEmail" class="auth-input" type="email" autocomplete="email" />
+
+        <label class="auth-label" for="authPassword">Hasło</label>
+        <input id="authPassword" class="auth-input" type="password" autocomplete="current-password" minlength="6" />
+
+        <button class="primary auth-primary" id="emailLogin" type="button">ZALOGUJ SIĘ</button>
+        <button class="text-btn" id="emailSignup" type="button">Nie masz konta? Załóż konto</button>
+        <button class="text-btn muted-link" id="resetPassword" type="button">Nie pamiętasz hasła?</button>
+
+        <div class="auth-status" id="authStatus" aria-live="polite"></div>
+      </div>
+    </section>
+  `;
+
+  const email = document.getElementById("authEmail");
+  const password = document.getElementById("authPassword");
+  const status = document.getElementById("authStatus");
+
+  function setStatus(text, kind = "") {
+    status.textContent = text;
+    status.className = `auth-status ${kind}`;
+  }
+
+  document.getElementById("emailLogin").addEventListener("click", async () => {
+    const emailValue = email.value.trim();
+    const passwordValue = password.value;
+
+    if (!emailValue || !passwordValue) {
+      setStatus("Wpisz email i hasło.", "error");
+      return;
+    }
+
+    setStatus("Logowanie...");
+    const { data, error } = await supabaseClient.auth.signInWithPassword({
+      email: emailValue,
+      password: passwordValue
+    });
+
+    if (error) {
+      setStatus("Nie udało się zalogować. Sprawdź email, hasło i potwierdzenie konta.", "error");
+      return;
+    }
+
+    authUser = data.user;
+    renderName();
+  });
+
+  document.getElementById("emailSignup").addEventListener("click", async () => {
+    const emailValue = email.value.trim();
+    const passwordValue = password.value;
+
+    if (!emailValue || passwordValue.length < 6) {
+      setStatus("Podaj email i hasło mające co najmniej 6 znaków.", "error");
+      return;
+    }
+
+    setStatus("Tworzenie konta...");
+    const { data, error } = await supabaseClient.auth.signUp({
+      email: emailValue,
+      password: passwordValue,
+      options: {
+        emailRedirectTo: window.location.origin
+      }
+    });
+
+    if (error) {
+      setStatus(error.message || "Nie udało się utworzyć konta.", "error");
+      return;
+    }
+
+    if (!data.session) {
+      setStatus("Konto utworzone. Sprawdź email i potwierdź adres, a potem się zaloguj.", "success");
+      return;
+    }
+
+    authUser = data.user;
+    renderName();
+  });
+
+  document.getElementById("googleLogin").addEventListener("click", async () => {
+    setStatus("Przekierowuję do Google...");
+    const { error } = await supabaseClient.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: window.location.origin
+      }
+    });
+
+    if (error) setStatus("Nie udało się uruchomić logowania Google.", "error");
+  });
+
+  document.getElementById("resetPassword").addEventListener("click", async () => {
+    const emailValue = email.value.trim();
+
+    if (!emailValue) {
+      setStatus("Najpierw wpisz adres email.", "error");
+      return;
+    }
+
+    const { error } = await supabaseClient.auth.resetPasswordForEmail(emailValue, {
+      redirectTo: window.location.origin
+    });
+
+    if (error) {
+      setStatus("Nie udało się wysłać wiadomości.", "error");
+      return;
+    }
+
+    setStatus("Wysłaliśmy link do zmiany hasła na podany email.", "success");
+  });
+}
+
 function renderName() {
   app.innerHTML = `
     <section class="screen centered">
+      <div class="account-row">
+        <span class="account-email">${escapeHtml(authUser?.email || "")}</span>
+        <button class="logout-btn" id="logout" type="button">Wyloguj</button>
+      </div>
+
       <div class="brand">Mały Trening</div>
       <h1>Cześć 👋</h1>
-      <p class="subtle">Wpisz swoje imię i zaczynamy.</p>
+      <p class="subtle">Wpisz imię dziecka i zaczynamy.</p>
       <div class="name-card">
         <label for="name" class="task-title">Jak masz na imię?</label>
         <input id="name" class="name-input" autocomplete="off" inputmode="text" maxlength="20" value="${escapeHtml(state.name)}" />
@@ -141,6 +295,12 @@ function renderName() {
   btn.addEventListener("click", () => {
     localStorage.setItem("kid_name", state.name.trim());
     startNewSession();
+  });
+
+  document.getElementById("logout").addEventListener("click", async () => {
+    await supabaseClient.auth.signOut();
+    authUser = null;
+    renderAuth("Wylogowano.");
   });
 }
 
@@ -1272,5 +1432,17 @@ function renderFinish() {
 
   document.getElementById("again").addEventListener("click", startNewSession);
 }
+
+supabaseClient.auth.onAuthStateChange((event, session) => {
+  authUser = session?.user || null;
+
+  if (event === "SIGNED_IN" && taskBank.length) {
+    renderName();
+  }
+
+  if (event === "SIGNED_OUT" && taskBank.length) {
+    renderAuth();
+  }
+});
 
 loadTaskBank();
