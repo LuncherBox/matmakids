@@ -1799,7 +1799,7 @@ function renderFallback(task) {
 
 function renderOptions(task, formatter = null) {
   const wrap = document.getElementById("options");
-  const options = task.options || [];
+  const options = shuffle(task.options || []);
   state.pendingAnswer = null;
 
   wrap.style.display = "block";
