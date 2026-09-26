@@ -7,9 +7,20 @@ export type CategoryStats = {
   accuracy: number;
 };
 
+export type MissionHistoryItem = {
+  id: string;
+  date: string;
+  childPoints: number;
+  gobiPoints: number;
+  winner: string | null;
+};
+
 export type ChildStats = {
   completedMissions: number;
   totalPoints: number;
+  activeDays: number;
+  streak: number;
+  recentMissions: MissionHistoryItem[];
   totalTasks: number;
   correctFirstTry: number;
   mistakes: number;
@@ -22,7 +33,7 @@ export type ChildStats = {
 export async function getChildStats(childId: string): Promise<ChildStats> {
   const { data: sessions, error: sessionsError } = await supabase
     .from('sessions')
-    .select('id, status, mistake_count, child_points')
+    .select('id, status, mistake_count, child_points, gobi_points, winner, created_at, completed_at')
     .eq('child_id', childId)
     .order('created_at', { ascending: false });
 
@@ -36,12 +47,56 @@ export async function getChildStats(childId: string): Promise<ChildStats> {
     0
   );
 
+  const activeDateKeys = [...new Set(
+    (sessions ?? [])
+      .map((session) => session.completed_at ?? session.created_at)
+      .filter(Boolean)
+      .map((value) => new Date(value).toISOString().slice(0, 10))
+  )].sort().reverse();
+
+  const activeDays = activeDateKeys.length;
+
+  let streak = 0;
+  if (activeDateKeys.length) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const latest = new Date(`${activeDateKeys[0]}T00:00:00`);
+    const diffFromToday = Math.round((today.getTime() - latest.getTime()) / 86400000);
+
+    if (diffFromToday <= 1) {
+      let expected = latest;
+
+      for (const key of activeDateKeys) {
+        const current = new Date(`${key}T00:00:00`);
+        if (current.getTime() !== expected.getTime()) break;
+
+        streak += 1;
+        expected = new Date(expected.getTime() - 86400000);
+      }
+    }
+  }
+
+  const recentMissions = (sessions ?? [])
+    .filter((session) => session.status === 'completed')
+    .slice(0, 10)
+    .map((session) => ({
+      id: session.id,
+      date: session.completed_at ?? session.created_at,
+      childPoints: Number(session.child_points ?? 0),
+      gobiPoints: Number(session.gobi_points ?? 0),
+      winner: session.winner ?? null
+    }));
+
   const sessionIds = (sessions ?? []).map((session) => session.id);
 
   if (!sessionIds.length) {
     return {
       completedMissions: 0,
       totalPoints: 0,
+      activeDays,
+      streak,
+      recentMissions,
       totalTasks: 0,
       correctFirstTry: 0,
       mistakes: 0,
@@ -93,6 +148,9 @@ export async function getChildStats(childId: string): Promise<ChildStats> {
   return {
     completedMissions,
     totalPoints,
+    activeDays,
+    streak,
+    recentMissions,
     totalTasks,
     correctFirstTry,
     mistakes,
