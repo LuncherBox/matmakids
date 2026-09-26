@@ -1,0 +1,131 @@
+import { supabase } from '../lib/supabase';
+
+export async function startMissionSession(
+  childId: string,
+  taskCount: number,
+  gobiLevel: number
+) {
+  const { data, error } = await supabase
+    .from('sessions')
+    .insert({
+      child_id: childId,
+      status: 'started',
+      task_count: taskCount,
+      correct_first_try_count: 0,
+      mistake_count: 0,
+      child_points: 0,
+      gobi_points: 0,
+      mode: 'mixed',
+      category: null,
+      gobi_level: gobiLevel
+    })
+    .select('id')
+    .single();
+
+  if (error) throw error;
+  return data.id as string;
+}
+
+export async function saveMissionAnswer(input: {
+  sessionId: string;
+  taskId: string;
+  taskType: string;
+  category: string;
+  attempts: number;
+  correctFirstTry: boolean;
+  usedHint: boolean;
+  usedGuidedHelp: boolean;
+  pointsChild: number;
+  pointsGobi: number;
+}) {
+  const { error } = await supabase.from('session_answers').insert({
+    session_id: input.sessionId,
+    task_id: input.taskId,
+    task_type: input.taskType,
+    category: input.category,
+    attempts: input.attempts,
+    correct_first_try: input.correctFirstTry,
+    used_hint: input.usedHint,
+    used_guided_help: input.usedGuidedHelp,
+    points_child: input.pointsChild,
+    points_gobi: input.pointsGobi
+  });
+
+  if (error) throw error;
+}
+
+export async function updateMissionTotals(input: {
+  sessionId: string;
+  correctFirstTry: number;
+  mistakes: number;
+  childPoints: number;
+  gobiPoints: number;
+}) {
+  const { error } = await supabase
+    .from('sessions')
+    .update({
+      correct_first_try_count: input.correctFirstTry,
+      mistake_count: input.mistakes,
+      child_points: input.childPoints,
+      gobi_points: input.gobiPoints
+    })
+    .eq('id', input.sessionId);
+
+  if (error) throw error;
+}
+
+export async function finishMission(input: {
+  sessionId: string;
+  correctFirstTry: number;
+  mistakes: number;
+  childPoints: number;
+  gobiPoints: number;
+}) {
+  const winner =
+    input.childPoints > input.gobiPoints
+      ? 'child'
+      : input.gobiPoints > input.childPoints
+        ? 'gobi'
+        : 'draw';
+
+  const { error } = await supabase
+    .from('sessions')
+    .update({
+      status: 'completed',
+      completed_at: new Date().toISOString(),
+      correct_first_try_count: input.correctFirstTry,
+      mistake_count: input.mistakes,
+      child_points: input.childPoints,
+      gobi_points: input.gobiPoints,
+      winner
+    })
+    .eq('id', input.sessionId);
+
+  if (error) throw error;
+  return winner;
+}
+
+export async function abandonMission(
+  sessionId: string,
+  totals: {
+    correctFirstTry: number;
+    mistakes: number;
+    childPoints: number;
+    gobiPoints: number;
+  }
+) {
+  const { error } = await supabase
+    .from('sessions')
+    .update({
+      status: 'abandoned',
+      completed_at: new Date().toISOString(),
+      correct_first_try_count: totals.correctFirstTry,
+      mistake_count: totals.mistakes,
+      child_points: totals.childPoints,
+      gobi_points: totals.gobiPoints,
+      winner: null
+    })
+    .eq('id', sessionId);
+
+  if (error) throw error;
+}
