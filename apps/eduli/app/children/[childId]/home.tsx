@@ -45,8 +45,8 @@ export default function ChildHomeRoute() {
             <Text style={styles.statLabel}>misje</Text>
           </View>
           <View style={styles.stat}>
-            <Text style={styles.statValue}>-</Text>
-            <Text style={styles.statLabel}>streak</Text>
+            <Text style={styles.statValue}>{stats?.streak ?? 0}</Text>
+            <Text style={styles.statLabel}>dni z rzędu</Text>
           </View>
         </View>
 
