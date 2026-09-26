@@ -9,6 +9,7 @@ export type CategoryStats = {
 
 export type ChildStats = {
   completedMissions: number;
+  totalPoints: number;
   totalTasks: number;
   correctFirstTry: number;
   mistakes: number;
@@ -21,7 +22,7 @@ export type ChildStats = {
 export async function getChildStats(childId: string): Promise<ChildStats> {
   const { data: sessions, error: sessionsError } = await supabase
     .from('sessions')
-    .select('id, status, mistake_count')
+    .select('id, status, mistake_count, child_points')
     .eq('child_id', childId)
     .order('created_at', { ascending: false });
 
@@ -30,12 +31,17 @@ export async function getChildStats(childId: string): Promise<ChildStats> {
   const completedMissions = (sessions ?? []).filter(
     (session) => session.status === 'completed'
   ).length;
+  const totalPoints = (sessions ?? []).reduce(
+    (sum, session) => sum + Number(session.child_points ?? 0),
+    0
+  );
 
   const sessionIds = (sessions ?? []).map((session) => session.id);
 
   if (!sessionIds.length) {
     return {
       completedMissions: 0,
+      totalPoints: 0,
       totalTasks: 0,
       correctFirstTry: 0,
       mistakes: 0,
@@ -86,6 +92,7 @@ export async function getChildStats(childId: string): Promise<ChildStats> {
 
   return {
     completedMissions,
+    totalPoints,
     totalTasks,
     correctFirstTry,
     mistakes,
