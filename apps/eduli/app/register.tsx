@@ -1,8 +1,8 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, SafeAreaView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Platform, Pressable, SafeAreaView, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { registerWithPassword } from '../src/services/auth';
+import { registerWithPassword, startGoogleLogin } from '../src/services/auth';
 import { colors } from '../src/theme';
 
 export default function RegisterRoute() {
@@ -52,6 +52,19 @@ export default function RegisterRoute() {
           <Text style={styles.brand}>Eduli</Text>
           <Text style={styles.title}>Załóż konto</Text>
           <Text style={styles.subtitle}>Utwórz konto rodzica.</Text>
+
+          {Platform.OS === 'web' ? (
+            <Pressable
+              style={styles.google}
+              onPress={async () => {
+                setStatus('');
+                const { error } = await startGoogleLogin();
+                if (error) setStatus('Nie udało się uruchomić rejestracji Google.');
+              }}
+            >
+              <Text style={styles.googleText}>Kontynuuj z Google</Text>
+            </Pressable>
+          ) : null}
 
           <Text style={styles.label}>Email</Text>
           <TextInput
@@ -107,6 +120,8 @@ const styles = StyleSheet.create({
   brand: { color: colors.muted, fontWeight: '800' },
   title: { color: colors.text, fontSize: 38, fontWeight: '900', marginTop: 16 },
   subtitle: { color: colors.muted, fontSize: 17, marginTop: 6, marginBottom: 24 },
+  google: { borderColor: colors.border, borderWidth: 2, borderRadius: 18, padding: 15, alignItems: 'center', marginBottom: 14 },
+  googleText: { color: colors.text, fontWeight: '900' },
   label: { color: colors.muted, fontWeight: '800', marginTop: 10, marginBottom: 6 },
   input: { minHeight: 54, borderColor: colors.border, borderWidth: 2, borderRadius: 18, paddingHorizontal: 16, fontSize: 17, color: colors.text, backgroundColor: '#FFF' },
   status: { color: colors.muted, marginTop: 10, lineHeight: 20 },
