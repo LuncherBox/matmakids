@@ -388,13 +388,34 @@ function renderAuth(message = "") {
   });
 }
 
-function ageFromBirthDate(birthDate) {
-  if (!birthDate) return null;
+function parseBirthDate(birthDate) {
+  if (typeof birthDate !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(birthDate)) {
+    return null;
+  }
 
-  const birth = new Date(`${birthDate}T00:00:00`);
-  if (Number.isNaN(birth.getTime())) return null;
+  const [year, month, day] = birthDate.split("-").map(Number);
+  const birth = new Date(year, month - 1, day);
+
+  if (
+    birth.getFullYear() !== year ||
+    birth.getMonth() !== month - 1 ||
+    birth.getDate() !== day
+  ) {
+    return null;
+  }
+
+  return birth;
+}
+
+function ageFromBirthDate(birthDate) {
+  const birth = parseBirthDate(birthDate);
+  if (!birth) return null;
 
   const today = new Date();
+  const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+  if (birth > todayDate) return null;
+
   let age = today.getFullYear() - birth.getFullYear();
 
   const birthdayPassed =
@@ -402,8 +423,15 @@ function ageFromBirthDate(birthDate) {
     (today.getMonth() === birth.getMonth() && today.getDate() >= birth.getDate());
 
   if (!birthdayPassed) age -= 1;
-  return Math.max(0, age);
+  return age;
 }
+
+function isEligibleEduliBirthDate(birthDate) {
+  const age = ageFromBirthDate(birthDate);
+  return age !== null && age >= 4 && age <= 8;
+}
+
+const EDULI_AGE_ERROR = "Eduli jest obecnie przeznaczone dla dzieci w wieku 4-8 lat.";
 
 async function renderChildProfiles(message = "") {
   app.innerHTML = `
@@ -490,8 +518,14 @@ async function renderChildProfiles(message = "") {
     const birthDate = document.getElementById("childBirthDate").value;
     const status = document.getElementById("createChildStatus");
 
-    if (!name || !birthDate) {
-      status.textContent = "Wpisz imię i pełną datę urodzenia.";
+    if (!name) {
+      status.textContent = "Wpisz imię lub pseudonim.";
+      status.className = "auth-status error";
+      return;
+    }
+
+    if (!isEligibleEduliBirthDate(birthDate)) {
+      status.textContent = EDULI_AGE_ERROR;
       status.className = "auth-status error";
       return;
     }
@@ -665,8 +699,14 @@ function renderEditChild(child) {
     const birthDate = document.getElementById("editChildBirthDate").value;
     const status = document.getElementById("editChildStatus");
 
-    if (!name || !birthDate) {
-      status.textContent = "Wpisz imię i pełną datę urodzenia.";
+    if (!name) {
+      status.textContent = "Wpisz imię lub pseudonim.";
+      status.className = "auth-status error";
+      return;
+    }
+
+    if (!isEligibleEduliBirthDate(birthDate)) {
+      status.textContent = EDULI_AGE_ERROR;
       status.className = "auth-status error";
       return;
     }
@@ -674,16 +714,11 @@ function renderEditChild(child) {
     status.textContent = "Zapisuję...";
     status.className = "auth-status";
 
-    const age = ageFromBirthDate(birthDate);
-    const birthYear = Number(birthDate.slice(0, 4));
-
     const { data, error } = await supabaseClient
       .from("children")
       .update({
         display_name: name,
-        birth_date: birthDate,
-        birth_year: birthYear,
-        age
+        birth_date: birthDate
       })
       .eq("id", child.id)
       .select("id, display_name, birth_date, share_code, gobi_level, created_at")
