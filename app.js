@@ -249,10 +249,15 @@ function isPasswordRecoveryUrl() {
 
 function getPasswordRecoveryUrlError() {
   const url = new URL(window.location.href);
-  const code = url.searchParams.get("error_code");
-  const description = url.searchParams.get("error_description") || "";
+  const hashParams = new URLSearchParams(url.hash.replace(/^#/, ""));
+  const code = url.searchParams.get("error_code") || hashParams.get("error_code");
+  const description =
+    url.searchParams.get("error_description") ||
+    hashParams.get("error_description") ||
+    "";
+  const hasError = url.searchParams.has("error") || hashParams.has("error");
 
-  if (code === "otp_expired" || (isPasswordRecoveryUrl() && url.searchParams.has("error"))) {
+  if (code === "otp_expired" || (isPasswordRecoveryUrl() && hasError)) {
     return description || "Link do zmiany hasła jest nieprawidłowy lub wygasł.";
   }
 
