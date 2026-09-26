@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, SafeAreaView, StyleSheet, Text, TextInput, View } from 'react-native';
 
@@ -6,6 +6,7 @@ import { supabase } from '../src/lib/supabase';
 import { colors } from '../src/theme';
 
 export default function LoginRoute() {
+  const params = useLocalSearchParams<{ passwordChanged?: string }>();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [status, setStatus] = useState('');
@@ -62,13 +63,24 @@ export default function LoginRoute() {
             style={styles.input}
           />
 
+          {params.passwordChanged === '1' ? (
+            <Text style={styles.success}>Hasło zostało zmienione</Text>
+          ) : null}
           {status ? <Text style={styles.error}>{status}</Text> : null}
 
           <Pressable style={styles.primary} onPress={submit} disabled={busy}>
             <Text style={styles.primaryText}>{busy ? 'LOGOWANIE...' : 'ZALOGUJ SIĘ'}</Text>
           </Pressable>
 
-          <Pressable onPress={() => router.back()}>
+          <Pressable onPress={() => router.push('/reset-password')}>
+            <Text style={styles.link}>Nie pamiętasz hasła?</Text>
+          </Pressable>
+
+          <Pressable onPress={() => router.push('/register')}>
+            <Text style={styles.link}>Nie masz konta? Załóż konto</Text>
+          </Pressable>
+
+          <Pressable onPress={() => router.replace('/')}>
             <Text style={styles.back}>Wróć</Text>
           </Pressable>
         </View>
@@ -87,7 +99,9 @@ const styles = StyleSheet.create({
   label: { color: colors.muted, fontWeight: '800', marginTop: 10, marginBottom: 6 },
   input: { minHeight: 54, borderColor: colors.border, borderWidth: 2, borderRadius: 18, paddingHorizontal: 16, fontSize: 17, color: colors.text, backgroundColor: '#FFF' },
   error: { color: colors.danger, marginTop: 10 },
+  success: { color: colors.accentDark, marginTop: 10, fontWeight: '800' },
   primary: { backgroundColor: colors.accent, borderRadius: 18, padding: 16, alignItems: 'center', marginTop: 24 },
   primaryText: { color: '#FFF', fontSize: 18, fontWeight: '900' },
-  back: { color: colors.muted, textAlign: 'center', fontWeight: '700', marginTop: 18 }
+  link: { color: colors.text, textAlign: 'center', fontWeight: '800', marginTop: 16 },
+  back: { color: colors.muted, textAlign: 'center', fontWeight: '700', marginTop: 14 }
 });
