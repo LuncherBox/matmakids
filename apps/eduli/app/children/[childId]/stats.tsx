@@ -65,6 +65,41 @@ export default function ChildStatsRoute() {
                 <Text style={styles.metricValue}>{stats.hintsUsed}</Text>
                 <Text style={styles.metricLabel}>użyte podpowiedzi</Text>
               </View>
+              <View style={styles.metric}>
+                <Text style={styles.metricValue}>{stats.activeDays}</Text>
+                <Text style={styles.metricLabel}>dni aktywności</Text>
+              </View>
+              <View style={styles.metric}>
+                <Text style={styles.metricValue}>{stats.streak}</Text>
+                <Text style={styles.metricLabel}>dni z rzędu</Text>
+              </View>
+            </View>
+
+            <Text style={styles.sectionTitle}>Historia misji</Text>
+            <View style={styles.list}>
+              {stats.recentMissions.length ? (
+                stats.recentMissions.map((mission) => (
+                  <View key={mission.id} style={styles.row}>
+                    <View>
+                      <Text style={styles.rowTitle}>
+                        {new Date(mission.date).toLocaleDateString('pl-PL')}
+                      </Text>
+                      <Text style={styles.rowMeta}>
+                        {mission.winner === 'child'
+                          ? 'Wygrana'
+                          : mission.winner === 'gobi'
+                            ? 'Gobi wygrał'
+                            : 'Remis'}
+                      </Text>
+                    </View>
+                    <Text style={styles.rowValue}>
+                      {mission.childPoints}:{mission.gobiPoints}
+                    </Text>
+                  </View>
+                ))
+              ) : (
+                <Text style={styles.meta}>Brak ukończonych misji.</Text>
+              )}
             </View>
 
             <Text style={styles.sectionTitle}>Według kategorii</Text>
