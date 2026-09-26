@@ -51,17 +51,26 @@ export default function ChildHomeRoute() {
         </View>
 
         <View style={styles.actions}>
-          <Pressable style={styles.primary}>
+          <Pressable
+            style={styles.primary}
+            onPress={() => router.push(`/children/${childId}/mission`)}
+          >
             <Text style={styles.primaryTitle}>POKONAJ GOBIEGO</Text>
             <Text style={styles.primaryCopy}>Misja z mieszanymi zadaniami</Text>
           </Pressable>
 
-          <Pressable style={styles.card}>
+          <Pressable
+            style={styles.card}
+            onPress={() => router.push(`/children/${childId}/practice`)}
+          >
             <Text style={styles.cardTitle}>ĆWICZ</Text>
             <Text style={styles.cardCopy}>Wybierz kategorię i trenuj</Text>
           </Pressable>
 
-          <Pressable style={styles.card}>
+          <Pressable
+            style={styles.card}
+            onPress={() => router.push(`/children/${childId}/results`)}
+          >
             <Text style={styles.cardTitle}>MOJE WYNIKI</Text>
             <Text style={styles.cardCopy}>Punkty, misje i prosty postęp</Text>
           </Pressable>
