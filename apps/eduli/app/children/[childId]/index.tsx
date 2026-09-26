@@ -41,14 +41,29 @@ export default function ParentChildProfileRoute() {
             <Text style={styles.meta}>Kod dziecka: {child.share_code ?? 'brak'}</Text>
 
             <View style={styles.actions}>
-              <Pressable style={styles.primary}>
+              <Pressable
+                style={styles.primary}
+                onPress={() => router.push(`/children/${child.id}/play`)}
+              >
                 <Text style={styles.primaryText}>PRZEKAŻ TELEFON DZIECKU</Text>
               </Pressable>
-              <Pressable style={styles.secondary}>
+              <Pressable
+                style={styles.secondary}
+                onPress={() => router.push(`/children/${child.id}/stats`)}
+              >
                 <Text style={styles.secondaryText}>STATYSTYKI</Text>
               </Pressable>
-              <Pressable style={styles.secondary}>
+              <Pressable
+                style={styles.secondary}
+                onPress={() => router.push(`/children/${child.id}/report`)}
+              >
                 <Text style={styles.secondaryText}>RAPORT</Text>
+              </Pressable>
+              <Pressable
+                style={styles.secondary}
+                onPress={() => router.push(`/children/${child.id}/edit`)}
+              >
+                <Text style={styles.secondaryText}>EDYTUJ PROFIL</Text>
               </Pressable>
             </View>
           </View>
