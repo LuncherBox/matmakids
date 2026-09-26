@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, SafeAreaView, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { supabase } from '../src/lib/supabase';
+import { registerWithPassword } from '../src/services/auth';
 import { colors } from '../src/theme';
 
 export default function RegisterRoute() {
@@ -28,13 +28,7 @@ export default function RegisterRoute() {
     setBusy(true);
     setStatus('');
 
-    const { data, error } = await supabase.auth.signUp({
-      email: emailValue,
-      password,
-      options: {
-        emailRedirectTo: window.location.origin
-      }
-    });
+    const { data, error } = await registerWithPassword(emailValue, password);
 
     setBusy(false);
 
