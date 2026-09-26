@@ -2811,3 +2811,13 @@ body {
   font-size: 20px;
   font-weight: 950;
 }
+
+
+/* Allow long account/profile screens to scroll */
+.screen.scroll-screen {
+  height: auto;
+  min-height: 100dvh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  justify-content: flex-start;
+}
