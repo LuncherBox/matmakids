@@ -29,3 +29,13 @@ export async function markMechanicLearned(childId: string, taskType: string) {
 
   if (error) throw error;
 }
+
+export async function getMechanicProgress(childId: string): Promise<TaskMechanicProgress[]> {
+  const { data, error } = await supabase
+    .from('child_task_type_progress')
+    .select('child_id, task_type, training_status, training_attempts, trained_at')
+    .eq('child_id', childId);
+
+  if (error) throw error;
+  return (data ?? []) as TaskMechanicProgress[];
+}
