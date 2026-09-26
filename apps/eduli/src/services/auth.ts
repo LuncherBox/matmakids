@@ -1,13 +1,30 @@
+import { config } from '../config';
 import { supabase } from '../lib/supabase';
 
-export async function loginWithPassword(email: string, password: string) {
+export function loginWithPassword(email: string, password: string) {
   return supabase.auth.signInWithPassword({ email, password });
 }
 
-export async function logout() {
+export function registerWithPassword(email: string, password: string) {
+  return supabase.auth.signUp({
+    email,
+    password,
+    options: config.appUrl ? { emailRedirectTo: config.appUrl } : undefined
+  });
+}
+
+export function logout() {
   return supabase.auth.signOut();
 }
 
-export async function readSession() {
+export function readSession() {
   return supabase.auth.getSession();
+}
+
+export function requestPasswordReset(email: string) {
+  if (!config.appUrl) throw new Error('Missing EXPO_PUBLIC_APP_URL.');
+
+  return supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${config.appUrl}/new-password`
+  });
 }
