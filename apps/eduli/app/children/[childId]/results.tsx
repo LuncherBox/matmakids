@@ -41,8 +41,8 @@ export default function ChildResultsRoute() {
             <Text style={styles.label}>misje</Text>
           </View>
           <View style={styles.card}>
-            <Text style={styles.value}>{stats?.totalTasks ?? 0}</Text>
-            <Text style={styles.label}>zadania</Text>
+            <Text style={styles.value}>{stats?.streak ?? 0}</Text>
+            <Text style={styles.label}>dni z rzędu</Text>
           </View>
         </View>
 
