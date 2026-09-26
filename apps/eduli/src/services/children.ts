@@ -23,3 +23,45 @@ export async function getChild(childId: string): Promise<Child> {
   if (error) throw error;
   return data as Child;
 }
+
+export async function createChild(displayName: string, birthDate: string): Promise<Child> {
+  const { data, error } = await supabase.rpc('create_child_profile', {
+    p_display_name: displayName,
+    p_birth_date: birthDate
+  });
+
+  if (error) throw error;
+
+  const child = Array.isArray(data) ? data[0] : data;
+  return child as Child;
+}
+
+export async function joinChildByCode(shareCode: string): Promise<Child> {
+  const { data, error } = await supabase.rpc('join_child_by_code', {
+    p_share_code: shareCode
+  });
+
+  if (error) throw error;
+
+  const child = Array.isArray(data) ? data[0] : data;
+  return child as Child;
+}
+
+export async function updateChildProfile(
+  childId: string,
+  displayName: string,
+  birthDate: string
+): Promise<Child> {
+  const { data, error } = await supabase
+    .from('children')
+    .update({
+      display_name: displayName,
+      birth_date: birthDate
+    })
+    .eq('id', childId)
+    .select(CHILD_FIELDS)
+    .single();
+
+  if (error) throw error;
+  return data as Child;
+}
