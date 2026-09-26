@@ -2,7 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { supabase } from '../../../src/lib/supabase';
+import { getChild } from '../../../src/services/children';
 import { colors } from '../../../src/theme';
 import type { Child } from '../../../src/types/models';
 
@@ -14,18 +14,11 @@ export default function ParentChildProfileRoute() {
   useEffect(() => {
     if (!childId) return;
 
-    supabase
-      .from('children')
-      .select('id, display_name, birth_date, share_code, gobi_level, created_at')
-      .eq('id', childId)
-      .single()
-      .then(({ data, error: nextError }) => {
-        if (nextError) {
-          setError('Nie udało się wczytać profilu dziecka.');
-          return;
-        }
-
-        setChild(data as Child);
+    getChild(childId)
+      .then(setChild)
+      .catch((nextError) => {
+        console.error(nextError);
+        setError('Nie udało się wczytać profilu dziecka.');
       });
   }, [childId]);
 
