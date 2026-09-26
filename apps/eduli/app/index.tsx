@@ -72,8 +72,11 @@ export default function HomeRoute() {
             <Text style={styles.heroCopy}>
               Matematyka, logika, pamięć i podstawy kodowania w krótkich ćwiczeniach dopasowanych do poziomu dziecka.
             </Text>
-            <Pressable style={styles.primary} onPress={() => router.push('/login')}>
-              <Text style={styles.primaryText}>ZALOGUJ SIĘ</Text>
+            <Pressable style={styles.primary} onPress={() => router.push('/register')}>
+              <Text style={styles.primaryText}>ZAŁÓŻ KONTO</Text>
+            </Pressable>
+            <Pressable style={styles.secondary} onPress={() => router.push('/login')}>
+              <Text style={styles.secondaryText}>ZALOGUJ SIĘ</Text>
             </Pressable>
           </View>
         </ScrollView>
@@ -98,7 +101,11 @@ export default function HomeRoute() {
 
         <View style={styles.list}>
           {children.map((child) => (
-            <Pressable key={child.id} style={styles.card}>
+            <Pressable
+              key={child.id}
+              style={styles.card}
+              onPress={() => router.push(`/children/${child.id}`)}
+            >
               <View style={styles.avatar}>
                 <Text style={styles.avatarText}>{child.display_name.slice(0, 1).toUpperCase()}</Text>
               </View>
@@ -131,6 +138,8 @@ const styles = StyleSheet.create({
   heroCopy: { color: colors.muted, fontSize: 19, lineHeight: 28, marginTop: 16, marginBottom: 28 },
   primary: { backgroundColor: colors.accent, borderRadius: 18, padding: 16, alignItems: 'center' },
   primaryText: { color: '#FFF', fontSize: 18, fontWeight: '900' },
+  secondary: { borderColor: colors.border, borderWidth: 2, borderRadius: 18, padding: 16, alignItems: 'center', marginTop: 10, backgroundColor: colors.card },
+  secondaryText: { color: colors.text, fontSize: 17, fontWeight: '900' },
   topbar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   logout: { color: colors.muted, fontWeight: '700' },
   title: { color: colors.text, fontSize: 42, fontWeight: '900', marginTop: 48 },
