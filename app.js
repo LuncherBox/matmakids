@@ -407,7 +407,7 @@ function ageFromBirthDate(birthDate) {
 
 async function renderChildProfiles(message = "") {
   app.innerHTML = `
-    <section class="screen centered">
+    <section class="screen centered scroll-screen">
       <div class="account-row">
         <span class="account-email">${escapeHtml(authUser?.email || "")}</span>
         <button class="logout-btn" id="logout" type="button">Wyloguj</button>
