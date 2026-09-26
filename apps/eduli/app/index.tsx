@@ -97,6 +97,15 @@ export default function HomeRoute() {
         <Text style={styles.title}>Twoje dzieci</Text>
         <Text style={styles.subtitle}>Profile pobrane z obecnego backendu Supabase.</Text>
 
+        <View style={styles.parentActions}>
+          <Pressable style={styles.primary} onPress={() => router.push('/children/new')}>
+            <Text style={styles.primaryText}>DODAJ DZIECKO</Text>
+          </Pressable>
+          <Pressable style={styles.secondary} onPress={() => router.push('/children/join')}>
+            <Text style={styles.secondaryText}>DOŁĄCZ KODEM</Text>
+          </Pressable>
+        </View>
+
         {error ? <Text style={styles.error}>{error}</Text> : null}
 
         <View style={styles.list}>
@@ -144,6 +153,7 @@ const styles = StyleSheet.create({
   logout: { color: colors.muted, fontWeight: '700' },
   title: { color: colors.text, fontSize: 42, fontWeight: '900', marginTop: 48 },
   subtitle: { color: colors.muted, fontSize: 17, lineHeight: 24, marginTop: 8, marginBottom: 24 },
+  parentActions: { gap: 10, marginBottom: 24 },
   list: { gap: 10 },
   card: { backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1, borderRadius: 18, padding: 16, flexDirection: 'row', alignItems: 'center' },
   avatar: { width: 52, height: 52, borderRadius: 26, backgroundColor: '#E8F3ED', alignItems: 'center', justifyContent: 'center' },
