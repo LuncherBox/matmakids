@@ -1,41 +1,587 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import {
+  Pressable,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View
+} from 'react-native';
 
+import {
+  initialMissionTaskState,
+  registerFirstMissionError,
+  scoreMissionSuccess,
+  type MissionTaskState
+} from '../../../src/domain/mission/scoring';
+import {
+  activeTasks,
+  shuffled,
+  taskMechanicId
+} from '../../../src/domain/tasks/bank';
+import {
+  displayOption,
+  taskInstruction,
+  taskQuestion
+} from '../../../src/domain/tasks/presentation';
+import { getChild } from '../../../src/services/children';
+import { getLearnedMechanics } from '../../../src/services/progress';
+import {
+  abandonMission,
+  finishMission,
+  saveMissionAnswer,
+  startMissionSession,
+  updateMissionTotals
+} from '../../../src/services/sessions';
 import { colors } from '../../../src/theme';
+import type { Child } from '../../../src/types/models';
+import type { Task } from '../../../src/types/tasks';
+
+const SESSION_SIZE = 10;
+const MISSION_UNLOCK_MECHANICS = 3;
+
+const SUPPORTED_RENDERERS = new Set([
+  'equation_with_dots',
+  'missing_number_equation',
+  'number_sequence',
+  'number_comparison',
+  'visual_sequence',
+  'command_pattern',
+  'command_grid_plan'
+]);
+
+type Totals = {
+  correctFirstTry: number;
+  mistakes: number;
+  childPoints: number;
+  gobiPoints: number;
+};
+
+const EMPTY_TOTALS: Totals = {
+  correctFirstTry: 0,
+  mistakes: 0,
+  childPoints: 0,
+  gobiPoints: 0
+};
+
+function buildMissionTasks(learnedMechanics: Set<string>) {
+  const allowed = activeTasks().filter(
+    (task) =>
+      task.category !== 'memory' &&
+      learnedMechanics.has(taskMechanicId(task)) &&
+      SUPPORTED_RENDERERS.has(task.renderer) &&
+      Array.isArray(task.options) &&
+      task.options.length > 0
+  );
+
+  if (!allowed.length) return [];
+
+  const result: Task[] = [];
+  let pool = shuffled(allowed);
+
+  while (result.length < SESSION_SIZE) {
+    if (!pool.length) pool = shuffled(allowed);
+    const next = pool.shift();
+    if (next) result.push(next);
+  }
+
+  return result;
+}
 
 export default function MissionRoute() {
   const { childId } = useLocalSearchParams<{ childId: string }>();
 
+  const [child, setChild] = useState<Child | null>(null);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [index, setIndex] = useState(0);
+  const [taskState, setTaskState] = useState<MissionTaskState>(
+    initialMissionTaskState()
+  );
+  const [totals, setTotals] = useState<Totals>(EMPTY_TOTALS);
+  const [feedback, setFeedback] = useState('');
+  const [error, setError] = useState('');
+  const [starting, setStarting] = useState(true);
+  const [finished, setFinished] = useState(false);
+  const [winner, setWinner] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!childId) return;
+
+    let active = true;
+
+    async function start() {
+      try {
+        const [nextChild, learnedRows] = await Promise.all([
+          getChild(childId),
+          getLearnedMechanics(childId)
+        ]);
+
+        if (!active) return;
+
+        const learned = new Set(learnedRows.map((row) => row.task_type));
+
+        if (learned.size < MISSION_UNLOCK_MECHANICS) {
+          setError(
+            `Misja jest jeszcze zablokowana. Poznaj ${MISSION_UNLOCK_MECHANICS} typy zadań.`
+          );
+          setStarting(false);
+          return;
+        }
+
+        const nextTasks = buildMissionTasks(learned);
+
+        if (nextTasks.length < SESSION_SIZE) {
+          setError(
+            'Poznane zadania są jeszcze przenoszone do nowego silnika. Wybierz Ćwicz albo spróbuj ponownie później.'
+          );
+          setStarting(false);
+          return;
+        }
+
+        const nextSessionId = await startMissionSession(
+          childId,
+          nextTasks.length,
+          Number(nextChild.gobi_level) || 1
+        );
+
+        if (!active) return;
+
+        setChild(nextChild);
+        setTasks(nextTasks);
+        setSessionId(nextSessionId);
+        setStarting(false);
+      } catch (nextError) {
+        console.error(nextError);
+        if (active) {
+          setError('Nie udało się rozpocząć misji.');
+          setStarting(false);
+        }
+      }
+    }
+
+    start();
+
+    return () => {
+      active = false;
+    };
+  }, [childId]);
+
+  const task = tasks[index];
+
+  const shuffledOptions = useMemo(() => {
+    if (!task?.options) return [];
+    return shuffled(task.options);
+  }, [task?.id]);
+
+  async function answer(value: string | number) {
+    if (!task || !sessionId || finished) return;
+
+    const nextAttempts = taskState.attempts + 1;
+    const isCorrect = String(value) === String(task.correct_answer);
+
+    if (!isCorrect) {
+      const firstError = !taskState.hadError;
+      const nextState = registerFirstMissionError({
+        ...taskState,
+        attempts: nextAttempts
+      });
+
+      setTaskState(nextState);
+      setFeedback('Spróbuj jeszcze raz');
+
+      if (firstError) {
+        setTotals((current) => ({
+          ...current,
+          mistakes: current.mistakes + 1,
+          gobiPoints: current.gobiPoints + (nextState.gobiPoint - taskState.gobiPoint)
+        }));
+      }
+
+      return;
+    }
+
+    const finalTaskState = {
+      ...taskState,
+      attempts: nextAttempts
+    };
+
+    const score = scoreMissionSuccess(finalTaskState);
+
+    const nextTotals: Totals = {
+      correctFirstTry:
+        totals.correctFirstTry + (score.correctFirstTry ? 1 : 0),
+      mistakes: totals.mistakes,
+      childPoints: totals.childPoints + score.childPoints,
+      gobiPoints: totals.gobiPoints
+    };
+
+    setFeedback('Super!');
+
+    try {
+      await saveMissionAnswer({
+        sessionId,
+        taskId: task.id,
+        taskType: taskMechanicId(task),
+        category: task.category,
+        attempts: finalTaskState.attempts,
+        correctFirstTry: score.correctFirstTry,
+        usedHint: finalTaskState.usedHint,
+        usedGuidedHelp: finalTaskState.usedGuidedHelp,
+        pointsChild: score.childPoints,
+        pointsGobi: finalTaskState.gobiPoint
+      });
+
+      await updateMissionTotals({
+        sessionId,
+        ...nextTotals
+      });
+    } catch (nextError) {
+      console.error(nextError);
+      setError('Nie udało się zapisać wyniku zadania.');
+      return;
+    }
+
+    setTotals(nextTotals);
+
+    if (index + 1 >= tasks.length) {
+      try {
+        const nextWinner = await finishMission({
+          sessionId,
+          ...nextTotals
+        });
+        setWinner(nextWinner);
+        setFinished(true);
+      } catch (nextError) {
+        console.error(nextError);
+        setError('Nie udało się zakończyć misji.');
+      }
+      return;
+    }
+
+    setTimeout(() => {
+      setIndex((current) => current + 1);
+      setTaskState(initialMissionTaskState());
+      setFeedback('');
+    }, 450);
+  }
+
+  async function exitMission() {
+    if (sessionId && !finished) {
+      try {
+        await abandonMission(sessionId, totals);
+      } catch (nextError) {
+        console.error(nextError);
+      }
+    }
+
+    router.replace(`/children/${childId}/home`);
+  }
+
+  if (starting) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <View style={styles.centered}>
+          <Text style={styles.loading}>Przygotowuję 10 zadań...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (error) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <View style={styles.centered}>
+          <View style={styles.card}>
+            <Text style={styles.title}>Misja</Text>
+            <Text style={styles.copy}>{error}</Text>
+            <Pressable
+              style={styles.secondary}
+              onPress={() => router.replace(`/children/${childId}/home`)}
+            >
+              <Text style={styles.secondaryText}>WRÓĆ</Text>
+            </Pressable>
+          </View>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (finished) {
+    const resultTitle =
+      winner === 'child'
+        ? 'Wygrywasz!'
+        : winner === 'gobi'
+          ? 'Gobi wygrywa tę rundę'
+          : 'Remis!';
+
+    return (
+      <SafeAreaView style={styles.safe}>
+        <View style={styles.centered}>
+          <View style={styles.card}>
+            <Text style={styles.kicker}>MISJA ZAKOŃCZONA</Text>
+            <Text style={styles.title}>{resultTitle}</Text>
+
+            <View style={styles.finalScore}>
+              <View style={styles.finalPlayer}>
+                <Text style={styles.finalLabel}>{child?.display_name ?? 'Ty'}</Text>
+                <Text style={styles.finalValue}>{totals.childPoints}</Text>
+              </View>
+              <Text style={styles.colon}>:</Text>
+              <View style={styles.finalPlayer}>
+                <Text style={styles.finalLabel}>Gobi</Text>
+                <Text style={styles.finalValue}>{totals.gobiPoints}</Text>
+              </View>
+            </View>
+
+            <Pressable
+              style={styles.primary}
+              onPress={() => router.replace(`/children/${childId}/home`)}
+            >
+              <Text style={styles.primaryText}>WRÓĆ DO DOMU</Text>
+            </Pressable>
+          </View>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!task) return null;
+
   return (
     <SafeAreaView style={styles.safe}>
-      <View style={styles.wrap}>
-        <View style={styles.card}>
-          <Text style={styles.kicker}>MISJA Z GOBIM</Text>
-          <Text style={styles.title}>Silnik misji jest następny</Text>
-          <Text style={styles.copy}>
-            Routing i tryb dziecka są już rozdzielone. Teraz przenosimy punktację,
-            podpowiedzi, zapis sesji i 10 zadań z obecnego prototypu.
-          </Text>
-
-          <Pressable
-            style={styles.secondary}
-            onPress={() => router.replace(`/children/${childId}/home`)}
-          >
-            <Text style={styles.secondaryText}>WRÓĆ</Text>
+      <ScrollView contentContainerStyle={styles.content}>
+        <View style={styles.topbar}>
+          <Pressable onPress={exitMission}>
+            <Text style={styles.exit}>WYJDŹ</Text>
           </Pressable>
+
+          <Text style={styles.counter}>
+            {index + 1}/{tasks.length}
+          </Text>
         </View>
-      </View>
+
+        <View style={styles.scorebar}>
+          <View>
+            <Text style={styles.scoreLabel}>{child?.display_name ?? 'Ty'}</Text>
+            <Text style={styles.score}>{totals.childPoints}</Text>
+          </View>
+          <View>
+            <Text style={styles.scoreLabel}>Gobi</Text>
+            <Text style={styles.score}>{totals.gobiPoints}</Text>
+          </View>
+        </View>
+
+        <View style={styles.taskCard}>
+          <Text style={styles.instruction}>{taskInstruction(task)}</Text>
+          <Text style={styles.question}>{taskQuestion(task)}</Text>
+
+          <View style={styles.options}>
+            {shuffledOptions.map((option) => (
+              <Pressable
+                key={String(option)}
+                style={styles.option}
+                onPress={() => answer(option)}
+              >
+                <Text style={styles.optionText}>{displayOption(option)}</Text>
+              </Pressable>
+            ))}
+          </View>
+
+          {feedback ? (
+            <Text
+              style={[
+                styles.feedback,
+                feedback === 'Super!' ? styles.good : styles.retry
+              ]}
+            >
+              {feedback}
+            </Text>
+          ) : null}
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.background },
-  wrap: { flex: 1, padding: 24, alignItems: 'center', justifyContent: 'center' },
-  card: { width: '100%', maxWidth: 560, backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1, borderRadius: 28, padding: 28 },
-  kicker: { color: colors.accentDark, fontSize: 12, fontWeight: '900' },
-  title: { color: colors.text, fontSize: 36, lineHeight: 40, fontWeight: '900', marginTop: 10 },
-  copy: { color: colors.muted, fontSize: 17, lineHeight: 24, marginTop: 12 },
-  secondary: { borderColor: colors.border, borderWidth: 2, borderRadius: 18, padding: 15, alignItems: 'center', marginTop: 28 },
-  secondaryText: { color: colors.text, fontWeight: '900' }
+  safe: {
+    flex: 1,
+    backgroundColor: colors.background
+  },
+  centered: {
+    flex: 1,
+    padding: 24,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  content: {
+    flexGrow: 1,
+    width: '100%',
+    maxWidth: 680,
+    alignSelf: 'center',
+    padding: 24
+  },
+  loading: {
+    color: colors.muted,
+    fontSize: 18,
+    fontWeight: '800'
+  },
+  topbar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center'
+  },
+  exit: {
+    color: colors.muted,
+    fontWeight: '900'
+  },
+  counter: {
+    color: colors.muted,
+    fontWeight: '900'
+  },
+  scorebar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 22,
+    marginBottom: 18
+  },
+  scoreLabel: {
+    color: colors.muted,
+    fontWeight: '800'
+  },
+  score: {
+    color: colors.text,
+    fontSize: 30,
+    fontWeight: '900'
+  },
+  taskCard: {
+    backgroundColor: colors.card,
+    borderColor: colors.border,
+    borderWidth: 1,
+    borderRadius: 24,
+    padding: 22
+  },
+  instruction: {
+    color: colors.muted,
+    fontSize: 16,
+    fontWeight: '800',
+    textAlign: 'center'
+  },
+  question: {
+    color: colors.text,
+    fontSize: 38,
+    lineHeight: 46,
+    fontWeight: '900',
+    textAlign: 'center',
+    marginTop: 18,
+    marginBottom: 24
+  },
+  options: {
+    gap: 10
+  },
+  option: {
+    minHeight: 58,
+    borderColor: colors.border,
+    borderWidth: 2,
+    borderRadius: 18,
+    backgroundColor: colors.card,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 12
+  },
+  optionText: {
+    color: colors.text,
+    fontSize: 22,
+    fontWeight: '900'
+  },
+  feedback: {
+    textAlign: 'center',
+    fontSize: 18,
+    fontWeight: '900',
+    marginTop: 18
+  },
+  good: {
+    color: colors.accentDark
+  },
+  retry: {
+    color: colors.danger
+  },
+  card: {
+    width: '100%',
+    maxWidth: 560,
+    backgroundColor: colors.card,
+    borderColor: colors.border,
+    borderWidth: 1,
+    borderRadius: 28,
+    padding: 28
+  },
+  kicker: {
+    color: colors.accentDark,
+    fontSize: 12,
+    fontWeight: '900'
+  },
+  title: {
+    color: colors.text,
+    fontSize: 36,
+    lineHeight: 40,
+    fontWeight: '900',
+    marginTop: 10
+  },
+  copy: {
+    color: colors.muted,
+    fontSize: 17,
+    lineHeight: 24,
+    marginTop: 12
+  },
+  primary: {
+    backgroundColor: colors.accent,
+    borderRadius: 18,
+    padding: 16,
+    alignItems: 'center',
+    marginTop: 24
+  },
+  primaryText: {
+    color: '#FFF',
+    fontSize: 18,
+    fontWeight: '900'
+  },
+  secondary: {
+    borderColor: colors.border,
+    borderWidth: 2,
+    borderRadius: 18,
+    padding: 15,
+    alignItems: 'center',
+    marginTop: 24
+  },
+  secondaryText: {
+    color: colors.text,
+    fontWeight: '900'
+  },
+  finalScore: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+    gap: 18,
+    marginTop: 28
+  },
+  finalPlayer: {
+    alignItems: 'center'
+  },
+  finalLabel: {
+    color: colors.muted,
+    fontWeight: '800'
+  },
+  finalValue: {
+    color: colors.text,
+    fontSize: 50,
+    fontWeight: '900'
+  },
+  colon: {
+    color: colors.muted,
+    fontSize: 34,
+    fontWeight: '900',
+    marginBottom: 5
+  }
 });
