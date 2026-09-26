@@ -4,15 +4,9 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { supabase } from '../src/lib/supabase';
+import { listChildren } from '../src/services/children';
 import { colors } from '../src/theme';
-
-type Child = {
-  id: string;
-  display_name: string;
-  birth_date: string | null;
-  share_code: string | null;
-  gobi_level: number;
-};
+import type { Child } from '../src/types/models';
 
 export default function HomeRoute() {
   const [session, setSession] = useState<Session | null>(null);
@@ -46,20 +40,17 @@ export default function HomeRoute() {
     }
 
     setLoading(true);
-    supabase
-      .from('children')
-      .select('id, display_name, birth_date, share_code, gobi_level')
-      .order('created_at', { ascending: true })
-      .then(({ data, error }) => {
-        if (error) {
-          setError('Nie udało się wczytać profili dzieci.');
-          setChildren([]);
-        } else {
-          setError('');
-          setChildren((data ?? []) as Child[]);
-        }
-        setLoading(false);
-      });
+    listChildren()
+      .then((data) => {
+        setError('');
+        setChildren(data);
+      })
+      .catch((nextError) => {
+        console.error(nextError);
+        setError('Nie udało się wczytać profili dzieci.');
+        setChildren([]);
+      })
+      .finally(() => setLoading(false));
   }, [session]);
 
   if (loading) {
