@@ -393,7 +393,7 @@ async function renderEntryPoint() {
   cleanOAuthErrorFromUrl();
 
   if (!authUser) {
-    renderAuth();
+    renderPublicHome();
     return;
   }
 
@@ -403,6 +403,244 @@ async function renderEntryPoint() {
   }
 
   await renderChildProfiles();
+}
+
+function renderPublicHome(message = "") {
+  app.innerHTML = `
+    <section class="public-home-screen">
+      <header class="public-nav">
+        <div class="public-brand">Eduli</div>
+        <button class="public-login-link" id="publicLogin" type="button">Zaloguj się</button>
+      </header>
+
+      <main class="public-home-content">
+        <section class="public-hero">
+          <div class="public-age-pill">Dla dzieci 4-8 lat</div>
+          <h1>Krótka nauka.<br>Dużo satysfakcji.</h1>
+          <p>
+            Eduli pomaga dzieciom ćwiczyć matematykę, logikę, pamięć i podstawy kodowania
+            w krótkich zadaniach dopasowanych do ich poziomu.
+          </p>
+
+          ${message ? `<div class="auth-message public-message">${escapeHtml(message)}</div>` : ""}
+
+          <div class="public-hero-actions">
+            <button class="primary" id="tryDemo" type="button">WYPRÓBUJ 10 ZADAŃ</button>
+            <button class="secondary-action" id="publicSignup" type="button">ZAŁÓŻ KONTO</button>
+          </div>
+          <div class="public-login-mobile">
+            Masz już konto?
+            <button id="publicLoginMobile" type="button">Zaloguj się</button>
+          </div>
+        </section>
+
+        <section class="public-section">
+          <div class="public-section-heading">
+            <span>CO ĆWICZYMY</span>
+            <h2>Różne umiejętności w jednej aplikacji</h2>
+          </div>
+
+          <div class="public-category-grid">
+            <div class="public-category-card">
+              <div class="public-category-icon">+</div>
+              <strong>Matematyka</strong>
+              <span>Liczenie, dodawanie, odejmowanie i liczby.</span>
+            </div>
+            <div class="public-category-card">
+              <div class="public-category-icon">◇</div>
+              <strong>Logika</strong>
+              <span>Sekwencje, wzory, sudoku i szukanie zależności.</span>
+            </div>
+            <div class="public-category-card">
+              <div class="public-category-icon">→</div>
+              <strong>Kodowanie</strong>
+              <span>Proste komendy, trasy i myślenie krok po kroku.</span>
+            </div>
+            <div class="public-category-card">
+              <div class="public-category-icon">●</div>
+              <strong>Pamięć</strong>
+              <span>Obrazy, układy i krótkie sekwencje do zapamiętania.</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="public-section public-how">
+          <div class="public-section-heading">
+            <span>JAK TO DZIAŁA</span>
+            <h2>Najpierw nauka, potem wyzwanie</h2>
+          </div>
+
+          <div class="public-steps">
+            <div class="public-step">
+              <b>1</b>
+              <div><strong>Poznaj zadanie</strong><span>Krótki trening pokazuje nowy typ ćwiczenia.</span></div>
+            </div>
+            <div class="public-step">
+              <b>2</b>
+              <div><strong>Ćwicz</strong><span>Dziecko utrwala znane już mechaniki.</span></div>
+            </div>
+            <div class="public-step">
+              <b>3</b>
+              <div><strong>Odblokuj misję</strong><span>Po poznaniu kilku umiejętności można zmierzyć się z Gobim.</span></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="public-demo-card">
+          <div>
+            <span class="public-demo-label">PRZYKŁADOWA SESJA</span>
+            <h2>Sprawdź Eduli bez zakładania konta</h2>
+            <p>10 przykładowych zadań. Bez zapisywania wyników i bez tworzenia profilu.</p>
+          </div>
+          <button class="primary" id="tryDemoBottom" type="button">ZACZNIJ</button>
+        </section>
+
+        <section class="public-bottom-cta">
+          <h2>Chcesz zapisywać postępy dziecka?</h2>
+          <p>Utwórz konto rodzica i dodaj profil dziecka.</p>
+          <div class="public-bottom-actions">
+            <button class="primary" id="publicSignupBottom" type="button">ZAŁÓŻ KONTO</button>
+            <button class="text-btn" id="publicLoginBottom" type="button">ZALOGUJ SIĘ</button>
+          </div>
+        </section>
+      </main>
+    </section>
+  `;
+
+  const login = () => renderAuth();
+  const signup = () => renderRegister();
+  const demo = () => startPublicDemo();
+
+  document.getElementById("publicLogin").addEventListener("click", login);
+  document.getElementById("publicLoginMobile").addEventListener("click", login);
+  document.getElementById("publicLoginBottom").addEventListener("click", login);
+  document.getElementById("publicSignup").addEventListener("click", signup);
+  document.getElementById("publicSignupBottom").addEventListener("click", signup);
+  document.getElementById("tryDemo").addEventListener("click", demo);
+  document.getElementById("tryDemoBottom").addEventListener("click", demo);
+}
+
+function startPublicDemo() {
+  stopCurrentTaskActivity();
+  buildSession();
+
+  state.sessionMode = "demo";
+  state.sessionId = null;
+  state.activeChild = null;
+  state.name = "Ty";
+  state.index = 0;
+  state.taskAttempts = 0;
+  state.taskHadError = false;
+  state.taskUsedHint = false;
+  state.taskUsedGuidedHelp = false;
+  state.taskGobiPoint = 0;
+  state.taskPotentialCoins = 2;
+  state.sessionStats = {
+    correctFirstTry: 0,
+    mistakes: 0,
+    childPoints: 0,
+    gobiPoints: 0
+  };
+
+  renderTask();
+}
+
+function renderRegister(message = "") {
+  app.innerHTML = `
+    <section class="screen centered auth-screen">
+      <div class="brand">Eduli</div>
+      <div class="auth-card">
+        <h1>Załóż konto</h1>
+        <p class="subtle">Utwórz konto rodzica.</p>
+
+        ${message ? `<div class="auth-message">${escapeHtml(message)}</div>` : ""}
+
+        <button class="google-btn" id="googleSignup" type="button">
+          <span class="google-mark">G</span>
+          Kontynuuj z Google
+        </button>
+
+        <div class="auth-divider"><span>lub</span></div>
+
+        <label class="auth-label" for="signupEmail">Email</label>
+        <input id="signupEmail" class="auth-input" type="email" autocomplete="email" />
+
+        <label class="auth-label" for="signupPassword">Hasło</label>
+        <input id="signupPassword" class="auth-input" type="password" autocomplete="new-password" minlength="6" />
+
+        <label class="auth-label" for="signupPasswordRepeat">Powtórz hasło</label>
+        <input id="signupPasswordRepeat" class="auth-input" type="password" autocomplete="new-password" minlength="6" />
+
+        <button class="primary auth-primary" id="createAccount" type="button">ZAŁÓŻ KONTO</button>
+        <button class="text-btn" id="backToLoginFromSignup" type="button">Masz już konto? Zaloguj się</button>
+        <button class="text-btn muted-link" id="backToPublicHome" type="button">Wróć</button>
+
+        <div class="auth-status" id="signupStatus" aria-live="polite"></div>
+      </div>
+    </section>
+  `;
+
+  const email = document.getElementById("signupEmail");
+  const password = document.getElementById("signupPassword");
+  const repeat = document.getElementById("signupPasswordRepeat");
+  const status = document.getElementById("signupStatus");
+
+  function setStatus(text, kind = "") {
+    status.textContent = text;
+    status.className = `auth-status ${kind}`;
+  }
+
+  document.getElementById("createAccount").addEventListener("click", async () => {
+    const emailValue = email.value.trim();
+    const passwordValue = password.value;
+
+    if (!emailValue || passwordValue.length < 6) {
+      setStatus("Podaj email i hasło mające co najmniej 6 znaków.", "error");
+      return;
+    }
+
+    if (passwordValue !== repeat.value) {
+      setStatus("Hasła nie są takie same.", "error");
+      return;
+    }
+
+    setStatus("Tworzenie konta...");
+    const { data, error } = await supabaseClient.auth.signUp({
+      email: emailValue,
+      password: passwordValue,
+      options: {
+        emailRedirectTo: window.location.origin
+      }
+    });
+
+    if (error) {
+      setStatus(error.message || "Nie udało się utworzyć konta.", "error");
+      return;
+    }
+
+    if (!data.session) {
+      setStatus("Konto utworzone. Sprawdź email i potwierdź adres, a potem się zaloguj.", "success");
+      return;
+    }
+
+    authUser = data.user;
+    await renderChildProfiles();
+  });
+
+  document.getElementById("googleSignup").addEventListener("click", async () => {
+    setStatus("Przekierowuję do Google...");
+    const { error } = await supabaseClient.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: window.location.origin
+      }
+    });
+
+    if (error) setStatus("Nie udało się uruchomić rejestracji Google.", "error");
+  });
+
+  document.getElementById("backToLoginFromSignup").addEventListener("click", () => renderAuth());
+  document.getElementById("backToPublicHome").addEventListener("click", () => renderPublicHome());
 }
 
 function renderAuth(message = "") {
@@ -431,6 +669,7 @@ function renderAuth(message = "") {
         <button class="primary auth-primary" id="emailLogin" type="button">ZALOGUJ SIĘ</button>
         <button class="text-btn" id="emailSignup" type="button">Nie masz konta? Załóż konto</button>
         <button class="text-btn muted-link" id="resetPassword" type="button">Nie pamiętasz hasła?</button>
+        <button class="text-btn muted-link" id="loginBackHome" type="button">Wróć</button>
 
         <div class="auth-status" id="authStatus" aria-live="polite"></div>
       </div>
@@ -445,6 +684,10 @@ function renderAuth(message = "") {
     status.textContent = text;
     status.className = `auth-status ${kind}`;
   }
+
+  document.getElementById("loginBackHome").addEventListener("click", () => {
+    renderPublicHome();
+  });
 
   document.getElementById("emailLogin").addEventListener("click", async () => {
     const emailValue = email.value.trim();
@@ -470,36 +713,8 @@ function renderAuth(message = "") {
     await renderChildProfiles();
   });
 
-  document.getElementById("emailSignup").addEventListener("click", async () => {
-    const emailValue = email.value.trim();
-    const passwordValue = password.value;
-
-    if (!emailValue || passwordValue.length < 6) {
-      setStatus("Podaj email i hasło mające co najmniej 6 znaków.", "error");
-      return;
-    }
-
-    setStatus("Tworzenie konta...");
-    const { data, error } = await supabaseClient.auth.signUp({
-      email: emailValue,
-      password: passwordValue,
-      options: {
-        emailRedirectTo: window.location.origin
-      }
-    });
-
-    if (error) {
-      setStatus(error.message || "Nie udało się utworzyć konta.", "error");
-      return;
-    }
-
-    if (!data.session) {
-      setStatus("Konto utworzone. Sprawdź email i potwierdź adres, a potem się zaloguj.", "success");
-      return;
-    }
-
-    authUser = data.user;
-    await renderChildProfiles();
+  document.getElementById("emailSignup").addEventListener("click", () => {
+    renderRegister();
   });
 
   document.getElementById("googleLogin").addEventListener("click", async () => {
@@ -675,7 +890,7 @@ async function renderChildProfiles(message = "") {
     await supabaseClient.auth.signOut();
     authUser = null;
     state.activeChild = null;
-    renderAuth("Wylogowano.");
+    renderPublicHome("Wylogowano.");
   });
 
   const createCard = document.getElementById("createChildCard");
@@ -1309,7 +1524,9 @@ function renderTask(preserveTaskState = false) {
   app.innerHTML = `
     <section class="screen">
       <div class="topbar">
-        ${state.sessionMode === "mission" ? '<button class="mission-exit-btn" id="exitMission" type="button">WYJDŹ</button>' : ""}
+        ${state.sessionMode === "mission"
+  ? '<button class="mission-exit-btn" id="exitMission" type="button">WYJDŹ</button>'
+  : (state.sessionMode === "demo" ? '<button class="mission-exit-btn" id="exitDemo" type="button">WYJDŹ</button>' : "")}
         <div class="progress-shell"><div class="progress-bar" style="width:${progress}%"></div></div>
         <div class="counter">${state.index + 1}/${sessionTasks.length}</div>
       </div>
@@ -1351,6 +1568,14 @@ function renderTask(preserveTaskState = false) {
     setupMissionHint(task);
     document.getElementById("exitMission")?.addEventListener("click", confirmExitMission);
   }
+
+  if (state.sessionMode === "demo") {
+    document.getElementById("exitDemo")?.addEventListener("click", () => {
+      stopCurrentTaskActivity();
+      renderPublicHome();
+    });
+  }
+
   setupTaskSpeech();
 }
 
@@ -2687,6 +2912,25 @@ function retry(selectedButton = null) {
 async function renderFinish() {
   stopCurrentTaskActivity();
 
+  if (state.sessionMode === "demo") {
+    app.innerHTML = `
+      <section class="screen centered">
+        <div class="finish-card">
+          <div class="big-emoji">🌟</div>
+          <h1>To było 10 zadań</h1>
+          <p>Na koncie dziecka Eduli może zapisywać postępy i odblokowywać kolejne misje.</p>
+          <div style="height:20px"></div>
+          <button class="primary" id="demoSignup" type="button">ZAŁÓŻ KONTO</button>
+          <button class="text-btn" id="demoHome" type="button">WRÓĆ</button>
+        </div>
+      </section>
+    `;
+
+    document.getElementById("demoSignup").addEventListener("click", renderRegister);
+    document.getElementById("demoHome").addEventListener("click", renderPublicHome);
+    return;
+  }
+
   if (state.sessionMode === "training") {
     await markCurrentMechanicLearned();
 
@@ -2826,7 +3070,7 @@ supabaseClient.auth.onAuthStateChange(async (event, session) => {
 
   if (event === "SIGNED_OUT" && taskBank.length) {
     if (passwordRecoveryActive) return;
-    renderAuth();
+    renderPublicHome();
   }
 });
 
