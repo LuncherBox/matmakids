@@ -12,3 +12,14 @@ export async function listChildren(): Promise<Child[]> {
   if (error) throw error;
   return (data ?? []) as Child[];
 }
+
+export async function getChild(childId: string): Promise<Child> {
+  const { data, error } = await supabase
+    .from('children')
+    .select(CHILD_FIELDS)
+    .eq('id', childId)
+    .single();
+
+  if (error) throw error;
+  return data as Child;
+}
