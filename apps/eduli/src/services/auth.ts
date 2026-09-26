@@ -28,3 +28,10 @@ export function requestPasswordReset(email: string) {
     redirectTo: `${config.appUrl}/new-password`
   });
 }
+
+export function startGoogleLogin() {
+  return supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: config.appUrl ? { redirectTo: config.appUrl } : undefined
+  });
+}
