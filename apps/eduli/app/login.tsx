@@ -2,7 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, SafeAreaView, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { supabase } from '../src/lib/supabase';
+import { loginWithPassword } from '../src/services/auth';
 import { colors } from '../src/theme';
 
 export default function LoginRoute() {
@@ -21,10 +21,7 @@ export default function LoginRoute() {
     setBusy(true);
     setStatus('');
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
-      password
-    });
+    const { error } = await loginWithPassword(email.trim(), password);
 
     setBusy(false);
 
