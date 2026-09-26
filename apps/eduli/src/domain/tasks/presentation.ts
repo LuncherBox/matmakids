@@ -12,8 +12,10 @@ export function taskQuestion(task: Task) {
 
   switch (task.renderer) {
     case 'equation_with_dots':
+      return `${content.expression ?? ''} = ?`;
+
     case 'missing_number_equation':
-      return `${content.expression ?? ''} = ?`.replace(' = ? = ?', ' = ?');
+      return String(content.expression ?? '');
 
     case 'number_sequence':
       return (content.items ?? [])
