@@ -6,6 +6,7 @@ const supabaseClient = window.supabase.createClient(
 );
 
 let authUser = null;
+let passwordRecoveryActive = false;
 
 const SESSION_SIZE = 10;
 const MISSION_UNLOCK_MECHANICS = 3;
@@ -240,9 +241,150 @@ function cleanOAuthErrorFromUrl() {
   }
 }
 
+function isPasswordRecoveryUrl() {
+  const url = new URL(window.location.href);
+  const hashParams = new URLSearchParams(url.hash.replace(/^#/, ""));
+  return url.searchParams.get("recovery") === "1" || hashParams.get("type") === "recovery";
+}
+
+function getPasswordRecoveryUrlError() {
+  const url = new URL(window.location.href);
+  const code = url.searchParams.get("error_code");
+  const description = url.searchParams.get("error_description") || "";
+
+  if (code === "otp_expired" || (isPasswordRecoveryUrl() && url.searchParams.has("error"))) {
+    return description || "Link do zmiany hasła jest nieprawidłowy lub wygasł.";
+  }
+
+  return "";
+}
+
+function clearPasswordRecoveryUrl() {
+  const url = new URL(window.location.href);
+  ["recovery", "error", "error_code", "error_description", "code"].forEach(param => {
+    url.searchParams.delete(param);
+  });
+  url.hash = "";
+  const cleanUrl = url.pathname + (url.search ? url.search : "");
+  window.history.replaceState({}, document.title, cleanUrl);
+}
+
+function renderInvalidPasswordRecovery() {
+  passwordRecoveryActive = false;
+  app.innerHTML = `
+    <section class="screen centered auth-screen">
+      <div class="brand">Eduli</div>
+      <div class="auth-card">
+        <h1>Link wygasł</h1>
+        <p class="subtle">Link do zmiany hasła jest nieprawidłowy lub wygasł.</p>
+        <button class="primary auth-primary" id="backToLoginFromRecovery" type="button">WRÓĆ DO LOGOWANIA</button>
+      </div>
+    </section>
+  `;
+
+  document.getElementById("backToLoginFromRecovery").addEventListener("click", () => {
+    clearPasswordRecoveryUrl();
+    renderAuth();
+  });
+}
+
+function renderPasswordRecovery() {
+  passwordRecoveryActive = true;
+
+  app.innerHTML = `
+    <section class="screen centered auth-screen">
+      <div class="brand">Eduli</div>
+      <div class="auth-card">
+        <h1>Ustaw nowe hasło</h1>
+        <p class="subtle">Wpisz nowe hasło do swojego konta.</p>
+
+        <label class="auth-label" for="newPassword">Nowe hasło</label>
+        <input id="newPassword" class="auth-input" type="password" autocomplete="new-password" minlength="6" />
+
+        <label class="auth-label" for="repeatNewPassword">Powtórz hasło</label>
+        <input id="repeatNewPassword" class="auth-input" type="password" autocomplete="new-password" minlength="6" />
+
+        <button class="primary auth-primary" id="saveNewPassword" type="button">ZAPISZ NOWE HASŁO</button>
+
+        <div class="auth-status" id="passwordRecoveryStatus" aria-live="polite"></div>
+      </div>
+    </section>
+  `;
+
+  const password = document.getElementById("newPassword");
+  const repeatPassword = document.getElementById("repeatNewPassword");
+  const status = document.getElementById("passwordRecoveryStatus");
+  const button = document.getElementById("saveNewPassword");
+
+  function setStatus(text, kind = "") {
+    status.textContent = text;
+    status.className = `auth-status ${kind}`;
+  }
+
+  button.addEventListener("click", async () => {
+    const passwordValue = password.value;
+    const repeatValue = repeatPassword.value;
+
+    if (passwordValue.length < 6) {
+      setStatus("Hasło musi mieć co najmniej 6 znaków.", "error");
+      return;
+    }
+
+    if (passwordValue !== repeatValue) {
+      setStatus("Hasła nie są takie same.", "error");
+      return;
+    }
+
+    button.disabled = true;
+    setStatus("Zmieniam hasło...");
+
+    const { error } = await supabaseClient.auth.updateUser({
+      password: passwordValue
+    });
+
+    if (error) {
+      console.error(error);
+      button.disabled = false;
+
+      if (/expired|invalid|session|jwt/i.test(error.message || "")) {
+        clearPasswordRecoveryUrl();
+        renderInvalidPasswordRecovery();
+        return;
+      }
+
+      setStatus("Nie udało się zmienić hasła. Spróbuj ponownie.", "error");
+      return;
+    }
+
+    passwordRecoveryActive = false;
+    clearPasswordRecoveryUrl();
+    await supabaseClient.auth.signOut();
+    authUser = null;
+    renderAuth("Hasło zostało zmienione");
+  });
+}
+
 async function renderEntryPoint() {
+  const recoveryError = getPasswordRecoveryUrlError();
+  const recoveryUrl = isPasswordRecoveryUrl();
+
   const { data: { session } } = await supabaseClient.auth.getSession();
   authUser = session?.user || null;
+
+  if (recoveryError) {
+    renderInvalidPasswordRecovery();
+    return;
+  }
+
+  if (recoveryUrl) {
+    if (authUser) {
+      renderPasswordRecovery();
+    } else {
+      renderInvalidPasswordRecovery();
+    }
+    return;
+  }
+
   cleanOAuthErrorFromUrl();
 
   if (!authUser) {
@@ -376,7 +518,7 @@ function renderAuth(message = "") {
     }
 
     const { error } = await supabaseClient.auth.resetPasswordForEmail(emailValue, {
-      redirectTo: window.location.origin
+      redirectTo: `${window.location.origin}${window.location.pathname}?recovery=1`
     });
 
     if (error) {
@@ -2624,12 +2766,20 @@ async function renderFinish() {
 supabaseClient.auth.onAuthStateChange(async (event, session) => {
   authUser = session?.user || null;
 
+  if (event === "PASSWORD_RECOVERY") {
+    passwordRecoveryActive = true;
+    renderPasswordRecovery();
+    return;
+  }
+
   if (event === "SIGNED_IN" && taskBank.length) {
+    if (passwordRecoveryActive || isPasswordRecoveryUrl()) return;
     if (state.sessionMode === "mission" && state.sessionId && state.activeChild) return;
     await renderChildProfiles();
   }
 
   if (event === "SIGNED_OUT" && taskBank.length) {
+    if (passwordRecoveryActive) return;
     renderAuth();
   }
 });
