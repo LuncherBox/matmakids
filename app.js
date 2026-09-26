@@ -514,24 +514,65 @@ function renderAuth(message = "") {
     if (error) setStatus("Nie udało się uruchomić logowania Google.", "error");
   });
 
-  document.getElementById("resetPassword").addEventListener("click", async () => {
+  document.getElementById("resetPassword").addEventListener("click", () => {
+    renderForgotPassword();
+  });
+}
+
+function renderForgotPassword() {
+  app.innerHTML = `
+    <section class="screen centered auth-screen">
+      <div class="brand">Eduli</div>
+      <div class="auth-card">
+        <h1>Zresetuj hasło</h1>
+        <p class="subtle">Podaj adres email przypisany do konta.</p>
+
+        <label class="auth-label" for="resetEmail">Email</label>
+        <input id="resetEmail" class="auth-input" type="email" autocomplete="email" />
+
+        <button class="primary auth-primary" id="sendResetLink" type="button">WYŚLIJ LINK</button>
+        <button class="text-btn muted-link" id="backToLogin" type="button">Wróć do logowania</button>
+
+        <div class="auth-status" id="resetStatus" aria-live="polite"></div>
+      </div>
+    </section>
+  `;
+
+  const email = document.getElementById("resetEmail");
+  const status = document.getElementById("resetStatus");
+  const button = document.getElementById("sendResetLink");
+
+  function setStatus(text, kind = "") {
+    status.textContent = text;
+    status.className = `auth-status ${kind}`;
+  }
+
+  button.addEventListener("click", async () => {
     const emailValue = email.value.trim();
 
     if (!emailValue) {
-      setStatus("Najpierw wpisz adres email.", "error");
+      setStatus("Wpisz adres email.", "error");
       return;
     }
+
+    button.disabled = true;
+    setStatus("Wysyłam link...");
 
     const { error } = await supabaseClient.auth.resetPasswordForEmail(emailValue, {
       redirectTo: `${window.location.origin}${window.location.pathname}?recovery=1`
     });
 
     if (error) {
+      button.disabled = false;
       setStatus("Nie udało się wysłać wiadomości.", "error");
       return;
     }
 
     setStatus("Wysłaliśmy link do zmiany hasła na podany email.", "success");
+  });
+
+  document.getElementById("backToLogin").addEventListener("click", () => {
+    renderAuth();
   });
 }
 
