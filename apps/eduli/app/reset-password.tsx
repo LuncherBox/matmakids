@@ -2,8 +2,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, SafeAreaView, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { config } from '../src/config';
-import { supabase } from '../src/lib/supabase';
+import { requestPasswordReset } from '../src/services/auth';
 import { colors } from '../src/theme';
 
 export default function ResetPasswordRoute() {
@@ -19,17 +18,17 @@ export default function ResetPasswordRoute() {
       return;
     }
 
-    if (!config.appUrl) {
-      setStatus('Reset hasła nie jest jeszcze skonfigurowany dla tego środowiska.');
-      return;
-    }
-
     setBusy(true);
     setStatus('');
 
-    const { error } = await supabase.auth.resetPasswordForEmail(emailValue, {
-      redirectTo: `${config.appUrl}/new-password`
-    });
+    let error: Error | null = null;
+
+    try {
+      const result = await requestPasswordReset(emailValue);
+      error = result.error;
+    } catch (nextError) {
+      error = nextError instanceof Error ? nextError : new Error('Reset password failed.');
+    }
 
     setBusy(false);
 
