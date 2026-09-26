@@ -2813,11 +2813,128 @@ body {
 }
 
 
-/* Allow long account/profile screens to scroll */
-.screen.scroll-screen {
-  height: auto;
-  min-height: 100dvh;
+
+
+/* Child profile list - natural page scroll and cleaner spacing */
+body:has(.profile-list-screen) {
   overflow-y: auto;
   overflow-x: hidden;
-  justify-content: flex-start;
+}
+
+#app:has(.profile-list-screen) {
+  height: auto;
+  min-height: 100dvh;
+  align-items: flex-start;
+}
+
+.profile-list-screen {
+  width: min(100%, 620px);
+  height: auto;
+  min-height: 100dvh;
+  overflow: visible;
+  padding: 26px 22px 40px;
+}
+
+.profile-list-screen .account-row {
+  max-width: none;
+  margin-bottom: 20px;
+}
+
+.profile-list-screen .brand {
+  margin-bottom: 12px;
+}
+
+.profile-list-screen h1 {
+  margin-bottom: 10px;
+}
+
+.profile-list-screen .subtle {
+  margin-bottom: 22px;
+}
+
+.profile-list-screen .children-status {
+  min-height: 0;
+  margin: 0;
+}
+
+.profile-list-screen .children-list {
+  gap: 12px;
+  margin: 0 0 16px;
+}
+
+.profile-list-screen .child-card {
+  padding: 16px 18px;
+  border-radius: 20px;
+  box-shadow: 0 6px 18px rgba(32, 39, 48, .035);
+}
+
+.profile-list-screen .child-card-main {
+  gap: 14px;
+}
+
+.profile-list-screen .child-avatar {
+  width: 54px;
+  height: 54px;
+  font-size: 24px;
+}
+
+.profile-list-screen .child-card-copy strong {
+  font-size: 19px;
+}
+
+.profile-list-screen .child-card-actions {
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.profile-list-screen .child-task-btn,
+.profile-list-screen .child-edit-btn {
+  min-height: 50px;
+  font-size: 16px;
+}
+
+.profile-list-screen .child-actions {
+  gap: 10px;
+  margin-top: 8px;
+  padding-bottom: 8px;
+}
+
+.profile-list-screen .child-actions .primary,
+.profile-list-screen .secondary-action {
+  min-height: 54px;
+  font-size: 17px;
+  border-radius: 18px;
+}
+
+@media (max-width: 640px) {
+  .profile-list-screen {
+    width: 100%;
+    padding: 18px 16px calc(30px + env(safe-area-inset-bottom));
+  }
+
+  .profile-list-screen .account-row {
+    margin-bottom: 16px;
+  }
+
+  .profile-list-screen .brand {
+    margin-bottom: 10px;
+  }
+
+  .profile-list-screen h1 {
+    font-size: clamp(34px, 10vw, 44px);
+  }
+
+  .profile-list-screen .subtle {
+    font-size: 17px;
+    margin-bottom: 18px;
+  }
+
+  .profile-list-screen .child-card {
+    padding: 14px;
+  }
+
+  .profile-list-screen .child-avatar {
+    width: 50px;
+    height: 50px;
+  }
 }
