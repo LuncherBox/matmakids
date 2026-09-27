@@ -36,6 +36,7 @@ export function TaskInteraction({
   const [sudokuValues, setSudokuValues] = useState<Record<number, number>>({});
   const [activeSudoku, setActiveSudoku] = useState<number | null>(null);
   const [codeLetters, setCodeLetters] = useState<string[]>([]);
+  const [memoryPhase, setMemoryPhase] = useState<'memorize' | 'answer'>('memorize');
 
   const options = useMemo(() => shuffled(task.options ?? []), [task.id]);
 
@@ -44,6 +45,7 @@ export function TaskInteraction({
     setSudokuValues({});
     setActiveSudoku(null);
     setCodeLetters([]);
+    setMemoryPhase('memorize');
 
     if (task.renderer === 'color_grid_copy') {
       const size = Number(task.content?.rows ?? 0) * Number(task.content?.columns ?? 0);
@@ -54,7 +56,99 @@ export function TaskInteraction({
     } else {
       setGridValues([]);
     }
+
+    const memoryRenderers = new Set([
+      'image_memory',
+      'location_memory_grid',
+      'sequence_memory',
+      'number_memory',
+      'pair_memory'
+    ]);
+
+    if (!memoryRenderers.has(task.renderer)) return;
+
+    const seconds = Number(task.content?.display_seconds ?? 3);
+    const timer = setTimeout(() => setMemoryPhase('answer'), seconds * 1000);
+
+    return () => clearTimeout(timer);
   }, [task.id, task.renderer, task.content]);
+
+  if (
+    task.renderer === 'image_memory' ||
+    task.renderer === 'location_memory_grid' ||
+    task.renderer === 'sequence_memory' ||
+    task.renderer === 'number_memory' ||
+    task.renderer === 'pair_memory'
+  ) {
+    const answerPrompt = String(
+      task.content?.answer_prompt ?? 'Wybierz poprawną odpowiedź.'
+    );
+
+    if (memoryPhase === 'memorize') {
+      return (
+        <View style={styles.taskCard}>
+          <Text style={styles.memoryLabel}>ZAPAMIĘTAJ</Text>
+
+          {task.renderer === 'pair_memory' ? (
+            <View style={styles.memoryPairs}>
+              {((task.content?.memorize_pairs ?? []) as Array<{
+                item: string;
+                pair: string;
+              }>).map((pair, index) => (
+                <View key={index} style={styles.memoryPair}>
+                  <Text style={styles.memoryItem}>{pair.item}</Text>
+                  <Text style={styles.memoryArrow}>→</Text>
+                  <Text style={styles.memoryItem}>{pair.pair}</Text>
+                </View>
+              ))}
+            </View>
+          ) : task.renderer === 'location_memory_grid' ? (
+            <MemoryLocationGrid task={task} />
+          ) : (
+            <View style={styles.memoryItems}>
+              {((task.content?.memorize_items ?? []) as Array<string | number>).map(
+                (item, index) => (
+                  <View key={index} style={styles.memoryItemBox}>
+                    <Text style={styles.memoryItem}>{String(item)}</Text>
+                  </View>
+                )
+              )}
+            </View>
+          )}
+
+          <Text style={styles.memoryCountdown}>
+            Za chwilę elementy znikną.
+          </Text>
+        </View>
+      );
+    }
+
+    return (
+      <View style={styles.taskCard}>
+        <Text style={styles.memoryLabel}>TERAZ ODPOWIEDZ</Text>
+        <Text style={styles.memoryQuestion}>{answerPrompt}</Text>
+
+        <View style={styles.options}>
+          {options.map((option) => (
+            <Pressable
+              key={String(option)}
+              style={styles.option}
+              disabled={disabled}
+              onPress={() =>
+                String(option) === String(task.correct_answer)
+                  ? onCorrect()
+                  : onWrong()
+              }
+            >
+              <Text style={styles.optionText}>
+                {displayMemoryOption(option)}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      </View>
+    );
+  }
 
   if (task.renderer === 'sudoku_grid') {
     const grid = (task.content?.grid ?? []) as Array<Array<number | null>>;
@@ -480,6 +574,45 @@ function DotHint({ task }: { task: Task }) {
   );
 }
 
+function MemoryLocationGrid({ task }: { task: Task }) {
+  const size = Number(task.content?.grid_size ?? 3);
+  const position = (task.content?.position ?? [0, 0]) as [number, number];
+  const item = String(task.content?.item ?? '★');
+  const cells = Array.from({ length: size * size }, (_, index) => index);
+
+  return (
+    <View style={[styles.memoryLocationGrid, { width: size * 62 }]}>
+      {cells.map((index) => {
+        const row = Math.floor(index / size);
+        const col = index % size;
+        const visible = row === position[0] && col === position[1];
+
+        return (
+          <View key={index} style={styles.memoryLocationCell}>
+            <Text style={styles.memoryItem}>{visible ? item : ''}</Text>
+          </View>
+        );
+      })}
+    </View>
+  );
+}
+
+function displayMemoryOption(option: string | number) {
+  const labels: Record<string, string> = {
+    top_left: '↖ Góra lewa',
+    top_right: '↗ Góra prawa',
+    bottom_left: '↙ Dół lewy',
+    bottom_right: '↘ Dół prawy',
+    center: '● Środek',
+    top: '↑ Góra',
+    bottom: '↓ Dół',
+    left: '← Lewo',
+    right: '→ Prawo'
+  };
+
+  return labels[String(option)] ?? String(option);
+}
+
 function CheckButton({
   disabled,
   onPress
@@ -715,6 +848,82 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontSize: 19,
     fontWeight: '900'
+  },
+  memoryLabel: {
+    color: colors.accentDark,
+    fontSize: 13,
+    fontWeight: '900',
+    textAlign: 'center',
+    marginBottom: 18
+  },
+  memoryItems: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    justifyContent: 'center'
+  },
+  memoryItemBox: {
+    minWidth: 70,
+    minHeight: 70,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: '#FFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 10
+  },
+  memoryItem: {
+    color: colors.text,
+    fontSize: 30,
+    fontWeight: '900'
+  },
+  memoryCountdown: {
+    color: colors.muted,
+    textAlign: 'center',
+    marginTop: 18,
+    fontWeight: '700'
+  },
+  memoryQuestion: {
+    color: colors.text,
+    fontSize: 26,
+    lineHeight: 34,
+    fontWeight: '900',
+    textAlign: 'center',
+    marginBottom: 22
+  },
+  memoryPairs: {
+    gap: 10
+  },
+  memoryPair: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 16,
+    padding: 12,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: '#FFF'
+  },
+  memoryArrow: {
+    color: colors.muted,
+    fontSize: 22,
+    fontWeight: '900'
+  },
+  memoryLocationGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignSelf: 'center'
+  },
+  memoryLocationCell: {
+    width: 62,
+    height: 62,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFF'
   },
   legend: {
     flexDirection: 'row',
