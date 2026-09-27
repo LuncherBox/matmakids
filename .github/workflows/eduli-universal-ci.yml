@@ -1,0 +1,42 @@
+name: Eduli Universal CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/eduli/**"
+      - ".github/workflows/eduli-universal-ci.yml"
+  pull_request:
+    paths:
+      - "apps/eduli/**"
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/eduli
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/eduli/package.json
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Export web
+        env:
+          EXPO_PUBLIC_SUPABASE_URL: https://example.supabase.co
+          EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci-placeholder
+          EXPO_PUBLIC_APP_URL: https://example.com
+        run: npx expo export --platform web
