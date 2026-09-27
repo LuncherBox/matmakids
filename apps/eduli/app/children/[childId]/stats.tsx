@@ -2,6 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { MECHANIC_LABELS } from '../../../src/domain/tasks/labels';
 import { getChild } from '../../../src/services/children';
 import { getChildStats, type ChildStats } from '../../../src/services/stats';
 import { colors } from '../../../src/theme';
@@ -118,6 +119,25 @@ export default function ChildStatsRoute() {
                 ))
               ) : (
                 <Text style={styles.meta}>Brak danych z rozwiązanych zadań.</Text>
+              )}
+            </View>
+
+            <Text style={styles.sectionTitle}>Według typu zadania</Text>
+            <View style={styles.list}>
+              {stats.mechanics.length ? (
+                stats.mechanics.map((mechanic) => (
+                  <View key={mechanic.taskType} style={styles.row}>
+                    <View>
+                      <Text style={styles.rowTitle}>
+                        {MECHANIC_LABELS[mechanic.taskType] ?? mechanic.taskType}
+                      </Text>
+                      <Text style={styles.rowMeta}>{mechanic.total} zadań</Text>
+                    </View>
+                    <Text style={styles.rowValue}>{mechanic.accuracy}%</Text>
+                  </View>
+                ))
+              ) : (
+                <Text style={styles.meta}>Brak danych z typów zadań.</Text>
               )}
             </View>
           </>
