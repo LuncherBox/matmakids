@@ -34,6 +34,7 @@ import {
   abandonMission,
   finishMission,
   recalculateMissionTotals,
+  getRecentTaskIds,
   saveMissionAnswer,
   startMissionSession,
   updateMissionTotals
@@ -74,7 +75,10 @@ const EMPTY_TOTALS: Totals = {
   gobiPoints: 0
 };
 
-function buildMissionTasks(learnedMechanics: Set<string>) {
+function buildMissionTasks(
+  learnedMechanics: Set<string>,
+  recentTaskIds: Set<string>
+) {
   const allowed = activeTasks().filter(
     (task) =>
       task.category !== 'memory' &&
@@ -84,7 +88,14 @@ function buildMissionTasks(learnedMechanics: Set<string>) {
 
   if (allowed.length < SESSION_SIZE) return [];
 
-  return shuffled(allowed).slice(0, SESSION_SIZE);
+  const fresh = shuffled(
+    allowed.filter((task) => !recentTaskIds.has(task.id))
+  );
+  const recent = shuffled(
+    allowed.filter((task) => recentTaskIds.has(task.id))
+  );
+
+  return [...fresh, ...recent].slice(0, SESSION_SIZE);
 }
 
 export default function MissionRoute() {
@@ -134,7 +145,11 @@ export default function MissionRoute() {
           clearMissionSnapshot();
         }
 
-        const learnedRows = await getLearnedMechanics(childId);
+        const [learnedRows, recentTaskIds] = await Promise.all([
+          getLearnedMechanics(childId),
+          getRecentTaskIds(childId)
+        ]);
+
         if (!active) return;
 
         const learned = new Set(learnedRows.map((row) => row.task_type));
@@ -147,7 +162,7 @@ export default function MissionRoute() {
           return;
         }
 
-        const nextTasks = buildMissionTasks(learned);
+        const nextTasks = buildMissionTasks(learned, recentTaskIds);
 
         if (nextTasks.length < SESSION_SIZE) {
           setError(
