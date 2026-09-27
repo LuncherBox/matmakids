@@ -29,3 +29,8 @@ export function shuffled<T>(items: T[]) {
 
   return copy;
 }
+
+export function tasksByIds(ids: string[]) {
+  const byId = new Map(taskBank.map((task) => [task.id, task]));
+  return ids.map((id) => byId.get(id)).filter(Boolean) as Task[];
+}
