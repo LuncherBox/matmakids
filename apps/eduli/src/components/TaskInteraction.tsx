@@ -17,6 +17,7 @@ type Props = {
   onCorrect: () => void;
   onWrong: () => void;
   disabled?: boolean;
+  showVisualHelp?: boolean;
 };
 
 const COLOR_MAP: Record<string, string> = {
@@ -29,7 +30,8 @@ export function TaskInteraction({
   task,
   onCorrect,
   onWrong,
-  disabled = false
+  disabled = false,
+  showVisualHelp = true
 }: Props) {
   const [selectedCells, setSelectedCells] = useState<number[]>([]);
   const [gridValues, setGridValues] = useState<(string | number)[]>([]);
@@ -444,7 +446,7 @@ export function TaskInteraction({
 
   return (
     <TaskShell task={task}>
-      {task.renderer === 'equation_with_dots' ? (
+      {task.renderer === 'equation_with_dots' && showVisualHelp ? (
         <DotHint task={task} />
       ) : null}
 
