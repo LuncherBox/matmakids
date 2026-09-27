@@ -201,7 +201,15 @@ export default function MissionRoute() {
   }, [childId]);
 
   useEffect(() => {
-    if (!sessionId || !childId || !tasks.length || finished) return;
+    if (
+      !sessionId ||
+      !childId ||
+      !tasks.length ||
+      finished ||
+      feedback === 'Super!'
+    ) {
+      return;
+    }
 
     saveMissionSnapshot({
       childId,
@@ -211,7 +219,16 @@ export default function MissionRoute() {
       totals,
       taskState
     });
-  }, [childId, sessionId, tasks, index, totals, taskState, finished]);
+  }, [
+    childId,
+    sessionId,
+    tasks,
+    index,
+    totals,
+    taskState,
+    finished,
+    feedback
+  ]);
 
   const task = tasks[index];
 
@@ -299,9 +316,20 @@ export default function MissionRoute() {
       return;
     }
 
+    const nextTaskState = initialMissionTaskState();
+
+    saveMissionSnapshot({
+      childId,
+      sessionId,
+      taskIds: tasks.map((item) => item.id),
+      index: index + 1,
+      totals: nextTotals,
+      taskState: nextTaskState
+    });
+
     setTimeout(() => {
       setIndex((current) => current + 1);
-      setTaskState(initialMissionTaskState());
+      setTaskState(nextTaskState);
       setFeedback('');
     }, 450);
   }
