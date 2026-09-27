@@ -8,7 +8,9 @@ export function taskMechanicId(task: Task) {
 }
 
 export function activeTasks() {
-  return taskBank.filter((task) => task.status !== 'archived');
+  return taskBank.filter(
+    (task) => task.status === 'published' && task.active !== false
+  );
 }
 
 export function tasksForCategory(category: string) {
