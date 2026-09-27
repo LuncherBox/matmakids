@@ -111,7 +111,6 @@ export default function MissionRoute() {
   const [starting, setStarting] = useState(true);
   const [finished, setFinished] = useState(false);
   const [winner, setWinner] = useState<string | null>(null);
-  const [visualHelpVisible, setVisualHelpVisible] = useState(false);
 
   useEffect(() => {
     if (!childId) return;
@@ -300,7 +299,6 @@ export default function MissionRoute() {
     setTimeout(() => {
       setIndex((current) => current + 1);
       setTaskState(initialMissionTaskState());
-      setVisualHelpVisible(false);
       setFeedback('');
     }, 450);
   }
@@ -316,27 +314,6 @@ export default function MissionRoute() {
       ...current,
       gobiPoints: current.gobiPoints + gobiDelta
     }));
-  }
-
-  function requestHint() {
-    if (!task || !child || taskState.usedHint || taskState.hadError) return;
-
-    const nextState = useMissionHint(
-      taskState,
-      Number(child.gobi_level) || 1
-    );
-
-    const gobiDelta = nextState.gobiPoint - taskState.gobiPoint;
-
-    setTaskState(nextState);
-    setVisualHelpVisible(true);
-
-    if (gobiDelta > 0) {
-      setTotals((current) => ({
-        ...current,
-        gobiPoints: current.gobiPoints + gobiDelta
-      }));
-    }
   }
 
   async function exitMission() {
@@ -556,41 +533,6 @@ const styles = StyleSheet.create({
   score: {
     color: colors.text,
     fontSize: 30,
-    fontWeight: '900'
-  },
-  coins: {
-    flexDirection: 'row',
-    gap: 7,
-    alignItems: 'center'
-  },
-  coin: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#F5C451',
-    borderColor: '#D49A24',
-    borderWidth: 2,
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  coinText: {
-    color: '#8A5B00',
-    fontSize: 13,
-    fontWeight: '900'
-  },
-  hintButton: {
-    alignSelf: 'center',
-    borderRadius: 16,
-    borderColor: colors.border,
-    borderWidth: 2,
-    backgroundColor: colors.card,
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-    marginBottom: 12
-  },
-  hintButtonText: {
-    color: colors.text,
-    fontSize: 13,
     fontWeight: '900'
   },
   taskCard: {
