@@ -7,6 +7,13 @@ export type CategoryStats = {
   accuracy: number;
 };
 
+export type MechanicStats = {
+  taskType: string;
+  total: number;
+  correctFirstTry: number;
+  accuracy: number;
+};
+
 export type MissionHistoryItem = {
   id: string;
   date: string;
@@ -28,6 +35,7 @@ export type ChildStats = {
   guidedHelpUsed: number;
   firstTryAccuracy: number;
   categories: CategoryStats[];
+  mechanics: MechanicStats[];
 };
 
 export async function getChildStats(childId: string): Promise<ChildStats> {
@@ -103,13 +111,14 @@ export async function getChildStats(childId: string): Promise<ChildStats> {
       hintsUsed: 0,
       guidedHelpUsed: 0,
       firstTryAccuracy: 0,
-      categories: []
+      categories: [],
+      mechanics: []
     };
   }
 
   const { data: answers, error: answersError } = await supabase
     .from('session_answers')
-    .select('category, correct_first_try, used_hint, used_guided_help, attempts')
+    .select('category, task_type, correct_first_try, used_hint, used_guided_help, attempts')
     .in('session_id', sessionIds);
 
   if (answersError) throw answersError;
@@ -145,6 +154,27 @@ export async function getChildStats(childId: string): Promise<ChildStats> {
     }))
     .sort((a, b) => b.total - a.total);
 
+  const byMechanic = new Map<string, { total: number; correctFirstTry: number }>();
+
+  rows.forEach((row) => {
+    const taskType = row.task_type || 'other';
+    const current = byMechanic.get(taskType) ?? { total: 0, correctFirstTry: 0 };
+    current.total += 1;
+    if (row.correct_first_try) current.correctFirstTry += 1;
+    byMechanic.set(taskType, current);
+  });
+
+  const mechanics = [...byMechanic.entries()]
+    .map(([taskType, value]) => ({
+      taskType,
+      total: value.total,
+      correctFirstTry: value.correctFirstTry,
+      accuracy: value.total
+        ? Math.round((value.correctFirstTry / value.total) * 100)
+        : 0
+    }))
+    .sort((a, b) => b.total - a.total);
+
   return {
     completedMissions,
     totalPoints,
@@ -159,6 +189,7 @@ export async function getChildStats(childId: string): Promise<ChildStats> {
     firstTryAccuracy: totalTasks
       ? Math.round((correctFirstTry / totalTasks) * 100)
       : 0,
-    categories
+    categories,
+    mechanics
   };
 }
