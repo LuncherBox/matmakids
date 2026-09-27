@@ -153,3 +153,33 @@ export async function recalculateMissionTotals(sessionId: string) {
     )
   };
 }
+
+export async function getRecentTaskIds(
+  childId: string,
+  recentSessionLimit = 3
+): Promise<Set<string>> {
+  const { data: sessions, error: sessionsError } = await supabase
+    .from('sessions')
+    .select('id')
+    .eq('child_id', childId)
+    .order('created_at', { ascending: false })
+    .limit(recentSessionLimit);
+
+  if (sessionsError) throw sessionsError;
+
+  const sessionIds = (sessions ?? []).map((session) => session.id);
+  if (!sessionIds.length) return new Set();
+
+  const { data: answers, error: answersError } = await supabase
+    .from('session_answers')
+    .select('task_id')
+    .in('session_id', sessionIds);
+
+  if (answersError) throw answersError;
+
+  return new Set(
+    (answers ?? [])
+      .map((answer) => answer.task_id)
+      .filter(Boolean)
+  );
+}
