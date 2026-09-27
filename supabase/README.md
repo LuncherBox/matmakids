@@ -1,19 +1,28 @@
 # Supabase setup
 
-1. Create a Supabase project.
-2. In SQL Editor run:
-   - schema.sql
-   - rls.sql
-3. In Authentication enable email/password.
-4. Set Site URL to the Railway production URL.
-5. Add the Railway URL to allowed redirect URLs.
-6. Copy:
-   - Project URL
-   - anon/public key
-7. Add them to the frontend config when the auth implementation begins.
+Eduli uses one shared Supabase backend for web, future Android and future iOS.
 
-Security:
-- public anon key is allowed in the browser when RLS is enabled
-- NEVER put the service-role key in GitHub or frontend code
+## Current source of truth
 
-The current frontend is plain HTML/CSS/JS, so Supabase can be added without a framework migration.
+Read:
+- `CURRENT_SCHEMA.md` - current production data model and RLS assumptions
+
+The original `schema.sql` and `rls.sql` files were created for the earlier one-parent prototype and must not be treated as the current production schema.
+
+## Authentication
+
+Current auth methods:
+- email + password
+- Google OAuth
+
+Email confirmation is enabled.
+
+## Frontend configuration
+
+Browser/native clients use only:
+- Project URL
+- publishable / anon key
+
+Never put a service-role key in GitHub or frontend code.
+
+The current legacy frontend and the new Expo frontend must point to the same Supabase project.
