@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
   Pressable,
   StyleSheet,
@@ -379,7 +379,7 @@ function TaskShell({
   children
 }: {
   task: Task;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <View style={styles.taskCard}>
@@ -436,7 +436,7 @@ function Grid({
 }: {
   values: Array<string | number>;
   columns: number;
-  renderCell: (value: string | number, index: number) => React.ReactNode;
+  renderCell: (value: string | number, index: number) => ReactNode;
 }) {
   return (
     <View style={[styles.genericGrid, { width: columns * 48 }]}>
