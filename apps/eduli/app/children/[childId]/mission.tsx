@@ -24,6 +24,7 @@ import {
 } from '../../../src/domain/tasks/bank';
 import { TaskInteraction } from '../../../src/components/TaskInteraction';
 import { getChild } from '../../../src/services/children';
+import { setChildOnboardingStage } from '../../../src/services/onboarding';
 import { getLearnedMechanics } from '../../../src/services/progress';
 import {
   clearMissionSnapshot,
@@ -99,7 +100,10 @@ function buildMissionTasks(
 }
 
 export default function MissionRoute() {
-  const { childId } = useLocalSearchParams<{ childId: string }>();
+  const { childId, onboarding } = useLocalSearchParams<{
+    childId: string;
+    onboarding?: string;
+  }>();
 
   const [child, setChild] = useState<Child | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -306,6 +310,17 @@ export default function MissionRoute() {
           sessionId,
           ...nextTotals
         });
+        if (onboarding === '1') {
+          try {
+            await setChildOnboardingStage(childId, 'completed');
+          } catch (onboardingError) {
+            console.error(
+              'Nie udało się zapisać zakończenia onboardingu.',
+              onboardingError
+            );
+          }
+        }
+
         setWinner(nextWinner);
         clearMissionSnapshot();
         setFinished(true);
@@ -357,6 +372,12 @@ export default function MissionRoute() {
     }
 
     clearMissionSnapshot();
+
+    if (onboarding === '1') {
+      router.replace(`/children/${childId}/onboarding/mission`);
+      return;
+    }
+
     router.replace(`/children/${childId}/home`);
   }
 
