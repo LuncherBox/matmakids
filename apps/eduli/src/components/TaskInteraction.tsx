@@ -207,6 +207,7 @@ export function TaskInteraction({
               style={styles.smallOption}
               disabled={disabled || activeSudoku === null}
               onPress={() => {
+              if (disabled) return;
                 if (activeSudoku === null) return;
                 setSudokuValues((current) => ({
                   ...current,
