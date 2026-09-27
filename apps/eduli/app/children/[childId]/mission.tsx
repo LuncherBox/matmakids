@@ -19,11 +19,17 @@ import {
 import {
   activeTasks,
   shuffled,
-  taskMechanicId
+  taskMechanicId,
+  tasksByIds
 } from '../../../src/domain/tasks/bank';
 import { TaskInteraction } from '../../../src/components/TaskInteraction';
 import { getChild } from '../../../src/services/children';
 import { getLearnedMechanics } from '../../../src/services/progress';
+import {
+  clearMissionSnapshot,
+  readMissionSnapshot,
+  saveMissionSnapshot
+} from '../../../src/services/missionSnapshot';
 import {
   abandonMission,
   finishMission,
@@ -113,11 +119,30 @@ export default function MissionRoute() {
 
     async function start() {
       try {
-        const [nextChild, learnedRows] = await Promise.all([
-          getChild(childId),
-          getLearnedMechanics(childId)
-        ]);
+        const nextChild = await getChild(childId);
 
+        if (!active) return;
+
+        const snapshot = readMissionSnapshot(childId);
+
+        if (snapshot) {
+          const restoredTasks = tasksByIds(snapshot.taskIds);
+
+          if (restoredTasks.length === snapshot.taskIds.length) {
+            setChild(nextChild);
+            setTasks(restoredTasks);
+            setSessionId(snapshot.sessionId);
+            setIndex(snapshot.index);
+            setTotals(snapshot.totals);
+            setTaskState(snapshot.taskState);
+            setStarting(false);
+            return;
+          }
+
+          clearMissionSnapshot();
+        }
+
+        const learnedRows = await getLearnedMechanics(childId);
         if (!active) return;
 
         const learned = new Set(learnedRows.map((row) => row.task_type));
@@ -167,6 +192,19 @@ export default function MissionRoute() {
       active = false;
     };
   }, [childId]);
+
+  useEffect(() => {
+    if (!sessionId || !childId || !tasks.length || finished) return;
+
+    saveMissionSnapshot({
+      childId,
+      sessionId,
+      taskIds: tasks.map((item) => item.id),
+      index,
+      totals,
+      taskState
+    });
+  }, [childId, sessionId, tasks, index, totals, taskState, finished]);
 
   const task = tasks[index];
 
@@ -249,6 +287,7 @@ export default function MissionRoute() {
           ...nextTotals
         });
         setWinner(nextWinner);
+        clearMissionSnapshot();
         setFinished(true);
       } catch (nextError) {
         console.error(nextError);
@@ -286,6 +325,7 @@ export default function MissionRoute() {
       }
     }
 
+    clearMissionSnapshot();
     router.replace(`/children/${childId}/home`);
   }
 
