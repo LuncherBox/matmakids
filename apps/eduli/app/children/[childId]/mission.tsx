@@ -1,5 +1,5 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Pressable,
   SafeAreaView,
@@ -20,11 +20,7 @@ import {
   shuffled,
   taskMechanicId
 } from '../../../src/domain/tasks/bank';
-import {
-  displayOption,
-  taskInstruction,
-  taskQuestion
-} from '../../../src/domain/tasks/presentation';
+import { TaskInteraction } from '../../../src/components/TaskInteraction';
 import { getChild } from '../../../src/services/children';
 import { getLearnedMechanics } from '../../../src/services/progress';
 import {
@@ -48,7 +44,12 @@ const SUPPORTED_RENDERERS = new Set([
   'number_comparison',
   'visual_sequence',
   'command_pattern',
-  'command_grid_plan'
+  'command_grid_plan',
+  'sudoku_grid',
+  'color_grid_copy',
+  'visual_search',
+  'symbol_code',
+  'binary_grid_copy'
 ]);
 
 type Totals = {
@@ -70,9 +71,7 @@ function buildMissionTasks(learnedMechanics: Set<string>) {
     (task) =>
       task.category !== 'memory' &&
       learnedMechanics.has(taskMechanicId(task)) &&
-      SUPPORTED_RENDERERS.has(task.renderer) &&
-      Array.isArray(task.options) &&
-      task.options.length > 0
+      SUPPORTED_RENDERERS.has(task.renderer)
   );
 
   if (!allowed.length) return [];
@@ -170,41 +169,35 @@ export default function MissionRoute() {
 
   const task = tasks[index];
 
-  const shuffledOptions = useMemo(() => {
-    if (!task?.options) return [];
-    return shuffled(task.options);
-  }, [task?.id]);
-
-  async function answer(value: string | number) {
+  function handleWrongAnswer() {
     if (!task || !sessionId || finished) return;
 
     const nextAttempts = taskState.attempts + 1;
-    const isCorrect = String(value) === String(task.correct_answer);
+    const firstError = !taskState.hadError;
+    const nextState = registerFirstMissionError({
+      ...taskState,
+      attempts: nextAttempts
+    });
 
-    if (!isCorrect) {
-      const firstError = !taskState.hadError;
-      const nextState = registerFirstMissionError({
-        ...taskState,
-        attempts: nextAttempts
-      });
+    setTaskState(nextState);
+    setFeedback('Spróbuj jeszcze raz');
 
-      setTaskState(nextState);
-      setFeedback('Spróbuj jeszcze raz');
-
-      if (firstError) {
-        setTotals((current) => ({
-          ...current,
-          mistakes: current.mistakes + 1,
-          gobiPoints: current.gobiPoints + (nextState.gobiPoint - taskState.gobiPoint)
-        }));
-      }
-
-      return;
+    if (firstError) {
+      setTotals((current) => ({
+        ...current,
+        mistakes: current.mistakes + 1,
+        gobiPoints:
+          current.gobiPoints + (nextState.gobiPoint - taskState.gobiPoint)
+      }));
     }
+  }
+
+  async function handleCorrectAnswer() {
+    if (!task || !sessionId || finished) return;
 
     const finalTaskState = {
       ...taskState,
-      attempts: nextAttempts
+      attempts: taskState.attempts + 1
     };
 
     const score = scoreMissionSuccess(finalTaskState);
@@ -373,33 +366,23 @@ export default function MissionRoute() {
           </View>
         </View>
 
-        <View style={styles.taskCard}>
-          <Text style={styles.instruction}>{taskInstruction(task)}</Text>
-          <Text style={styles.question}>{taskQuestion(task)}</Text>
+        <TaskInteraction
+          task={task}
+          onCorrect={handleCorrectAnswer}
+          onWrong={handleWrongAnswer}
+          disabled={feedback === 'Super!'}
+        />
 
-          <View style={styles.options}>
-            {shuffledOptions.map((option) => (
-              <Pressable
-                key={String(option)}
-                style={styles.option}
-                onPress={() => answer(option)}
-              >
-                <Text style={styles.optionText}>{displayOption(option)}</Text>
-              </Pressable>
-            ))}
-          </View>
-
-          {feedback ? (
-            <Text
-              style={[
-                styles.feedback,
-                feedback === 'Super!' ? styles.good : styles.retry
-              ]}
-            >
-              {feedback}
-            </Text>
-          ) : null}
-        </View>
+        {feedback ? (
+          <Text
+            style={[
+              styles.feedback,
+              feedback === 'Super!' ? styles.good : styles.retry
+            ]}
+          >
+            {feedback}
+          </Text>
+        ) : null}
       </ScrollView>
     </SafeAreaView>
   );
