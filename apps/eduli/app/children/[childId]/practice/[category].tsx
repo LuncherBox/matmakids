@@ -39,7 +39,12 @@ const SUPPORTED_RENDERERS = new Set([
   'color_grid_copy',
   'visual_search',
   'symbol_code',
-  'binary_grid_copy'
+  'binary_grid_copy',
+  'image_memory',
+  'location_memory_grid',
+  'sequence_memory',
+  'number_memory',
+  'pair_memory'
 ]);
 
 export default function PracticeCategoryRoute() {
