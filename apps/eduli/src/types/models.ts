@@ -17,7 +17,7 @@ export type SessionSummary = {
   child_points: number;
   gobi_points: number;
   winner: string | null;
-  created_at: string;
+  started_at: string;
   completed_at: string | null;
 };
 
