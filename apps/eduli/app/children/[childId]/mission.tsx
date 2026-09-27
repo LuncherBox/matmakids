@@ -33,6 +33,7 @@ import {
 import {
   abandonMission,
   finishMission,
+  recalculateMissionTotals,
   saveMissionAnswer,
   startMissionSession,
   updateMissionTotals
@@ -235,15 +236,9 @@ export default function MissionRoute() {
 
     const score = scoreMissionSuccess(finalTaskState);
 
-    const nextTotals: Totals = {
-      correctFirstTry:
-        totals.correctFirstTry + (score.correctFirstTry ? 1 : 0),
-      mistakes: totals.mistakes,
-      childPoints: totals.childPoints + score.childPoints,
-      gobiPoints: totals.gobiPoints
-    };
-
     setFeedback('Super!');
+
+    let nextTotals: Totals;
 
     try {
       await saveMissionAnswer({
@@ -258,6 +253,8 @@ export default function MissionRoute() {
         pointsChild: score.childPoints,
         pointsGobi: finalTaskState.gobiPoint
       });
+
+      nextTotals = await recalculateMissionTotals(sessionId);
 
       await updateMissionTotals({
         sessionId,
