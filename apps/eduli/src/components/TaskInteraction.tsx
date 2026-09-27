@@ -39,6 +39,7 @@ export function TaskInteraction({
   const [activeSudoku, setActiveSudoku] = useState<number | null>(null);
   const [codeLetters, setCodeLetters] = useState<string[]>([]);
   const [memoryPhase, setMemoryPhase] = useState<'memorize' | 'answer'>('memorize');
+  const [selectedOption, setSelectedOption] = useState<string | number | null>(null);
 
   const options = useMemo(() => shuffled(task.options ?? []), [task.id]);
 
@@ -48,6 +49,7 @@ export function TaskInteraction({
     setActiveSudoku(null);
     setCodeLetters([]);
     setMemoryPhase('memorize');
+    setSelectedOption(null);
 
     if (task.renderer === 'color_grid_copy') {
       const size = Number(task.content?.rows ?? 0) * Number(task.content?.columns ?? 0);
@@ -131,23 +133,32 @@ export function TaskInteraction({
         <Text style={styles.memoryQuestion}>{answerPrompt}</Text>
 
         <View style={styles.options}>
-          {options.map((option) => (
-            <Pressable
-              key={String(option)}
-              style={styles.option}
-              disabled={disabled}
-              onPress={() =>
-                String(option) === String(task.correct_answer)
-                  ? onCorrect()
-                  : onWrong()
-              }
-            >
-              <Text style={styles.optionText}>
-                {displayMemoryOption(option)}
-              </Text>
-            </Pressable>
-          ))}
+          {options.map((option) => {
+            const selected = String(selectedOption) === String(option);
+
+            return (
+              <Pressable
+                key={String(option)}
+                style={[styles.option, selected ? styles.optionSelected : null]}
+                disabled={disabled}
+                onPress={() => setSelectedOption(option)}
+              >
+                <Text style={styles.optionText}>
+                  {displayMemoryOption(option)}
+                </Text>
+              </Pressable>
+            );
+          })}
         </View>
+
+        <CheckButton
+          disabled={disabled || selectedOption == null}
+          onPress={() => {
+            String(selectedOption) === String(task.correct_answer)
+              ? onCorrect()
+              : onWrong();
+          }}
+        />
       </View>
     );
   }
@@ -456,21 +467,30 @@ export function TaskInteraction({
       ) : null}
 
       <View style={styles.options}>
-        {options.map((option) => (
-          <Pressable
-            key={String(option)}
-            style={styles.option}
-            disabled={disabled}
-            onPress={() =>
-              String(option) === String(task.correct_answer)
-                ? onCorrect()
-                : onWrong()
-            }
-          >
-            <Text style={styles.optionText}>{displayOption(option)}</Text>
-          </Pressable>
-        ))}
+        {options.map((option) => {
+          const selected = String(selectedOption) === String(option);
+
+          return (
+            <Pressable
+              key={String(option)}
+              style={[styles.option, selected ? styles.optionSelected : null]}
+              disabled={disabled}
+              onPress={() => setSelectedOption(option)}
+            >
+              <Text style={styles.optionText}>{displayOption(option)}</Text>
+            </Pressable>
+          );
+        })}
       </View>
+
+      <CheckButton
+        disabled={disabled || selectedOption == null}
+        onPress={() => {
+          String(selectedOption) === String(task.correct_answer)
+            ? onCorrect()
+            : onWrong();
+        }}
+      />
     </TaskShell>
   );
 }
@@ -728,6 +748,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 12
+  },
+  optionSelected: {
+    borderColor: colors.accentDark,
+    backgroundColor: '#EEF6F2'
   },
   smallOption: {
     minWidth: 58,
