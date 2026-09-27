@@ -1,37 +1,18 @@
 import { router } from 'expo-router';
-import type { Session } from '@supabase/supabase-js';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { supabase } from '../src/lib/supabase';
+import { useAuth } from '../src/providers/AuthProvider';
+import { logout } from '../src/services/auth';
 import { listChildren } from '../src/services/children';
 import { colors } from '../src/theme';
 import type { Child } from '../src/types/models';
 
 export default function HomeRoute() {
-  const [session, setSession] = useState<Session | null>(null);
+  const { session, loading: authLoading } = useAuth();
   const [children, setChildren] = useState<Child[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [childrenLoading, setChildrenLoading] = useState(false);
   const [error, setError] = useState('');
-
-  useEffect(() => {
-    let active = true;
-
-    supabase.auth.getSession().then(({ data }) => {
-      if (!active) return;
-      setSession(data.session);
-      setLoading(false);
-    });
-
-    const { data } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      setSession(nextSession);
-    });
-
-    return () => {
-      active = false;
-      data.subscription.unsubscribe();
-    };
-  }, []);
 
   useEffect(() => {
     if (!session) {
@@ -39,7 +20,7 @@ export default function HomeRoute() {
       return;
     }
 
-    setLoading(true);
+    setChildrenLoading(true);
     listChildren()
       .then((data) => {
         setError('');
@@ -50,10 +31,10 @@ export default function HomeRoute() {
         setError('Nie udało się wczytać profili dzieci.');
         setChildren([]);
       })
-      .finally(() => setLoading(false));
+      .finally(() => setChildrenLoading(false));
   }, [session]);
 
-  if (loading) {
+  if (authLoading || (session && childrenLoading)) {
     return (
       <View style={styles.loading}>
         <ActivityIndicator size="large" color={colors.accentDark} />
@@ -89,7 +70,7 @@ export default function HomeRoute() {
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.topbar}>
           <Text style={styles.brand}>Eduli</Text>
-          <Pressable onPress={() => supabase.auth.signOut()}>
+          <Pressable onPress={() => logout()}>
             <Text style={styles.logout}>Wyloguj</Text>
           </Pressable>
         </View>
