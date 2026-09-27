@@ -4,6 +4,7 @@ import { Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'rea
 
 import { getChild } from '../../../src/services/children';
 import { getChildStats, type ChildStats } from '../../../src/services/stats';
+import { MECHANIC_LABELS } from '../../../src/domain/tasks/labels';
 import { colors } from '../../../src/theme';
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -36,14 +37,27 @@ export default function ChildReportRoute() {
   const insights = useMemo(() => {
     if (!stats) return null;
 
-    const eligible = stats.categories.filter((item) => item.total >= 5);
-    if (!eligible.length) return null;
+    const eligibleCategories = stats.categories.filter((item) => item.total >= 5);
+    const sortedCategories = [...eligibleCategories].sort(
+      (a, b) => b.accuracy - a.accuracy
+    );
 
-    const sorted = [...eligible].sort((a, b) => b.accuracy - a.accuracy);
+    const eligibleMechanics = stats.mechanics.filter((item) => item.total >= 3);
+    const sortedMechanics = [...eligibleMechanics].sort(
+      (a, b) => b.accuracy - a.accuracy
+    );
 
     return {
-      strongest: sorted[0],
-      weakest: sorted.length > 1 ? sorted[sorted.length - 1] : null
+      strongest: sortedCategories[0] ?? null,
+      weakest:
+        sortedCategories.length > 1
+          ? sortedCategories[sortedCategories.length - 1]
+          : null,
+      strongestMechanic: sortedMechanics[0] ?? null,
+      weakestMechanic:
+        sortedMechanics.length > 1
+          ? sortedMechanics[sortedMechanics.length - 1]
+          : null
     };
   }, [stats]);
 
@@ -102,6 +116,41 @@ export default function ChildReportRoute() {
                 </Text>
               </View>
             )}
+
+            {insights?.strongestMechanic || insights?.weakestMechanic ? (
+              <>
+                <Text style={styles.sectionTitle}>Typy zadań</Text>
+                <View style={styles.insights}>
+                  {insights.strongestMechanic ? (
+                    <View style={styles.insightCard}>
+                      <Text style={styles.insightLabel}>Najlepiej opanowane</Text>
+                      <Text style={styles.insightTitle}>
+                        {MECHANIC_LABELS[insights.strongestMechanic.taskType] ??
+                          insights.strongestMechanic.taskType}
+                      </Text>
+                      <Text style={styles.insightText}>
+                        {insights.strongestMechanic.accuracy}% poprawnie za pierwszym razem
+                        przy {insights.strongestMechanic.total} zadaniach.
+                      </Text>
+                    </View>
+                  ) : null}
+
+                  {insights.weakestMechanic ? (
+                    <View style={styles.insightCard}>
+                      <Text style={styles.insightLabel}>Warto poćwiczyć</Text>
+                      <Text style={styles.insightTitle}>
+                        {MECHANIC_LABELS[insights.weakestMechanic.taskType] ??
+                          insights.weakestMechanic.taskType}
+                      </Text>
+                      <Text style={styles.insightText}>
+                        {insights.weakestMechanic.accuracy}% poprawnie za pierwszym razem
+                        przy {insights.weakestMechanic.total} zadaniach.
+                      </Text>
+                    </View>
+                  ) : null}
+                </View>
+              </>
+            ) : null}
 
             <Text style={styles.sectionTitle}>Kategorie</Text>
             <View style={styles.list}>
