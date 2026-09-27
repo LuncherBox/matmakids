@@ -81,18 +81,9 @@ function buildMissionTasks(learnedMechanics: Set<string>) {
       SUPPORTED_RENDERERS.has(task.renderer)
   );
 
-  if (!allowed.length) return [];
+  if (allowed.length < SESSION_SIZE) return [];
 
-  const result: Task[] = [];
-  let pool = shuffled(allowed);
-
-  while (result.length < SESSION_SIZE) {
-    if (!pool.length) pool = shuffled(allowed);
-    const next = pool.shift();
-    if (next) result.push(next);
-  }
-
-  return result;
+  return shuffled(allowed).slice(0, SESSION_SIZE);
 }
 
 export default function MissionRoute() {
