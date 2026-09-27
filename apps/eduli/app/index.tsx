@@ -53,11 +53,14 @@ export default function HomeRoute() {
             <Text style={styles.heroCopy}>
               Matematyka, logika, pamięć i podstawy kodowania w krótkich ćwiczeniach dopasowanych do poziomu dziecka.
             </Text>
-            <Pressable style={styles.primary} onPress={() => router.push('/register')}>
-              <Text style={styles.primaryText}>ZAŁÓŻ KONTO</Text>
+            <Pressable style={styles.primary} onPress={() => router.push('/demo')}>
+              <Text style={styles.primaryText}>WYPRÓBUJ 10 ZADAŃ</Text>
             </Pressable>
-            <Pressable style={styles.secondary} onPress={() => router.push('/login')}>
-              <Text style={styles.secondaryText}>ZALOGUJ SIĘ</Text>
+            <Pressable style={styles.secondary} onPress={() => router.push('/register')}>
+              <Text style={styles.secondaryText}>ZAŁÓŻ KONTO</Text>
+            </Pressable>
+            <Pressable style={styles.loginTextButton} onPress={() => router.push('/login')}>
+              <Text style={styles.loginText}>Masz konto? Zaloguj się</Text>
             </Pressable>
           </View>
         </ScrollView>
@@ -130,6 +133,8 @@ const styles = StyleSheet.create({
   primaryText: { color: '#FFF', fontSize: 18, fontWeight: '900' },
   secondary: { borderColor: colors.border, borderWidth: 2, borderRadius: 18, padding: 16, alignItems: 'center', marginTop: 10, backgroundColor: colors.card },
   secondaryText: { color: colors.text, fontSize: 17, fontWeight: '900' },
+  loginTextButton: { alignItems: 'center', padding: 12, marginTop: 4 },
+  loginText: { color: colors.muted, fontSize: 15, fontWeight: '800' },
   topbar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   logout: { color: colors.muted, fontWeight: '700' },
   title: { color: colors.text, fontSize: 42, fontWeight: '900', marginTop: 48 },
