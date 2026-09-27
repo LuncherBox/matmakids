@@ -3,11 +3,13 @@ import { useEffect, useState } from 'react';
 import { Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 
 import { getChild } from '../../../src/services/children';
+import { getChildOnboardingState } from '../../../src/services/onboarding';
 import { colors } from '../../../src/theme';
 
 export default function ChildHandoffRoute() {
   const { childId } = useLocalSearchParams<{ childId: string }>();
   const [name, setName] = useState('');
+  const [opening, setOpening] = useState(false);
 
   useEffect(() => {
     if (!childId) return;
@@ -29,9 +31,40 @@ export default function ChildHandoffRoute() {
 
           <Pressable
             style={styles.primary}
-            onPress={() => router.replace(`/children/${childId}/home`)}
+            disabled={opening}
+            onPress={async () => {
+              if (!childId || opening) return;
+
+              setOpening(true);
+
+              try {
+                const onboarding = await getChildOnboardingState(childId);
+
+                if (!onboarding.schemaReady || onboarding.completed) {
+                  router.replace(`/children/${childId}/home`);
+                  return;
+                }
+
+                if (onboarding.stage === 'training') {
+                  router.replace(`/children/${childId}/onboarding/training`);
+                  return;
+                }
+
+                if (onboarding.stage === 'mission') {
+                  router.replace(`/children/${childId}/onboarding/mission`);
+                  return;
+                }
+
+                router.replace(`/children/${childId}/onboarding`);
+              } catch (error) {
+                console.error(error);
+                router.replace(`/children/${childId}/home`);
+              }
+            }}
           >
-            <Text style={styles.primaryText}>ZACZYNAMY</Text>
+            <Text style={styles.primaryText}>
+              {opening ? 'CHWILA...' : 'ZACZYNAMY'}
+            </Text>
           </Pressable>
 
           <Pressable onPress={() => router.replace(`/children/${childId}`)}>
