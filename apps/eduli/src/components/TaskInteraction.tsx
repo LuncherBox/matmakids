@@ -3,7 +3,6 @@ import {
   Pressable,
   StyleSheet,
   Text,
-  TextInput,
   View
 } from 'react-native';
 
@@ -42,6 +41,12 @@ export function TaskInteraction({
   const [selectedOption, setSelectedOption] = useState<string | number | null>(null);
 
   const options = useMemo(() => shuffled(task.options ?? []), [task.id]);
+  const symbolLetters = useMemo(() => {
+    if (task.renderer !== 'symbol_code') return [];
+
+    const legend = (task.content?.legend ?? {}) as Record<string, string>;
+    return shuffled([...new Set(Object.values(legend))]);
+  }, [task.id, task.renderer]);
 
   useEffect(() => {
     setSelectedCells([]);
@@ -420,7 +425,7 @@ export function TaskInteraction({
   }
 
   if (task.renderer === 'symbol_code') {
-    const legend = task.content?.legend ?? {};
+    const legend = (task.content?.legend ?? {}) as Record<string, string>;
     const code = (task.content?.code ?? []) as string[];
 
     return (
@@ -438,26 +443,50 @@ export function TaskInteraction({
           {code.map((symbol, index) => (
             <View key={index} style={styles.codeColumn}>
               <Text style={styles.codeSymbol}>{symbol}</Text>
-              <TextInput
-                value={codeLetters[index] ?? ''}
-                onChangeText={(value) =>
-                  setCodeLetters((current) => {
-                    const next = [...current];
-                    next[index] = value.slice(-1).toUpperCase();
-                    return next;
-                  })
-                }
-                maxLength={1}
-                autoCapitalize="characters"
-                style={styles.codeInput}
-                editable={!disabled}
-              />
+              <View style={styles.codeInput}>
+                <Text style={styles.codeInputText}>
+                  {codeLetters[index] ?? ''}
+                </Text>
+              </View>
             </View>
           ))}
         </View>
 
+        <View style={styles.letterPad}>
+          {symbolLetters.map((letter) => (
+            <Pressable
+              key={letter}
+              style={styles.smallOption}
+              disabled={disabled || codeLetters.length >= code.length}
+              onPress={() =>
+                setCodeLetters((current) =>
+                  current.length < code.length
+                    ? [...current, String(letter)]
+                    : current
+                )
+              }
+            >
+              <Text style={styles.optionText}>{letter}</Text>
+            </Pressable>
+          ))}
+
+          <Pressable
+            style={styles.smallOption}
+            disabled={disabled || !codeLetters.length}
+            onPress={() =>
+              setCodeLetters((current) => current.slice(0, -1))
+            }
+          >
+            <Text style={styles.optionText}>⌫</Text>
+          </Pressable>
+        </View>
+
         <CheckButton
-          disabled={disabled || codeLetters.length < code.length || codeLetters.some((value) => !value)}
+          disabled={
+            disabled ||
+            codeLetters.length !== code.length ||
+            codeLetters.some((value) => !value)
+          }
           onPress={() => {
             const answer = codeLetters.join('').toUpperCase();
             answer === String(task.correct_answer).toUpperCase()
@@ -1079,6 +1108,18 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontWeight: '900',
     marginTop: 3
+  },
+  letterPad: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    justifyContent: 'center',
+    marginTop: 18
+  },
+  codeInputText: {
+    color: colors.text,
+    fontSize: 22,
+    fontWeight: '900'
   },
   codeRow: {
     flexDirection: 'row',
