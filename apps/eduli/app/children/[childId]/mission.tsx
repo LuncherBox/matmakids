@@ -13,6 +13,7 @@ import {
   initialMissionTaskState,
   registerFirstMissionError,
   scoreMissionSuccess,
+  useMissionHint,
   type MissionTaskState
 } from '../../../src/domain/mission/scoring';
 import {
@@ -174,10 +175,13 @@ export default function MissionRoute() {
 
     const nextAttempts = taskState.attempts + 1;
     const firstError = !taskState.hadError;
-    const nextState = registerFirstMissionError({
-      ...taskState,
-      attempts: nextAttempts
-    });
+    const nextState = {
+      ...registerFirstMissionError({
+        ...taskState,
+        attempts: nextAttempts
+      }),
+      usedGuidedHelp: true
+    };
 
     setTaskState(nextState);
     setFeedback('Spróbuj jeszcze raz');
@@ -258,6 +262,19 @@ export default function MissionRoute() {
       setTaskState(initialMissionTaskState());
       setFeedback('');
     }, 450);
+  }
+
+  function useHint() {
+    if (!task || taskState.usedHint || taskState.hadError) return;
+
+    const nextState = useMissionHint(taskState, Number(child?.gobi_level) || 1);
+    const gobiDelta = nextState.gobiPoint - taskState.gobiPoint;
+
+    setTaskState(nextState);
+    setTotals((current) => ({
+      ...current,
+      gobiPoints: current.gobiPoints + gobiDelta
+    }));
   }
 
   async function exitMission() {
@@ -366,11 +383,50 @@ export default function MissionRoute() {
           </View>
         </View>
 
+        <View style={styles.potentialRow}>
+          <Text style={styles.potentialLabel}>Do zdobycia w tym zadaniu</Text>
+          <Text style={styles.potentialValue}>
+            {taskState.usedHint || taskState.hadError ? '●' : '● ●'}
+          </Text>
+        </View>
+
+        {(
+          task.renderer === 'equation_with_dots' ||
+          task.renderer === 'missing_number_equation'
+        ) && !taskState.hadError ? (
+          <Pressable
+            style={[
+              styles.hintButton,
+              taskState.usedHint ? styles.hintButtonUsed : null
+            ]}
+            disabled={taskState.usedHint}
+            onPress={useHint}
+          >
+            <Text style={styles.hintButtonText}>
+              {taskState.usedHint ? 'PODPOWIEDŹ UŻYTA' : 'PODPOWIEDŹ  •  1 MONETA'}
+            </Text>
+          </Pressable>
+        ) : null}
+
+        {task.renderer === 'missing_number_equation' &&
+        (taskState.usedHint || taskState.hadError) ? (
+          <View style={styles.helpPanel}>
+            <Text style={styles.helpText}>
+              Spójrz na wynik i policz, jakiej liczby brakuje.
+            </Text>
+          </View>
+        ) : null}
+
         <TaskInteraction
           task={task}
           onCorrect={handleCorrectAnswer}
           onWrong={handleWrongAnswer}
           disabled={feedback === 'Super!'}
+          showVisualHelp={
+            task.renderer !== 'equation_with_dots' ||
+            taskState.usedHint ||
+            taskState.hadError
+          }
         />
 
         {feedback ? (
@@ -478,6 +534,52 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontSize: 22,
     fontWeight: '900'
+  },
+  potentialRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+    paddingHorizontal: 4
+  },
+  potentialLabel: {
+    color: colors.muted,
+    fontSize: 13,
+    fontWeight: '800'
+  },
+  potentialValue: {
+    color: '#D5A72E',
+    fontSize: 18,
+    letterSpacing: 3
+  },
+  hintButton: {
+    borderColor: '#D5A72E',
+    borderWidth: 2,
+    borderRadius: 16,
+    padding: 12,
+    alignItems: 'center',
+    marginBottom: 12,
+    backgroundColor: '#FFF9E8'
+  },
+  hintButtonUsed: {
+    opacity: 0.6
+  },
+  hintButtonText: {
+    color: colors.text,
+    fontWeight: '900',
+    fontSize: 14
+  },
+  helpPanel: {
+    backgroundColor: '#F6F7F5',
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 12
+  },
+  helpText: {
+    color: colors.text,
+    textAlign: 'center',
+    fontWeight: '800',
+    lineHeight: 20
   },
   feedback: {
     textAlign: 'center',
