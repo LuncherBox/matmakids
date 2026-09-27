@@ -129,3 +129,27 @@ export async function abandonMission(
 
   if (error) throw error;
 }
+
+export async function recalculateMissionTotals(sessionId: string) {
+  const { data, error } = await supabase
+    .from('session_answers')
+    .select('attempts, correct_first_try, points_child, points_gobi')
+    .eq('session_id', sessionId);
+
+  if (error) throw error;
+
+  const rows = data ?? [];
+
+  return {
+    correctFirstTry: rows.filter((row) => row.correct_first_try).length,
+    mistakes: rows.filter((row) => Number(row.attempts ?? 1) > 1).length,
+    childPoints: rows.reduce(
+      (sum, row) => sum + Number(row.points_child ?? 0),
+      0
+    ),
+    gobiPoints: rows.reduce(
+      (sum, row) => sum + Number(row.points_gobi ?? 0),
+      0
+    )
+  };
+}
