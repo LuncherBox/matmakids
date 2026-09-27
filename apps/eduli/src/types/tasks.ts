@@ -12,6 +12,7 @@ export type Task = {
   options?: Array<string | number>;
   content?: Record<string, any>;
   status?: string;
+  active?: boolean;
 };
 
 export type TaskMechanicProgress = {
