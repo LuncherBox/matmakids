@@ -1,3 +1,5 @@
+import 'expo-sqlite/localStorage/install';
+
 import type { MissionTaskState } from '../domain/mission/scoring';
 
 export type MissionSnapshot = {
