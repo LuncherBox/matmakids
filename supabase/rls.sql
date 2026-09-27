@@ -1,3 +1,7 @@
+-- LEGACY PROTOTYPE FILE - DO NOT APPLY TO CURRENT PRODUCTION.
+-- Current model is documented in supabase/CURRENT_SCHEMA.md.
+-- This file is retained only for historical reference.
+
 -- Row Level Security for prototype data isolation
 
 alter table public.parents enable row level security;
