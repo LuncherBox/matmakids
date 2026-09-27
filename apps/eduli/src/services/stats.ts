@@ -14,13 +14,6 @@ export type MechanicStats = {
   accuracy: number;
 };
 
-export type MechanicStats = {
-  taskType: string;
-  total: number;
-  correctFirstTry: number;
-  accuracy: number;
-};
-
 export type MissionHistoryItem = {
   id: string;
   date: string;
@@ -186,26 +179,7 @@ export async function getChildStats(childId: string): Promise<ChildStats> {
     }))
     .sort((a, b) => b.total - a.total);
 
-  const byMechanic = new Map<string, { total: number; correctFirstTry: number }>();
 
-  rows.forEach((row) => {
-    const taskType = row.task_type || 'other';
-    const current = byMechanic.get(taskType) ?? { total: 0, correctFirstTry: 0 };
-    current.total += 1;
-    if (row.correct_first_try) current.correctFirstTry += 1;
-    byMechanic.set(taskType, current);
-  });
-
-  const mechanics = [...byMechanic.entries()]
-    .map(([taskType, value]) => ({
-      taskType,
-      total: value.total,
-      correctFirstTry: value.correctFirstTry,
-      accuracy: value.total
-        ? Math.round((value.correctFirstTry / value.total) * 100)
-        : 0
-    }))
-    .sort((a, b) => b.total - a.total);
 
   return {
     completedMissions,
