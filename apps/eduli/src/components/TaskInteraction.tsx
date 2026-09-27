@@ -359,7 +359,12 @@ export function TaskInteraction({
   if (task.renderer === 'visual_search') {
     const grid = (task.content?.grid ?? []) as number[];
     const target = (task.content?.target ?? []) as number[];
-    const correctPositions = (task.content?.correct_positions ?? []) as number[];
+    const validMatches = findVisualSearchMatches(
+      grid,
+      Number(task.content?.rows ?? 5),
+      Number(task.content?.columns ?? 5),
+      target
+    );
 
     return (
       <TaskShell task={task}>
@@ -382,7 +387,7 @@ export function TaskInteraction({
                   setSelectedCells((current) =>
                     current.includes(index)
                       ? current.filter((item) => item !== index)
-                      : current.length < correctPositions.length
+                      : current.length < target.length
                         ? [...current, index]
                         : current
                   )
@@ -395,11 +400,19 @@ export function TaskInteraction({
         </View>
 
         <CheckButton
-          disabled={disabled || selectedCells.length !== correctPositions.length}
+          disabled={disabled || selectedCells.length !== target.length}
           onPress={() => {
-            const actual = [...selectedCells].sort((a, b) => a - b).join(',');
-            const expected = [...correctPositions].sort((a, b) => a - b).join(',');
-            actual === expected ? onCorrect() : onWrong();
+            const actual = [...selectedCells].sort((a, b) => a - b);
+
+            const correct = validMatches.some((match) => {
+              const expected = [...match].sort((a, b) => a - b);
+              return (
+                actual.length === expected.length &&
+                actual.every((value, index) => value === expected[index])
+              );
+            });
+
+            correct ? onCorrect() : onWrong();
           }}
         />
       </TaskShell>
@@ -659,6 +672,33 @@ function MemoryLocationGrid({ task }: { task: Task }) {
       })}
     </View>
   );
+}
+
+function findVisualSearchMatches(
+  grid: Array<string | number>,
+  rows: number,
+  columns: number,
+  target: Array<string | number>
+) {
+  const matches: number[][] = [];
+
+  if (!target.length) return matches;
+
+  for (let row = 0; row < rows; row += 1) {
+    for (let col = 0; col <= columns - target.length; col += 1) {
+      const indexes = target.map(
+        (_, offset) => row * columns + col + offset
+      );
+
+      const isMatch = indexes.every(
+        (index, offset) => String(grid[index]) === String(target[offset])
+      );
+
+      if (isMatch) matches.push(indexes);
+    }
+  }
+
+  return matches;
 }
 
 function displayMemoryOption(option: string | number) {
