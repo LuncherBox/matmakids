@@ -451,6 +451,10 @@ export function TaskInteraction({
         <DotHint task={task} />
       ) : null}
 
+      {task.renderer === 'command_grid_plan' ? (
+        <CommandGrid task={task} />
+      ) : null}
+
       <View style={styles.options}>
         {options.map((option) => (
           <Pressable
@@ -573,6 +577,43 @@ function DotHint({ task }: { task: Task }) {
       </View>
 
       <Text style={styles.dotCounter}>Razem policzono: {left + marked.length}</Text>
+    </View>
+  );
+}
+
+function CommandGrid({ task }: { task: Task }) {
+  const size = Number(task.content?.grid_size ?? 4);
+  const start = (task.content?.start ?? [0, 0]) as [number, number];
+  const target = (task.content?.target ?? [0, 0]) as [number, number];
+  const obstacles = (task.content?.obstacles ?? []) as Array<[number, number]>;
+
+  const obstacleKeys = new Set(obstacles.map(([row, col]) => `${row}:${col}`));
+  const cells = Array.from({ length: size * size }, (_, index) => index);
+
+  return (
+    <View style={[styles.commandGrid, { width: size * 58 }]}>
+      {cells.map((index) => {
+        const row = Math.floor(index / size);
+        const col = index % size;
+        const isStart = row === start[0] && col === start[1];
+        const isTarget = row === target[0] && col === target[1];
+        const isObstacle = obstacleKeys.has(`${row}:${col}`);
+
+        return (
+          <View
+            key={index}
+            style={[
+              styles.commandCell,
+              isObstacle ? styles.commandObstacle : null,
+              isTarget ? styles.commandTarget : null
+            ]}
+          >
+            <Text style={styles.commandCellText}>
+              {isStart ? '🤖' : isTarget ? '⭐' : isObstacle ? '■' : ''}
+            </Text>
+          </View>
+        );
+      })}
     </View>
   );
 }
@@ -851,6 +892,30 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontSize: 19,
     fontWeight: '900'
+  },
+  commandGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignSelf: 'center',
+    marginBottom: 18
+  },
+  commandCell: {
+    width: 58,
+    height: 58,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFF'
+  },
+  commandTarget: {
+    backgroundColor: '#FFF8E8'
+  },
+  commandObstacle: {
+    backgroundColor: '#E7E9EC'
+  },
+  commandCellText: {
+    fontSize: 25
   },
   memoryLabel: {
     color: colors.accentDark,
