@@ -38,6 +38,16 @@ export async function saveMissionAnswer(input: {
   pointsChild: number;
   pointsGobi: number;
 }) {
+  const { data: existing, error: readError } = await supabase
+    .from('session_answers')
+    .select('id')
+    .eq('session_id', input.sessionId)
+    .eq('task_id', input.taskId)
+    .limit(1);
+
+  if (readError) throw readError;
+  if (existing?.length) return;
+
   const { error } = await supabase.from('session_answers').insert({
     session_id: input.sessionId,
     task_id: input.taskId,
