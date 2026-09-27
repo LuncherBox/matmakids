@@ -33,7 +33,7 @@ export type ChildStats = {
 export async function getChildStats(childId: string): Promise<ChildStats> {
   const { data: sessions, error: sessionsError } = await supabase
     .from('sessions')
-    .select('id, status, mistake_count, child_points, gobi_points, winner, created_at, completed_at')
+    .select('id, status, mistake_count, child_points, gobi_points, winner, started_at, completed_at')
     .eq('child_id', childId)
     .order('created_at', { ascending: false });
 
@@ -49,7 +49,7 @@ export async function getChildStats(childId: string): Promise<ChildStats> {
 
   const activeDateKeys = [...new Set(
     (sessions ?? [])
-      .map((session) => session.completed_at ?? session.created_at)
+      .map((session) => session.completed_at ?? session.started_at)
       .filter(Boolean)
       .map((value) => new Date(value).toISOString().slice(0, 10))
   )].sort().reverse();
@@ -82,7 +82,7 @@ export async function getChildStats(childId: string): Promise<ChildStats> {
     .slice(0, 10)
     .map((session) => ({
       id: session.id,
-      date: session.completed_at ?? session.created_at,
+      date: session.completed_at ?? session.started_at,
       childPoints: Number(session.child_points ?? 0),
       gobiPoints: Number(session.gobi_points ?? 0),
       winner: session.winner ?? null
