@@ -11,7 +11,12 @@ export const MECHANIC_LABELS: Record<string, string> = {
   'coding:symbol_decode': 'Odczytaj kod',
   'coding:grid_code': 'Kod na siatce',
   'coding:repeat_pattern': 'Powtarzanie komend',
-  'coding:path_code': 'Droga robota'
+  'coding:path_code': 'Droga robota',
+  'memory:image_memory': 'Zapamiętaj obrazki',
+  'memory:location_memory': 'Zapamiętaj położenie',
+  'memory:sequence_memory': 'Zapamiętaj kolejność',
+  'memory:number_memory': 'Zapamiętaj liczby',
+  'memory:pair_memory': 'Zapamiętaj pary'
 };
 
 export const CATEGORY_LABELS: Record<string, string> = {
