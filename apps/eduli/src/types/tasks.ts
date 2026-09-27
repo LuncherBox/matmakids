@@ -5,6 +5,7 @@ export type Task = {
   subcategory?: string;
   renderer: string;
   level?: number;
+  difficulty?: number;
   age_min?: number;
   age_max?: number;
   prompt?: string;
