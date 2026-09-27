@@ -391,22 +391,91 @@ function TaskShell({
 }
 
 function DotHint({ task }: { task: Task }) {
-  const total = Number(task.content?.left ?? 0);
+  const left = Number(task.content?.left ?? 0);
   const right = Number(task.content?.right ?? 0);
   const isSubtraction = task.subcategory === 'subtraction';
-  const count = isSubtraction ? total : total + right;
+  const [marked, setMarked] = useState<number[]>([]);
+
+  useEffect(() => {
+    setMarked([]);
+  }, [task.id]);
+
+  if (isSubtraction) {
+    return (
+      <View style={styles.dotHintBox}>
+        <Text style={styles.dotHintText}>
+          Odznacz {right} kropek, a potem policz te, które zostały.
+        </Text>
+        <View style={styles.dotWrap}>
+          {Array.from({ length: left }, (_, index) => {
+            const removed = marked.includes(index);
+
+            return (
+              <Pressable
+                key={index}
+                style={[styles.dot, removed ? styles.dotRemoved : null]}
+                onPress={() =>
+                  setMarked((current) => {
+                    if (current.includes(index)) {
+                      return current.filter((item) => item !== index);
+                    }
+
+                    if (current.length >= right) return current;
+                    return [...current, index];
+                  })
+                }
+              />
+            );
+          })}
+        </View>
+        <Text style={styles.dotCounter}>
+          Odznaczono: {marked.length} z {right}
+        </Text>
+      </View>
+    );
+  }
 
   return (
-    <View style={styles.dotWrap}>
-      {Array.from({ length: count }, (_, index) => (
-        <View
-          key={index}
-          style={[
-            styles.dot,
-            isSubtraction && index >= total - right ? styles.dotMuted : null
-          ]}
-        />
-      ))}
+    <View style={styles.dotHintBox}>
+      <Text style={styles.dotHintText}>
+        Masz {left}. Dodaj jeszcze {right}.
+      </Text>
+      <View style={styles.additionGroups}>
+        <View style={styles.dotGroup}>
+          <Text style={styles.dotGroupLabel}>{left}</Text>
+          <View style={styles.dotWrap}>
+            {Array.from({ length: left }, (_, index) => (
+              <View key={index} style={styles.dot} />
+            ))}
+          </View>
+        </View>
+
+        <Text style={styles.plus}>+</Text>
+
+        <View style={styles.dotGroup}>
+          <Text style={styles.dotGroupLabel}>{right}</Text>
+          <View style={styles.dotWrap}>
+            {Array.from({ length: right }, (_, index) => {
+              const counted = marked.includes(index);
+              return (
+                <Pressable
+                  key={index}
+                  style={[styles.dot, counted ? null : styles.dotOutline]}
+                  onPress={() =>
+                    setMarked((current) =>
+                      current.includes(index)
+                        ? current.filter((item) => item !== index)
+                        : [...current, index]
+                    )
+                  }
+                />
+              );
+            })}
+          </View>
+        </View>
+      </View>
+
+      <Text style={styles.dotCounter}>Razem policzono: {left + marked.length}</Text>
     </View>
   );
 }
@@ -498,21 +567,64 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '900'
   },
+  dotHintBox: {
+    borderRadius: 18,
+    backgroundColor: '#F6F7F5',
+    padding: 14,
+    marginBottom: 20
+  },
+  dotHintText: {
+    color: colors.muted,
+    fontWeight: '800',
+    textAlign: 'center',
+    marginBottom: 12
+  },
   dotWrap: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
-    gap: 7,
-    marginBottom: 20
+    gap: 7
   },
   dot: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    backgroundColor: colors.text
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: colors.text,
+    borderWidth: 2,
+    borderColor: colors.text
   },
-  dotMuted: {
-    opacity: 0.2
+  dotOutline: {
+    backgroundColor: '#FFF'
+  },
+  dotRemoved: {
+    backgroundColor: '#FFF',
+    opacity: 0.45
+  },
+  dotCounter: {
+    color: colors.text,
+    fontWeight: '900',
+    textAlign: 'center',
+    marginTop: 12
+  },
+  additionGroups: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12
+  },
+  dotGroup: {
+    maxWidth: 150,
+    alignItems: 'center'
+  },
+  dotGroupLabel: {
+    color: colors.muted,
+    fontWeight: '900',
+    marginBottom: 6
+  },
+  plus: {
+    color: colors.text,
+    fontSize: 24,
+    fontWeight: '900'
   },
   sudokuGrid: {
     width: 248,
