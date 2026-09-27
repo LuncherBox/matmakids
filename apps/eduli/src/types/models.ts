@@ -4,6 +4,9 @@ export type Child = {
   birth_date: string | null;
   share_code: string | null;
   gobi_level: number;
+  onboarding_stage?: 'intro' | 'training' | 'mission' | 'completed';
+  onboarding_completed?: boolean;
+  progression_level?: number | null;
   created_at?: string;
 };
 
