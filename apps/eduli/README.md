@@ -26,3 +26,16 @@ npm run web
 - verify that the existing child profiles appear.
 
 Do not create a second Supabase project for this frontend.
+
+
+## Current migration status
+
+The universal frontend now contains:
+- shared Supabase authentication and protected routes
+- parent child-list/profile/statistics/report flows
+- explicit parent-to-child handoff
+- child home, Practice/Training, results and 10-task Gobi mission
+- reusable task interactions for math, logic, coding and memory
+- no-account 10-task public demo
+
+The legacy root frontend stays live until the Expo web build reaches verified parity.
