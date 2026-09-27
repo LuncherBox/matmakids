@@ -19,11 +19,7 @@ import {
   CATEGORY_LABELS,
   MECHANIC_LABELS
 } from '../../../../src/domain/tasks/labels';
-import {
-  displayOption,
-  taskInstruction,
-  taskQuestion
-} from '../../../../src/domain/tasks/presentation';
+import { TaskInteraction } from '../../../../src/components/TaskInteraction';
 import {
   getMechanicProgress,
   markMechanicLearned
@@ -38,7 +34,12 @@ const SUPPORTED_RENDERERS = new Set([
   'number_comparison',
   'visual_sequence',
   'command_pattern',
-  'command_grid_plan'
+  'command_grid_plan',
+  'sudoku_grid',
+  'color_grid_copy',
+  'visual_search',
+  'symbol_code',
+  'binary_grid_copy'
 ]);
 
 export default function PracticeCategoryRoute() {
@@ -82,17 +83,10 @@ export default function PracticeCategoryRoute() {
 
   const task = trainingTasks[trainingIndex];
 
-  const options = useMemo(() => {
-    if (!task?.options) return [];
-    return shuffled(task.options);
-  }, [task?.id]);
-
   function startMechanic(mechanicId: string) {
     const candidates = tasksForMechanic(mechanicId).filter(
       (item) =>
-        SUPPORTED_RENDERERS.has(item.renderer) &&
-        Array.isArray(item.options) &&
-        item.options.length > 0
+        SUPPORTED_RENDERERS.has(item.renderer)
     );
 
     const isLearned = learned.has(mechanicId);
@@ -105,13 +99,12 @@ export default function PracticeCategoryRoute() {
     setFinished(false);
   }
 
-  async function answer(value: string | number) {
-    if (!task || !selectedMechanic) return;
+  function handleWrongAnswer() {
+    setFeedback('Spróbuj jeszcze raz');
+  }
 
-    if (String(value) !== String(task.correct_answer)) {
-      setFeedback('Spróbuj jeszcze raz');
-      return;
-    }
+  async function handleCorrectAnswer() {
+    if (!task || !selectedMechanic) return;
 
     setFeedback('Super!');
 
@@ -191,33 +184,23 @@ export default function PracticeCategoryRoute() {
             {MECHANIC_LABELS[selectedMechanic] ?? selectedMechanic}
           </Text>
 
-          <View style={styles.taskCard}>
-            <Text style={styles.instruction}>{taskInstruction(task)}</Text>
-            <Text style={styles.question}>{taskQuestion(task)}</Text>
+          <TaskInteraction
+            task={task}
+            onCorrect={handleCorrectAnswer}
+            onWrong={handleWrongAnswer}
+            disabled={feedback === 'Super!'}
+          />
 
-            <View style={styles.options}>
-              {options.map((option) => (
-                <Pressable
-                  key={String(option)}
-                  style={styles.option}
-                  onPress={() => answer(option)}
-                >
-                  <Text style={styles.optionText}>{displayOption(option)}</Text>
-                </Pressable>
-              ))}
-            </View>
-
-            {feedback ? (
-              <Text
-                style={[
-                  styles.feedback,
-                  feedback === 'Super!' ? styles.good : styles.retry
-                ]}
-              >
-                {feedback}
-              </Text>
-            ) : null}
-          </View>
+          {feedback ? (
+            <Text
+              style={[
+                styles.feedback,
+                feedback === 'Super!' ? styles.good : styles.retry
+              ]}
+            >
+              {feedback}
+            </Text>
+          ) : null}
         </ScrollView>
       </SafeAreaView>
     );
