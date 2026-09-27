@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { getChild } from '../../../src/services/children';
+import { getMechanicProgress } from '../../../src/services/progress';
 import { getChildStats, type ChildStats } from '../../../src/services/stats';
 import { colors } from '../../../src/theme';
 
@@ -10,14 +11,22 @@ export default function ChildHomeRoute() {
   const { childId } = useLocalSearchParams<{ childId: string }>();
   const [name, setName] = useState('');
   const [stats, setStats] = useState<ChildStats | null>(null);
+  const [learnedCount, setLearnedCount] = useState(0);
 
   useEffect(() => {
     if (!childId) return;
 
-    Promise.all([getChild(childId), getChildStats(childId)])
-      .then(([child, childStats]) => {
+    Promise.all([
+      getChild(childId),
+      getChildStats(childId),
+      getMechanicProgress(childId)
+    ])
+      .then(([child, childStats, progress]) => {
         setName(child.display_name);
         setStats(childStats);
+        setLearnedCount(
+          progress.filter((item) => item.training_status === 'learned').length
+        );
       })
       .catch((error) => console.error(error));
   }, [childId]);
@@ -52,11 +61,21 @@ export default function ChildHomeRoute() {
 
         <View style={styles.actions}>
           <Pressable
-            style={styles.primary}
+            style={[
+              styles.primary,
+              learnedCount < 3 ? styles.primaryLocked : null
+            ]}
+            disabled={learnedCount < 3}
             onPress={() => router.push(`/children/${childId}/mission`)}
           >
-            <Text style={styles.primaryTitle}>POKONAJ GOBIEGO</Text>
-            <Text style={styles.primaryCopy}>Misja z mieszanymi zadaniami</Text>
+            <Text style={styles.primaryTitle}>
+              {learnedCount < 3 ? 'MISJA ZABLOKOWANA' : 'POKONAJ GOBIEGO'}
+            </Text>
+            <Text style={styles.primaryCopy}>
+              {learnedCount < 3
+                ? `Poznaj jeszcze ${3 - learnedCount} ${3 - learnedCount === 1 ? 'typ zadania' : 'typy zadań'}`
+                : 'Misja z mieszanymi zadaniami'}
+            </Text>
           </Pressable>
 
           <Pressable
@@ -94,6 +113,7 @@ const styles = StyleSheet.create({
   statLabel: { color: colors.muted, marginTop: 3 },
   actions: { gap: 12, marginTop: 28 },
   primary: { backgroundColor: colors.accent, borderRadius: 22, padding: 22 },
+  primaryLocked: { backgroundColor: '#B8C1BD' },
   primaryTitle: { color: '#FFF', fontSize: 22, fontWeight: '900' },
   primaryCopy: { color: '#FFF', opacity: 0.9, marginTop: 4 },
   card: { backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1, borderRadius: 22, padding: 22 },
