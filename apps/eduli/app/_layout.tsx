@@ -11,7 +11,8 @@ const PUBLIC_ROUTES = new Set([
   '/login',
   '/register',
   '/reset-password',
-  '/new-password'
+  '/new-password',
+  '/demo'
 ]);
 
 function AppNavigator() {
