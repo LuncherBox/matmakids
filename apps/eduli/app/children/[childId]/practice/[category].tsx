@@ -48,9 +48,10 @@ const SUPPORTED_RENDERERS = new Set([
 ]);
 
 export default function PracticeCategoryRoute() {
-  const { childId, category } = useLocalSearchParams<{
+  const { childId, category, returnTo } = useLocalSearchParams<{
     childId: string;
     category: string;
+    returnTo?: string;
   }>();
 
   const [learned, setLearned] = useState<Set<string>>(new Set());
@@ -148,21 +149,36 @@ export default function PracticeCategoryRoute() {
               {MECHANIC_LABELS[selectedMechanic] ?? selectedMechanic} jest gotowe do dalszego ćwiczenia i misji.
             </Text>
 
-            <Pressable
-              style={styles.primary}
-              onPress={() => startMechanic(selectedMechanic)}
-            >
-              <Text style={styles.primaryText}>POĆWICZ JESZCZE</Text>
-            </Pressable>
+            {returnTo === 'onboarding' ? (
+              <Pressable
+                style={styles.primary}
+                onPress={() =>
+                  router.replace(
+                    `/children/${childId}/onboarding/training`
+                  )
+                }
+              >
+                <Text style={styles.primaryText}>DALEJ</Text>
+              </Pressable>
+            ) : (
+              <>
+                <Pressable
+                  style={styles.primary}
+                  onPress={() => startMechanic(selectedMechanic)}
+                >
+                  <Text style={styles.primaryText}>POĆWICZ JESZCZE</Text>
+                </Pressable>
 
-            <Pressable
-              onPress={() => {
-                setSelectedMechanic(null);
-                setFinished(false);
-              }}
-            >
-              <Text style={styles.back}>Wróć do listy</Text>
-            </Pressable>
+                <Pressable
+                  onPress={() => {
+                    setSelectedMechanic(null);
+                    setFinished(false);
+                  }}
+                >
+                  <Text style={styles.back}>Wróć do listy</Text>
+                </Pressable>
+              </>
+            )}
           </View>
         </View>
       </SafeAreaView>
@@ -216,8 +232,16 @@ export default function PracticeCategoryRoute() {
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.content}>
-        <Pressable onPress={() => router.replace(`/children/${childId}/practice`)}>
-          <Text style={styles.back}>← Wróć do kategorii</Text>
+        <Pressable
+          onPress={() =>
+            returnTo === 'onboarding'
+              ? router.replace(`/children/${childId}/onboarding/training`)
+              : router.replace(`/children/${childId}/practice`)
+          }
+        >
+          <Text style={styles.back}>
+            {returnTo === 'onboarding' ? '← Wróć do treningu' : '← Wróć do kategorii'}
+          </Text>
         </Pressable>
 
         <Text style={styles.kicker}>ĆWICZ</Text>
