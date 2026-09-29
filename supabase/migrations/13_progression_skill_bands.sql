@@ -113,3 +113,40 @@ comment on column public.sessions.learning_level is
 
 comment on table public.child_skill_band_progress is
   'Per-child cumulative mastery history for mechanic + difficulty band.';
+
+
+-- Backfill current learned mechanics into difficulty band 1.
+-- This preserves existing progress without deciding the child's new progression_level.
+insert into public.child_skill_band_progress (
+  child_id,
+  task_type,
+  difficulty_band,
+  training_status,
+  unlocked_level,
+  training_attempts,
+  learned_at,
+  updated_at
+)
+select
+  p.child_id,
+  p.task_type,
+  1,
+  'learned',
+  1,
+  greatest(coalesce(p.training_attempts, 0), 1),
+  coalesce(p.trained_at, now()),
+  now()
+from public.child_task_type_progress p
+where p.training_status = 'learned'
+on conflict (child_id, task_type, difficulty_band)
+do update set
+  training_status = excluded.training_status,
+  training_attempts = greatest(
+    public.child_skill_band_progress.training_attempts,
+    excluded.training_attempts
+  ),
+  learned_at = coalesce(
+    public.child_skill_band_progress.learned_at,
+    excluded.learned_at
+  ),
+  updated_at = now();
