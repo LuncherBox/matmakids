@@ -126,3 +126,27 @@ The same Supabase project is the durable source of truth for:
 - future iOS app
 
 Do not create platform-specific account, child, points, mission or progress tables.
+
+
+## Prepared universal-app migrations
+
+The following migrations are prepared in GitHub but must not be treated as live production schema until they are applied to the existing Supabase project:
+
+### 12_child_onboarding_and_avatar.sql
+Adds:
+- children.avatar_key
+- children.onboarding_stage
+- children.onboarding_completed
+- children.onboarding_completed_at
+
+Existing children with session history or learned mechanics are backfilled as onboarding completed, so the migration does not force established users through first-use onboarding.
+
+### 13_progression_skill_bands.sql
+Adds:
+- children.progression_level
+- sessions.learning_level
+- child_skill_band_progress
+
+The new skill-band model is cumulative. Higher difficulty bands do not remove earlier learned mechanics. Existing learned mechanics are backfilled into difficulty band 1 for compatibility.
+
+Until these migrations are applied, the universal frontend keeps compatibility fallbacks and the existing child_task_type_progress remains the live source for learned mechanics.
