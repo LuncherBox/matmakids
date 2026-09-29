@@ -26,6 +26,7 @@ import { TaskInteraction } from '../../../src/components/TaskInteraction';
 import { getChild } from '../../../src/services/children';
 import { setChildOnboardingStage } from '../../../src/services/onboarding';
 import { getLearnedMechanics } from '../../../src/services/progress';
+import { getProgressionState } from '../../../src/services/progression';
 import {
   clearMissionSnapshot,
   readMissionSnapshot,
@@ -149,18 +150,19 @@ export default function MissionRoute() {
           clearMissionSnapshot();
         }
 
-        const [learnedRows, recentTaskIds] = await Promise.all([
+        const [learnedRows, recentTaskIds, progression] = await Promise.all([
           getLearnedMechanics(childId),
-          getRecentTaskIds(childId)
+          getRecentTaskIds(childId),
+          getProgressionState(childId)
         ]);
 
         if (!active) return;
 
         const learned = new Set(learnedRows.map((row) => row.task_type));
 
-        if (learned.size < MISSION_UNLOCK_MECHANICS) {
+        if (!progression.missionUnlocked) {
           setError(
-            `Misja jest jeszcze zablokowana. Poznaj ${MISSION_UNLOCK_MECHANICS} typy zadań.`
+            `Misja jest jeszcze zablokowana. Poznaj ${MISSION_UNLOCK_MECHANICS} jednostki treningowe.`
           );
           setStarting(false);
           return;
