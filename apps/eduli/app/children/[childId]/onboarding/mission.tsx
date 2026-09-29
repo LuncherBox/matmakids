@@ -1,4 +1,5 @@
 import { router, useLocalSearchParams } from 'expo-router';
+import { useEffect, useState } from 'react';
 import {
   Pressable,
   SafeAreaView,
@@ -7,28 +8,85 @@ import {
   View
 } from 'react-native';
 
+import { getChild } from '../../../../src/services/children';
+import { getMechanicProgress } from '../../../../src/services/progress';
 import { colors } from '../../../../src/theme';
+
+const REQUIRED = 3;
 
 export default function OnboardingMissionRoute() {
   const { childId } = useLocalSearchParams<{ childId: string }>();
+  const [name, setName] = useState('');
+  const [learnedCount, setLearnedCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!childId) return;
+
+    Promise.all([getChild(childId), getMechanicProgress(childId)])
+      .then(([child, progress]) => {
+        setName(child.display_name);
+        setLearnedCount(
+          new Set(
+            progress
+              .filter((item) => item.training_status === 'learned')
+              .map((item) => item.task_type)
+          ).size
+        );
+      })
+      .catch((error) => console.error(error))
+      .finally(() => setLoading(false));
+  }, [childId]);
+
+  const unlocked = learnedCount >= REQUIRED;
 
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.wrap}>
         <View style={styles.card}>
+          <Text style={styles.kicker}>PIERWSZA MISJA</Text>
+
           <View style={styles.gobi}>
             <Text style={styles.gobiText}>G</Text>
           </View>
 
-          <Text style={styles.kicker}>PIERWSZA MISJA</Text>
-          <Text style={styles.title}>Gotowy na Gobiego?</Text>
-          <Text style={styles.copy}>
-            Czeka 10 zadań z typów, które już znasz. Zdobywaj punkty i pamiętaj,
-            że po błędzie zawsze możesz spróbować jeszcze raz.
+          <Text style={styles.title}>
+            {name ? `${name}, Gobi już czeka!` : 'Gobi już czeka!'}
           </Text>
 
+          <Text style={styles.copy}>
+            Przed Tobą 10 zadań z poznanych typów. Za każdą odpowiedź możesz
+            zdobyć punkty. Jeśli czegoś nie wiesz, możesz skorzystać z podpowiedzi.
+          </Text>
+
+          <View style={styles.rules}>
+            <View style={styles.rule}>
+              <Text style={styles.ruleValue}>10</Text>
+              <Text style={styles.ruleLabel}>zadań w misji</Text>
+            </View>
+            <View style={styles.rule}>
+              <Text style={styles.ruleValue}>2</Text>
+              <Text style={styles.ruleLabel}>punkty za idealną odpowiedź</Text>
+            </View>
+            <View style={styles.rule}>
+              <Text style={styles.ruleValue}>1</Text>
+              <Text style={styles.ruleLabel}>moneta za podpowiedź</Text>
+            </View>
+          </View>
+
+          {!loading && !unlocked ? (
+            <Text style={styles.warning}>
+              Najpierw poznaj jeszcze {Math.max(0, REQUIRED - learnedCount)}
+              {REQUIRED - learnedCount === 1 ? ' typ zadania.' : ' typy zadań.'}
+            </Text>
+          ) : null}
+
           <Pressable
-            style={styles.primary}
+            style={[
+              styles.primary,
+              !unlocked || loading ? styles.primaryDisabled : null
+            ]}
+            disabled={!unlocked || loading}
             onPress={() =>
               router.replace({
                 pathname: `/children/${childId}/mission`,
@@ -36,7 +94,9 @@ export default function OnboardingMissionRoute() {
               })
             }
           >
-            <Text style={styles.primaryText}>START MISJI</Text>
+            <Text style={styles.primaryText}>
+              {loading ? 'CHWILA...' : 'ZACZYNAM PIERWSZĄ MISJĘ'}
+            </Text>
           </Pressable>
 
           <Pressable
@@ -54,14 +114,108 @@ export default function OnboardingMissionRoute() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
-  wrap: { flex: 1, width: '100%', maxWidth: 620, alignSelf: 'center', justifyContent: 'center', padding: 24 },
-  card: { backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1, borderRadius: 28, padding: 28, alignItems: 'center' },
-  gobi: { width: 86, height: 86, borderRadius: 43, backgroundColor: '#D9E8D9', alignItems: 'center', justifyContent: 'center', marginBottom: 18 },
-  gobiText: { color: colors.accentDark, fontSize: 34, fontWeight: '900' },
-  kicker: { color: colors.accentDark, fontSize: 12, fontWeight: '900', letterSpacing: 1 },
-  title: { color: colors.text, fontSize: 36, lineHeight: 40, fontWeight: '900', textAlign: 'center', marginTop: 8 },
-  copy: { color: colors.muted, fontSize: 17, lineHeight: 25, textAlign: 'center', marginTop: 12 },
-  primary: { width: '100%', backgroundColor: colors.accent, borderRadius: 18, padding: 17, alignItems: 'center', marginTop: 26 },
-  primaryText: { color: '#FFF', fontSize: 18, fontWeight: '900' },
-  back: { color: colors.muted, fontWeight: '700', marginTop: 18 }
+  wrap: {
+    flex: 1,
+    width: '100%',
+    maxWidth: 620,
+    alignSelf: 'center',
+    padding: 24,
+    justifyContent: 'center'
+  },
+  card: {
+    backgroundColor: colors.card,
+    borderColor: colors.border,
+    borderWidth: 1,
+    borderRadius: 28,
+    padding: 28,
+    alignItems: 'center'
+  },
+  kicker: {
+    color: colors.accentDark,
+    fontSize: 12,
+    fontWeight: '900',
+    letterSpacing: 1
+  },
+  gobi: {
+    width: 84,
+    height: 84,
+    borderRadius: 42,
+    backgroundColor: '#D9E8D9',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 20
+  },
+  gobiText: {
+    color: colors.accentDark,
+    fontSize: 34,
+    fontWeight: '900'
+  },
+  title: {
+    color: colors.text,
+    fontSize: 34,
+    lineHeight: 39,
+    fontWeight: '900',
+    textAlign: 'center',
+    marginTop: 18
+  },
+  copy: {
+    color: colors.muted,
+    fontSize: 17,
+    lineHeight: 25,
+    textAlign: 'center',
+    marginTop: 12
+  },
+  rules: {
+    width: '100%',
+    gap: 10,
+    marginTop: 24
+  },
+  rule: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: '#F5F7F5',
+    borderRadius: 16,
+    padding: 14
+  },
+  ruleValue: {
+    minWidth: 34,
+    color: colors.text,
+    fontSize: 24,
+    fontWeight: '900'
+  },
+  ruleLabel: {
+    flex: 1,
+    color: colors.muted,
+    fontSize: 15,
+    lineHeight: 20
+  },
+  warning: {
+    color: colors.danger,
+    textAlign: 'center',
+    fontWeight: '800',
+    marginTop: 18
+  },
+  primary: {
+    width: '100%',
+    backgroundColor: colors.accent,
+    borderRadius: 18,
+    padding: 17,
+    alignItems: 'center',
+    marginTop: 24
+  },
+  primaryDisabled: {
+    opacity: 0.45
+  },
+  primaryText: {
+    color: '#FFF',
+    fontSize: 17,
+    fontWeight: '900'
+  },
+  back: {
+    color: colors.muted,
+    textAlign: 'center',
+    fontWeight: '700',
+    marginTop: 18
+  }
 });
