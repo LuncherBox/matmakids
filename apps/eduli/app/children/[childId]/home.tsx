@@ -36,7 +36,7 @@ export default function ChildHomeRoute() {
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.topbar}>
           <Text style={styles.brand}>Eduli</Text>
-          <Pressable onPress={() => router.replace(`/children/${childId}`)}>
+          <Pressable onPress={() => router.push(`/children/${childId}/exit`)}>
             <Text style={styles.exit}>Do rodzica</Text>
           </Pressable>
         </View>
