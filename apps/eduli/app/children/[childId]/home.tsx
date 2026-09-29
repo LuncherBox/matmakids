@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { getChild } from '../../../src/services/children';
-import { getMechanicProgress } from '../../../src/services/progress';
+import { getProgressionState } from '../../../src/services/progression';
 import { getChildStats, type ChildStats } from '../../../src/services/stats';
 import { colors } from '../../../src/theme';
 
@@ -12,6 +12,7 @@ export default function ChildHomeRoute() {
   const [name, setName] = useState('');
   const [stats, setStats] = useState<ChildStats | null>(null);
   const [learnedCount, setLearnedCount] = useState(0);
+  const [missionUnlocked, setMissionUnlocked] = useState(false);
 
   useEffect(() => {
     if (!childId) return;
@@ -19,14 +20,13 @@ export default function ChildHomeRoute() {
     Promise.all([
       getChild(childId),
       getChildStats(childId),
-      getMechanicProgress(childId)
+      getProgressionState(childId)
     ])
-      .then(([child, childStats, progress]) => {
+      .then(([child, childStats, progression]) => {
         setName(child.display_name);
         setStats(childStats);
-        setLearnedCount(
-          progress.filter((item) => item.training_status === 'learned').length
-        );
+        setLearnedCount(progression.learnedUnits);
+        setMissionUnlocked(progression.missionUnlocked);
       })
       .catch((error) => console.error(error));
   }, [childId]);
@@ -63,17 +63,17 @@ export default function ChildHomeRoute() {
           <Pressable
             style={[
               styles.primary,
-              learnedCount < 3 ? styles.primaryLocked : null
+              !missionUnlocked ? styles.primaryLocked : null
             ]}
-            disabled={learnedCount < 3}
+            disabled={!missionUnlocked}
             onPress={() => router.push(`/children/${childId}/mission`)}
           >
             <Text style={styles.primaryTitle}>
-              {learnedCount < 3 ? 'MISJA ZABLOKOWANA' : 'POKONAJ GOBIEGO'}
+              {!missionUnlocked ? 'MISJA ZABLOKOWANA' : 'POKONAJ GOBIEGO'}
             </Text>
             <Text style={styles.primaryCopy}>
-              {learnedCount < 3
-                ? `Poznaj jeszcze ${3 - learnedCount} ${3 - learnedCount === 1 ? 'typ zadania' : 'typy zadań'}`
+              {!missionUnlocked
+                ? `Poznaj jeszcze ${Math.max(0, 3 - learnedCount)} ${Math.max(0, 3 - learnedCount) === 1 ? 'typ zadania' : 'typy zadań'}`
                 : 'Misja z mieszanymi zadaniami'}
             </Text>
           </Pressable>
