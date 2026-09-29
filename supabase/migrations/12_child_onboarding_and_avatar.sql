@@ -32,3 +32,30 @@ comment on column public.children.onboarding_completed_at is
 
 comment on column public.children.onboarding_stage is
   'Durable first-use child-mode stage: intro, training, mission or completed.';
+
+
+-- Do not force established children through first-use onboarding.
+-- A child that already has learning history is treated as an existing user.
+update public.children c
+set
+  onboarding_stage = 'completed',
+  onboarding_completed = true,
+  onboarding_completed_at = coalesce(
+    onboarding_completed_at,
+    now()
+  )
+where
+  exists (
+    select 1
+    from public.sessions s
+    where s.child_id = c.id
+  )
+  or exists (
+    select 1
+    from public.child_task_type_progress p
+    where p.child_id = c.id
+      and p.training_status = 'learned'
+  );
+
+comment on column public.children.onboarding_stage is
+  'Durable first-use child-mode stage: intro, training, mission or completed. Existing children with learning history are backfilled to completed.';
