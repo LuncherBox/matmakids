@@ -579,7 +579,10 @@ export function TaskInteraction({
             codeLetters.some((value) => !value)
           }
           onPress={() => {
-            isSymbolCodeCorrect(codeLetters, task.correct_answer)
+            isSymbolCodeCorrect(
+              codeLetters,
+              task.correct_answer as string | number
+            )
               ? onCorrect()
               : onWrong();
           }}
