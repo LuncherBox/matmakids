@@ -3,12 +3,17 @@ import {
   Pressable,
   StyleSheet,
   Text,
-  View
+  View,
+  useWindowDimensions
 } from 'react-native';
 
 import { displayOption, taskInstruction, taskQuestion } from '../domain/tasks/presentation';
 import { shuffled } from '../domain/tasks/bank';
 import { resolveMemoryResumeState } from '../domain/tasks/memory';
+import {
+  fitGridCellSize,
+  taskContentWidth
+} from '../domain/tasks/layout';
 import {
   findVisualSearchMatches,
   isGridPatternCorrect,
@@ -51,6 +56,9 @@ export function TaskInteraction({
   memoryState = null,
   onMemoryStateChange
 }: Props) {
+  const { width: viewportWidth } = useWindowDimensions();
+  const availableTaskWidth = taskContentWidth(viewportWidth);
+
   const [selectedCells, setSelectedCells] = useState<number[]>([]);
   const [gridValues, setGridValues] = useState<(string | number)[]>([]);
   const [sudokuValues, setSudokuValues] = useState<Record<number, number>>({});
@@ -174,7 +182,10 @@ export function TaskInteraction({
               ))}
             </View>
           ) : task.renderer === 'location_memory_grid' ? (
-            <MemoryLocationGrid task={task} />
+            <MemoryLocationGrid
+              task={task}
+              maxWidth={availableTaskWidth}
+            />
           ) : (
             <View style={styles.memoryItems}>
               {((task.content?.memorize_items ?? []) as Array<string | number>).map(
@@ -237,6 +248,11 @@ export function TaskInteraction({
     const grid = (task.content?.grid ?? []) as Array<Array<number | null>>;
     const missingPositions = (task.content?.missing_positions ?? []) as Array<[number, number]>;
     const correct = Array.isArray(task.correct_answer) ? task.correct_answer : [];
+    const sudokuCellSize = fitGridCellSize(
+      4,
+      availableTaskWidth,
+      62
+    );
 
     const blankIndexByCell = new Map<number, number>();
     missingPositions.forEach(([row, col], index) => {
@@ -251,7 +267,12 @@ export function TaskInteraction({
 
     return (
       <TaskShell task={task}>
-        <View style={styles.sudokuGrid}>
+        <View
+          style={[
+            styles.sudokuGrid,
+            { width: sudokuCellSize * 4 }
+          ]}
+        >
           {grid.flatMap((row, rowIndex) =>
             row.map((value, colIndex) => {
               const cellIndex = rowIndex * 4 + colIndex;
@@ -264,6 +285,10 @@ export function TaskInteraction({
                   key={cellIndex}
                   style={[
                     styles.sudokuCell,
+                    {
+                      width: sudokuCellSize,
+                      height: sudokuCellSize
+                    },
                     selected ? styles.sudokuCellActive : null
                   ]}
                   disabled={!isBlank || disabled}
@@ -424,10 +449,16 @@ export function TaskInteraction({
   if (task.renderer === 'visual_search') {
     const grid = (task.content?.grid ?? []) as number[];
     const target = (task.content?.target ?? []) as number[];
+    const searchColumns = Number(task.content?.columns ?? 5);
+    const searchCellSize = fitGridCellSize(
+      searchColumns,
+      availableTaskWidth,
+      52
+    );
     const validMatches = findVisualSearchMatches(
       grid,
       Number(task.content?.rows ?? 5),
-      Number(task.content?.columns ?? 5),
+      searchColumns,
       target
     );
 
@@ -437,7 +468,12 @@ export function TaskInteraction({
           Szukaj: {target.join('  ')}
         </Text>
 
-        <View style={styles.searchGrid}>
+        <View
+          style={[
+            styles.searchGrid,
+            { width: searchCellSize * searchColumns }
+          ]}
+        >
           {grid.map((value, index) => {
             const selected = selectedCells.includes(index);
             return (
@@ -559,7 +595,10 @@ export function TaskInteraction({
       ) : null}
 
       {task.renderer === 'command_grid_plan' ? (
-        <CommandGrid task={task} />
+        <CommandGrid
+          task={task}
+          maxWidth={availableTaskWidth}
+        />
       ) : null}
 
       <View style={styles.options}>
@@ -700,8 +739,15 @@ function DotHint({ task }: { task: Task }) {
   );
 }
 
-function CommandGrid({ task }: { task: Task }) {
+function CommandGrid({
+  task,
+  maxWidth
+}: {
+  task: Task;
+  maxWidth: number;
+}) {
   const size = Number(task.content?.grid_size ?? 4);
+  const cellSize = fitGridCellSize(size, maxWidth, 58);
   const start = (task.content?.start ?? [0, 0]) as [number, number];
   const target = (task.content?.target ?? [0, 0]) as [number, number];
   const obstacles = (task.content?.obstacles ?? []) as Array<[number, number]>;
@@ -710,7 +756,12 @@ function CommandGrid({ task }: { task: Task }) {
   const cells = Array.from({ length: size * size }, (_, index) => index);
 
   return (
-    <View style={[styles.commandGrid, { width: size * 58 }]}>
+    <View
+      style={[
+        styles.commandGrid,
+        { width: size * cellSize }
+      ]}
+    >
       {cells.map((index) => {
         const row = Math.floor(index / size);
         const col = index % size;
@@ -723,6 +774,7 @@ function CommandGrid({ task }: { task: Task }) {
             key={index}
             style={[
               styles.commandCell,
+              { width: cellSize, height: cellSize },
               isObstacle ? styles.commandObstacle : null,
               isTarget ? styles.commandTarget : null
             ]}
@@ -737,21 +789,39 @@ function CommandGrid({ task }: { task: Task }) {
   );
 }
 
-function MemoryLocationGrid({ task }: { task: Task }) {
+function MemoryLocationGrid({
+  task,
+  maxWidth
+}: {
+  task: Task;
+  maxWidth: number;
+}) {
   const size = Number(task.content?.grid_size ?? 3);
+  const cellSize = fitGridCellSize(size, maxWidth, 62);
   const position = (task.content?.position ?? [0, 0]) as [number, number];
   const item = String(task.content?.item ?? '★');
   const cells = Array.from({ length: size * size }, (_, index) => index);
 
   return (
-    <View style={[styles.memoryLocationGrid, { width: size * 62 }]}>
+    <View
+      style={[
+        styles.memoryLocationGrid,
+        { width: size * cellSize }
+      ]}
+    >
       {cells.map((index) => {
         const row = Math.floor(index / size);
         const col = index % size;
         const visible = row === position[0] && col === position[1];
 
         return (
-          <View key={index} style={styles.memoryLocationCell}>
+          <View
+            key={index}
+            style={[
+              styles.memoryLocationCell,
+              { width: cellSize, height: cellSize }
+            ]}
+          >
             <Text style={styles.memoryItem}>{visible ? item : ''}</Text>
           </View>
         );
