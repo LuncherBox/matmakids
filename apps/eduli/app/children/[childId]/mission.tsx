@@ -27,11 +27,18 @@ import {
   taskGuidedHelp,
   taskLevelOneHint
 } from '../../../src/domain/tasks/help';
+import {
+  isTaskEligibleFromSkillBands,
+  type SkillBandProgress
+} from '../../../src/domain/progression/model';
 import { TaskInteraction } from '../../../src/components/TaskInteraction';
 import { getChild } from '../../../src/services/children';
 import { setChildOnboardingStage } from '../../../src/services/onboarding';
 import { getLearnedMechanics } from '../../../src/services/progress';
-import { getProgressionState } from '../../../src/services/progression';
+import {
+  getProgressionState,
+  getSkillBandState
+} from '../../../src/services/progression';
 import {
   clearMissionSnapshot,
   readMissionSnapshot,
@@ -91,13 +98,37 @@ const EMPTY_TOTALS: Totals = {
 
 function buildMissionTasks(
   learnedMechanics: Set<string>,
-  recentTaskIds: Set<string>
+  recentTaskIds: Set<string>,
+  skillBandRows: SkillBandProgress[] = [],
+  progressionLevel: number | null = null
 ) {
-  const allowed = activeTasks().filter(
-    (task) =>
-      learnedMechanics.has(taskMechanicId(task)) &&
-      SUPPORTED_RENDERERS.has(task.renderer)
-  );
+  const progressionRows =
+    progressionLevel == null
+      ? skillBandRows
+      : skillBandRows.filter(
+          (row) =>
+            row.unlocked_level == null ||
+            row.unlocked_level <= progressionLevel
+        );
+
+  const useSkillBands =
+    progressionLevel != null && progressionRows.length > 0;
+
+  const allowed = activeTasks().filter((task) => {
+    if (!SUPPORTED_RENDERERS.has(task.renderer)) return false;
+
+    const taskType = taskMechanicId(task);
+
+    if (useSkillBands) {
+      return isTaskEligibleFromSkillBands(
+        task,
+        taskType,
+        progressionRows
+      );
+    }
+
+    return learnedMechanics.has(taskType);
+  });
 
   if (allowed.length < SESSION_SIZE) return [];
 
@@ -172,10 +203,16 @@ export default function MissionRoute() {
           clearMissionSnapshot();
         }
 
-        const [learnedRows, recentTaskIds, progression] = await Promise.all([
+        const [
+          learnedRows,
+          recentTaskIds,
+          progression,
+          skillBandState
+        ] = await Promise.all([
           getLearnedMechanics(childId),
           getRecentTaskIds(childId),
-          getProgressionState(childId)
+          getProgressionState(childId),
+          getSkillBandState(childId)
         ]);
 
         if (!active) return;
@@ -190,7 +227,14 @@ export default function MissionRoute() {
           return;
         }
 
-        const nextTasks = buildMissionTasks(learned, recentTaskIds);
+        const nextTasks = buildMissionTasks(
+          learned,
+          recentTaskIds,
+          skillBandState.schemaReady ? skillBandState.rows : [],
+          skillBandState.schemaReady
+            ? skillBandState.progressionLevel
+            : null
+        );
 
         if (nextTasks.length < SESSION_SIZE) {
           setError(
@@ -203,7 +247,8 @@ export default function MissionRoute() {
         const nextSessionId = await startMissionSession(
           childId,
           nextTasks.length,
-          Number(nextChild.gobi_level) || 1
+          Number(nextChild.gobi_level) || 1,
+          progression.schemaReady ? progression.progressionLevel : null
         );
 
         if (!active) return;
