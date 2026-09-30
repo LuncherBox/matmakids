@@ -2,6 +2,11 @@ import 'expo-sqlite/localStorage/install';
 
 import type { MissionTaskState } from '../domain/mission/scoring';
 
+export type MissionInteractionState = {
+  memoryPhase?: 'memorize' | 'answer';
+  memoryHideAt?: number;
+};
+
 export type MissionSnapshot = {
   childId: string;
   sessionId: string;
@@ -14,6 +19,7 @@ export type MissionSnapshot = {
     gobiPoints: number;
   };
   taskState: MissionTaskState;
+  interactionState?: MissionInteractionState | null;
 };
 
 const KEY = 'eduli_active_mission_v2';
