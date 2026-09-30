@@ -90,3 +90,58 @@ export function isTaskEligibleFromSkillBands(
 
   return taskDifficultyBand(task) <= maxBand;
 }
+
+
+export function progressionDifficultyBand(progressionLevel: number) {
+  if (!Number.isFinite(progressionLevel)) return 0;
+  return Math.max(0, Math.round(progressionLevel));
+}
+
+export function isSkillBandLearned(
+  rows: SkillBandProgress[],
+  taskType: string,
+  difficultyBand: number
+) {
+  return rows.some(
+    (row) =>
+      row.task_type === taskType &&
+      row.difficulty_band === difficultyBand &&
+      row.training_status === 'learned'
+  );
+}
+
+export function learnedDifficultyBands(
+  rows: SkillBandProgress[],
+  taskType: string
+) {
+  return rows
+    .filter(
+      (row) =>
+        row.task_type === taskType &&
+        row.training_status === 'learned'
+    )
+    .map((row) => row.difficulty_band)
+    .sort((a, b) => a - b);
+}
+
+export function availableDifficultyBands(tasks: Task[]) {
+  return [...new Set(tasks.map(taskDifficultyBand))].sort((a, b) => a - b);
+}
+
+export function tasksForDifficultyBand(
+  tasks: Task[],
+  difficultyBand: number
+) {
+  return tasks.filter(
+    (task) => taskDifficultyBand(task) === difficultyBand
+  );
+}
+
+export function tasksAtOrBelowDifficultyBand(
+  tasks: Task[],
+  difficultyBand: number
+) {
+  return tasks.filter(
+    (task) => taskDifficultyBand(task) <= difficultyBand
+  );
+}
