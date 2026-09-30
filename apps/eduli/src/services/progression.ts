@@ -185,3 +185,55 @@ export async function markSkillBandLearned(input: {
 
   return true;
 }
+
+
+export async function recordSkillBandTaskResult(input: {
+  childId: string;
+  taskType: string;
+  difficultyBand: number;
+  correctFirstTry: boolean;
+  usedHint: boolean;
+  usedGuidedHelp: boolean;
+}) {
+  const { data, error: readError } = await supabase
+    .from('child_skill_band_progress')
+    .select(
+      'successful_tasks, first_try_tasks, hint_tasks, guided_help_tasks'
+    )
+    .eq('child_id', input.childId)
+    .eq('task_type', input.taskType)
+    .eq('difficulty_band', input.difficultyBand)
+    .maybeSingle();
+
+  if (readError) {
+    if (missingProgressionSchema(readError)) return false;
+    throw readError;
+  }
+
+  if (!data) return false;
+
+  const { error } = await supabase
+    .from('child_skill_band_progress')
+    .update({
+      successful_tasks: Number(data.successful_tasks ?? 0) + 1,
+      first_try_tasks:
+        Number(data.first_try_tasks ?? 0) +
+        (input.correctFirstTry ? 1 : 0),
+      hint_tasks:
+        Number(data.hint_tasks ?? 0) + (input.usedHint ? 1 : 0),
+      guided_help_tasks:
+        Number(data.guided_help_tasks ?? 0) +
+        (input.usedGuidedHelp ? 1 : 0),
+      updated_at: new Date().toISOString()
+    })
+    .eq('child_id', input.childId)
+    .eq('task_type', input.taskType)
+    .eq('difficulty_band', input.difficultyBand);
+
+  if (error) {
+    if (missingProgressionSchema(error)) return false;
+    throw error;
+  }
+
+  return true;
+}
