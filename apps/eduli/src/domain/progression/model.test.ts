@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   availableDifficultyBands,
   currentLevelTrainingCount,
+  highestAvailableBandAtOrBelow,
   isProgressionMissionUnlocked,
   isSkillBandLearned,
   isTaskEligibleFromSkillBands,
@@ -159,5 +160,15 @@ describe('progression band selection', () => {
     expect(
       tasksAtOrBelowDifficultyBand(tasks, 1).map((task) => task.id)
     ).toEqual(['l0', 'l1']);
+  });
+
+  it('selects the highest available band without exceeding the child level', () => {
+    expect(highestAvailableBandAtOrBelow(tasks, 0)).toBe(0);
+    expect(highestAvailableBandAtOrBelow(tasks, 1)).toBe(1);
+    expect(highestAvailableBandAtOrBelow(tasks, 4)).toBe(2);
+  });
+
+  it('returns no trainable band when Level 0 content is missing', () => {
+    expect(highestAvailableBandAtOrBelow(tasks.slice(1), 0)).toBeNull();
   });
 });
