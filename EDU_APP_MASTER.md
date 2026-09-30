@@ -281,7 +281,7 @@ Important:
 - [x] correction after wrong answer
 - [x] mission finish result
 - [x] local active-mission snapshot
-- [ ] validate restored snapshot against live Supabase session status
+- [x] validate restored snapshot against live Supabase session status
 - [ ] make interruption recovery safe for memory-task phase state
 - [ ] extend Mission to memory mechanics after recovery behavior is safe
 - [ ] replace temporary 3-mechanic gate with level/progression rules
