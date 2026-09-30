@@ -3,22 +3,26 @@ import { supabase } from '../lib/supabase';
 export async function startMissionSession(
   childId: string,
   taskCount: number,
-  gobiLevel: number
+  gobiLevel: number,
+  learningLevel?: number | null
 ) {
+  const session = {
+    child_id: childId,
+    status: 'started',
+    task_count: taskCount,
+    correct_first_try_count: 0,
+    mistake_count: 0,
+    child_points: 0,
+    gobi_points: 0,
+    mode: 'mixed',
+    category: null,
+    gobi_level: gobiLevel,
+    ...(learningLevel == null ? {} : { learning_level: learningLevel })
+  };
+
   const { data, error } = await supabase
     .from('sessions')
-    .insert({
-      child_id: childId,
-      status: 'started',
-      task_count: taskCount,
-      correct_first_try_count: 0,
-      mistake_count: 0,
-      child_points: 0,
-      gobi_points: 0,
-      mode: 'mixed',
-      category: null,
-      gobi_level: gobiLevel
-    })
+    .insert(session)
     .select('id')
     .single();
 
