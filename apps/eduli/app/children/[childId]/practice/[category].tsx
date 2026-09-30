@@ -19,11 +19,23 @@ import {
   CATEGORY_LABELS,
   MECHANIC_LABELS
 } from '../../../../src/domain/tasks/labels';
+import {
+  highestAvailableBandAtOrBelow,
+  isSkillBandLearned,
+  progressionDifficultyBand,
+  tasksAtOrBelowDifficultyBand,
+  tasksForDifficultyBand,
+  type SkillBandProgress
+} from '../../../../src/domain/progression/model';
 import { TaskInteraction } from '../../../../src/components/TaskInteraction';
 import {
   getMechanicProgress,
   markMechanicLearned
 } from '../../../../src/services/progress';
+import {
+  getSkillBandState,
+  markSkillBandLearned
+} from '../../../../src/services/progression';
 import { colors } from '../../../../src/theme';
 import type { Task } from '../../../../src/types/tasks';
 
@@ -55,7 +67,12 @@ export default function PracticeCategoryRoute() {
   }>();
 
   const [learned, setLearned] = useState<Set<string>>(new Set());
+  const [skillBandRows, setSkillBandRows] = useState<SkillBandProgress[]>([]);
+  const [skillSchemaReady, setSkillSchemaReady] = useState(false);
+  const [progressionLevel, setProgressionLevel] = useState<number | null>(null);
   const [selectedMechanic, setSelectedMechanic] = useState<string | null>(null);
+  const [activeBand, setActiveBand] = useState<number | null>(null);
+  const [sessionWasLearned, setSessionWasLearned] = useState(false);
   const [trainingTasks, setTrainingTasks] = useState<Task[]>([]);
   const [trainingIndex, setTrainingIndex] = useState(0);
   const [feedback, setFeedback] = useState('');
@@ -64,8 +81,11 @@ export default function PracticeCategoryRoute() {
   useEffect(() => {
     if (!childId) return;
 
-    getMechanicProgress(childId)
-      .then((rows) => {
+    Promise.all([
+      getMechanicProgress(childId),
+      getSkillBandState(childId)
+    ])
+      .then(([rows, bandState]) => {
         setLearned(
           new Set(
             rows
@@ -73,32 +93,76 @@ export default function PracticeCategoryRoute() {
               .map((row) => row.task_type)
           )
         );
+        setSkillSchemaReady(bandState.schemaReady);
+        setProgressionLevel(bandState.progressionLevel);
+        setSkillBandRows(bandState.rows);
       })
       .catch((error) => console.error(error));
   }, [childId]);
 
   const mechanics = useMemo(() => {
-    const ids = new Set(
-      tasksForCategory(category)
-        .filter((task) => SUPPORTED_RENDERERS.has(task.renderer))
-        .map(taskMechanicId)
+    const categoryTasks = tasksForCategory(category).filter((task) =>
+      SUPPORTED_RENDERERS.has(task.renderer)
     );
 
-    return [...ids];
-  }, [category]);
+    const ids = new Set(categoryTasks.map(taskMechanicId));
+
+    if (!skillSchemaReady || progressionLevel == null) {
+      return [...ids];
+    }
+
+    return [...ids].filter((mechanicId) => {
+      const candidates = categoryTasks.filter(
+        (task) => taskMechanicId(task) === mechanicId
+      );
+
+      return (
+        highestAvailableBandAtOrBelow(candidates, progressionLevel) != null
+      );
+    });
+  }, [category, progressionLevel, skillSchemaReady]);
 
   const task = trainingTasks[trainingIndex];
 
   function startMechanic(mechanicId: string) {
-    const candidates = tasksForMechanic(mechanicId).filter(
-      (item) =>
-        SUPPORTED_RENDERERS.has(item.renderer)
+    const candidates = tasksForMechanic(mechanicId).filter((item) =>
+      SUPPORTED_RENDERERS.has(item.renderer)
     );
+
+    if (skillSchemaReady && progressionLevel != null) {
+      const targetBand = highestAvailableBandAtOrBelow(
+        candidates,
+        progressionLevel
+      );
+
+      if (targetBand == null) return;
+
+      const bandLearned = isSkillBandLearned(
+        skillBandRows,
+        mechanicId,
+        targetBand
+      );
+      const pool = bandLearned
+        ? tasksAtOrBelowDifficultyBand(candidates, targetBand)
+        : tasksForDifficultyBand(candidates, targetBand);
+      const count = bandLearned ? 5 : 2;
+
+      setSelectedMechanic(mechanicId);
+      setActiveBand(targetBand);
+      setSessionWasLearned(bandLearned);
+      setTrainingTasks(shuffled(pool).slice(0, count));
+      setTrainingIndex(0);
+      setFeedback('');
+      setFinished(false);
+      return;
+    }
 
     const isLearned = learned.has(mechanicId);
     const count = isLearned ? 5 : 2;
 
     setSelectedMechanic(mechanicId);
+    setActiveBand(null);
+    setSessionWasLearned(isLearned);
     setTrainingTasks(shuffled(candidates).slice(0, count));
     setTrainingIndex(0);
     setFeedback('');
@@ -115,10 +179,52 @@ export default function PracticeCategoryRoute() {
     setFeedback('Super!');
 
     if (trainingIndex + 1 >= trainingTasks.length) {
-      if (!learned.has(selectedMechanic)) {
+      if (!sessionWasLearned) {
         try {
-          await markMechanicLearned(childId, selectedMechanic);
-          setLearned((current) => new Set([...current, selectedMechanic]));
+          if (
+            skillSchemaReady &&
+            progressionLevel != null &&
+            activeBand != null
+          ) {
+            const saved = await markSkillBandLearned({
+              childId,
+              taskType: selectedMechanic,
+              difficultyBand: activeBand,
+              progressionLevel
+            });
+
+            if (saved) {
+              setSkillBandRows((current) => [
+                ...current.filter(
+                  (row) =>
+                    !(
+                      row.task_type === selectedMechanic &&
+                      row.difficulty_band === activeBand
+                    )
+                ),
+                {
+                  child_id: childId,
+                  task_type: selectedMechanic,
+                  difficulty_band: activeBand,
+                  training_status: 'learned',
+                  unlocked_level: progressionLevel,
+                  training_attempts: 1,
+                  successful_tasks: 0,
+                  first_try_tasks: 0,
+                  hint_tasks: 0,
+                  guided_help_tasks: 0,
+                  learned_at: new Date().toISOString()
+                }
+              ]);
+            }
+          }
+
+          if (!learned.has(selectedMechanic)) {
+            await markMechanicLearned(childId, selectedMechanic);
+            setLearned((current) =>
+              new Set([...current, selectedMechanic])
+            );
+          }
         } catch (error) {
           console.error(error);
         }
@@ -135,7 +241,7 @@ export default function PracticeCategoryRoute() {
   }
 
   if (selectedMechanic && finished) {
-    const wasLearned = learned.has(selectedMechanic);
+    const wasLearned = sessionWasLearned;
 
     return (
       <SafeAreaView style={styles.safe}>
@@ -199,7 +305,8 @@ export default function PracticeCategoryRoute() {
           </View>
 
           <Text style={styles.modeLabel}>
-            {learned.has(selectedMechanic) ? 'ĆWICZENIE' : 'TRENING'}
+            {sessionWasLearned ? 'ĆWICZENIE' : 'TRENING'}
+            {activeBand != null ? `  •  POZIOM ${activeBand}` : ''}
           </Text>
           <Text style={styles.mechanicTitle}>
             {MECHANIC_LABELS[selectedMechanic] ?? selectedMechanic}
@@ -252,7 +359,24 @@ export default function PracticeCategoryRoute() {
 
         <View style={styles.list}>
           {mechanics.map((mechanicId) => {
-            const isLearned = learned.has(mechanicId);
+            const candidates = tasksForMechanic(mechanicId).filter((item) =>
+              SUPPORTED_RENDERERS.has(item.renderer)
+            );
+            const targetBand =
+              skillSchemaReady && progressionLevel != null
+                ? highestAvailableBandAtOrBelow(
+                    candidates,
+                    progressionLevel
+                  )
+                : null;
+            const isLearned =
+              targetBand != null
+                ? isSkillBandLearned(
+                    skillBandRows,
+                    mechanicId,
+                    targetBand
+                  )
+                : learned.has(mechanicId);
 
             return (
               <Pressable
@@ -265,7 +389,13 @@ export default function PracticeCategoryRoute() {
                     {MECHANIC_LABELS[mechanicId] ?? mechanicId}
                   </Text>
                   <Text style={styles.mechanicStatus}>
-                    {isLearned ? '✓ Poznane' : 'NOWE - najpierw krótki trening'}
+                    {targetBand != null
+                      ? isLearned
+                        ? `✓ Poziom ${targetBand} poznany`
+                        : `POZIOM ${targetBand} - krótki trening`
+                      : isLearned
+                        ? '✓ Poznane'
+                        : 'NOWE - najpierw krótki trening'}
                   </Text>
                 </View>
                 <Text style={styles.arrow}>›</Text>
@@ -275,7 +405,9 @@ export default function PracticeCategoryRoute() {
 
           {!mechanics.length ? (
             <Text style={styles.copy}>
-              Ta kategoria jest jeszcze przenoszona do nowego silnika.
+              {skillSchemaReady && progressionLevel === 0
+                ? 'Treści dla Poziomu 0 nie są jeszcze dodane do banku zadań.'
+                : 'Ta kategoria jest jeszcze przenoszona do nowego silnika.'}
             </Text>
           ) : null}
         </View>
