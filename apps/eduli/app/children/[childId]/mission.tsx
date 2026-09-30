@@ -22,6 +22,11 @@ import {
   taskMechanicId,
   tasksByIds
 } from '../../../src/domain/tasks/bank';
+import {
+  canShowMissionHint,
+  taskGuidedHelp,
+  taskLevelOneHint
+} from '../../../src/domain/tasks/help';
 import { TaskInteraction } from '../../../src/components/TaskInteraction';
 import { getChild } from '../../../src/services/children';
 import { setChildOnboardingStage } from '../../../src/services/onboarding';
@@ -490,6 +495,14 @@ export default function MissionRoute() {
 
   if (!task) return null;
 
+  const hintAvailable = canShowMissionHint(
+    task,
+    interactionState?.memoryPhase
+  );
+  const helpText = taskState.hadError
+    ? taskGuidedHelp(task)
+    : taskLevelOneHint(task);
+
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.content}>
@@ -521,10 +534,7 @@ export default function MissionRoute() {
           </Text>
         </View>
 
-        {(
-          task.renderer === 'equation_with_dots' ||
-          task.renderer === 'missing_number_equation'
-        ) && !taskState.hadError ? (
+        {hintAvailable && !taskState.hadError ? (
           <Pressable
             style={[
               styles.hintButton,
@@ -539,12 +549,9 @@ export default function MissionRoute() {
           </Pressable>
         ) : null}
 
-        {task.renderer === 'missing_number_equation' &&
-        (taskState.usedHint || taskState.hadError) ? (
+        {taskState.usedHint || taskState.hadError ? (
           <View style={styles.helpPanel}>
-            <Text style={styles.helpText}>
-              Spójrz na wynik i policz, jakiej liczby brakuje.
-            </Text>
+            <Text style={styles.helpText}>{helpText}</Text>
           </View>
         ) : null}
 
