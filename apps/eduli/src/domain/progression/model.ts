@@ -145,3 +145,15 @@ export function tasksAtOrBelowDifficultyBand(
     (task) => taskDifficultyBand(task) <= difficultyBand
   );
 }
+
+
+export function highestAvailableBandAtOrBelow(
+  tasks: Task[],
+  progressionLevel: number
+) {
+  const allowed = availableDifficultyBands(tasks).filter(
+    (band) => band <= progressionDifficultyBand(progressionLevel)
+  );
+
+  return allowed.length ? allowed[allowed.length - 1] : null;
+}
