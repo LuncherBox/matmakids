@@ -37,6 +37,7 @@ import {
   finishMission,
   recalculateMissionTotals,
   getRecentTaskIds,
+  isMissionSessionActive,
   saveMissionAnswer,
   startMissionSession,
   updateMissionTotals
@@ -134,9 +135,17 @@ export default function MissionRoute() {
         const snapshot = readMissionSnapshot(childId);
 
         if (snapshot) {
-          const restoredTasks = tasksByIds(snapshot.taskIds);
+          const [restoredTasks, sessionStillActive] = await Promise.all([
+            Promise.resolve(tasksByIds(snapshot.taskIds)),
+            isMissionSessionActive(snapshot.sessionId, childId)
+          ]);
 
-          if (restoredTasks.length === snapshot.taskIds.length) {
+          if (
+            sessionStillActive &&
+            restoredTasks.length === snapshot.taskIds.length &&
+            snapshot.index >= 0 &&
+            snapshot.index < restoredTasks.length
+          ) {
             setChild(nextChild);
             setTasks(restoredTasks);
             setSessionId(snapshot.sessionId);
