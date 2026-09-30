@@ -13,6 +13,12 @@ export type ProgressionState = {
   missionUnlocked: boolean;
 };
 
+export type SkillBandState = {
+  schemaReady: boolean;
+  progressionLevel: number | null;
+  rows: SkillBandProgress[];
+};
+
 function missingProgressionSchema(
   error: { code?: string; message?: string } | null
 ) {
@@ -96,4 +102,86 @@ async function getLegacyProgressionState(
     learnedUnits,
     missionUnlocked: learnedUnits >= 3
   };
+}
+
+
+export async function getSkillBandState(
+  childId: string
+): Promise<SkillBandState> {
+  const { data: child, error: childError } = await supabase
+    .from('children')
+    .select('progression_level')
+    .eq('id', childId)
+    .single();
+
+  if (childError) {
+    if (missingProgressionSchema(childError)) {
+      return {
+        schemaReady: false,
+        progressionLevel: null,
+        rows: []
+      };
+    }
+
+    throw childError;
+  }
+
+  const { data, error } = await supabase
+    .from('child_skill_band_progress')
+    .select(
+      'child_id, task_type, difficulty_band, training_status, unlocked_level, training_attempts, successful_tasks, first_try_tasks, hint_tasks, guided_help_tasks, learned_at'
+    )
+    .eq('child_id', childId);
+
+  if (error) {
+    if (missingProgressionSchema(error)) {
+      return {
+        schemaReady: false,
+        progressionLevel: child.progression_level ?? null,
+        rows: []
+      };
+    }
+
+    throw error;
+  }
+
+  return {
+    schemaReady: true,
+    progressionLevel: child.progression_level ?? null,
+    rows: (data ?? []) as SkillBandProgress[]
+  };
+}
+
+export async function markSkillBandLearned(input: {
+  childId: string;
+  taskType: string;
+  difficultyBand: number;
+  progressionLevel: number;
+}) {
+  const now = new Date().toISOString();
+
+  const { error } = await supabase
+    .from('child_skill_band_progress')
+    .upsert(
+      {
+        child_id: input.childId,
+        task_type: input.taskType,
+        difficulty_band: input.difficultyBand,
+        training_status: 'learned',
+        unlocked_level: input.progressionLevel,
+        training_attempts: 1,
+        learned_at: now,
+        updated_at: now
+      },
+      {
+        onConflict: 'child_id,task_type,difficulty_band'
+      }
+    );
+
+  if (error) {
+    if (missingProgressionSchema(error)) return false;
+    throw error;
+  }
+
+  return true;
 }
