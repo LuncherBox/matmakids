@@ -50,6 +50,13 @@ export function TaskInteraction({
   const [memoryPhase, setMemoryPhase] = useState<'memorize' | 'answer'>('memorize');
   const [selectedOption, setSelectedOption] = useState<string | number | null>(null);
 
+  const effectiveMemoryPhase =
+    memoryState?.memoryPhase === 'answer' ||
+    (memoryState?.memoryHideAt !== undefined &&
+      memoryState.memoryHideAt <= Date.now())
+      ? 'answer'
+      : memoryPhase;
+
   const options = useMemo(() => shuffled(task.options ?? []), [task.id]);
   const symbolLetters = useMemo(() => {
     if (task.renderer !== 'symbol_code') return [];
@@ -146,7 +153,7 @@ export function TaskInteraction({
       task.content?.answer_prompt ?? 'Wybierz poprawną odpowiedź.'
     );
 
-    if (memoryPhase === 'memorize') {
+    if (effectiveMemoryPhase === 'memorize') {
       return (
         <View style={styles.taskCard}>
           <Text style={styles.memoryLabel}>ZAPAMIĘTAJ</Text>
