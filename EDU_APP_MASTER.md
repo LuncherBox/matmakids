@@ -280,8 +280,10 @@ Important:
 - [x] memory renderers migrated into `TaskInteraction`
 - [x] interactive math dots migrated
 - [x] validate every published renderer against current `tasks.json`
-- [ ] add renderer-level regression tests for pure validation/helpers
+- [x] add renderer-level regression tests for pure validation/helpers
 - [ ] verify responsive behavior for small phones and Web
+  - [x] complex task grids adapt to narrow phone widths
+  - [ ] complete screen-by-screen responsive audit outside task renderers
 
 ### Mission
 - [x] 10-task mission
