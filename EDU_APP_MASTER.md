@@ -1,259 +1,344 @@
 # EDU_APP_MASTER.md
 
 ## 1. Project purpose
-Build a very simple educational app prototype for children around ages 4-8, initially tested by the user with their own child.
+
+Eduli is an educational app for children aged 4-8.
 
 Primary goals:
 - practice basic math
 - develop logic
+- develop computational thinking and coding skills
 - train memory
 - keep sessions short, simple and attractive
-- use a mobile-first web app as the first version
-- preserve an easy path to a future native mobile app
+- let parents understand the child's activity and progress
+- preserve one shared product and backend across Web, Android and iOS
 
-## 2. Current MVP scope
-For the current prototype:
-- no login
-- no parent account
-- no rewards
-- no avatars
-- no color customization
-- no payments
-- no database required yet
-- child enters only their name
-- one task per screen
-- immediate feedback:
-  - "Super!"
-  - "Spróbuj jeszcze raz"
-- calm, light, muted colors
-- large typography and large touch targets
-- designed primarily for phone use
-- hosted through GitHub + Railway
+## 2. Source of truth and repository rules
 
-## 3. Current prototype flow
-1. Welcome screen
-2. Child enters name
-3. Child starts session
-4. One task per screen
-5. Immediate feedback after each answer
-6. Progress indicator
-7. Finish screen
+Repository:
+- `LuncherBox/matmakids`
+- active branch: `main`
 
-## 4. Current task areas
-Main task categories:
-- math
-- logic
-- coding
-- memory
+This file is the project-wide source of truth for product, architecture and migration decisions.
 
-Current / planned subcategories:
-- math:
-  - addition
-  - subtraction
-  - missing_number
-- logic:
-  - logical_sequence
-  - odd_one_out
-  - sudoku_4x4
-  - pattern_copying
-- coding:
-  - symbol_decoding
-- memory:
-  - image_memory (temporarily excluded from the current prototype)
+Before substantial development work:
+- read the current version of this file
+- inspect the current code before implementing anything
+- do not rely only on older documentation or historical root files
 
-Task hierarchy:
-category -> subcategory -> skill -> difficulty -> task
+Legacy production:
+- the existing HTML/CSS/JS frontend remains in repository root
+- it is deployed through Railway
+- it must remain working and untouched as the reference implementation until the Expo app reaches functional parity
+- do not remove or rewrite the legacy root app during migration
 
-Temporarily excluded from the current prototype:
-- image_memory
+New universal app:
+- `apps/eduli/`
 
-Reason:
-- the first child test showed that the interaction was not sufficiently clear and the display time felt too short
+## 3. Target architecture
 
-## 5. Important interaction rules
+Frontend:
+- Expo
+- React Native
+- TypeScript
+- Expo Router
+- React Native Web
 
-### Feedback
-- feedback must never overlay or cover answer controls
-- feedback should appear in a reserved area within the task screen
-- wrong answer: keep the task visible and allow immediate retry
-- selected wrong answer may receive a short visual highlight
-- correct answer receives positive visual highlight before advancing
+The same frontend should support:
+- Web
+- Android
+- iOS
 
-### Math with dots
-- numbers and equation are the main task
-- dots are only a visual hint
-- dots should be smaller and secondary
-- child should solve the numeric equation first
+Backend remains shared:
+- Supabase Auth
+- existing Supabase Postgres
+- existing parent and child profiles
+- `parent_children`
+- `sessions`
+- `session_answers`
+- `child_task_type_progress`
+- existing RPCs for creating and joining child profiles
 
-### Subtraction
-- subtraction should also include a visual hint
-- current direction: a friendly gnome character "takes away" the subtracted amount
-- removed items should be visibly crossed out / faded so the child can see what remains
-- the character should support understanding, not dominate the task
+Architecture rule:
+- a user created on Web must later be able to sign into Android or iOS and see the same children, points, missions, history, reports and progress
+- do not create a separate mobile data model or duplicate user store
 
-### Missing value / missing element
-- the target place must be visually highlighted
-- a question mark alone is not enough
-- use a distinct background/border to clearly show where the child should focus
+## 4. Product contexts
 
-### Coding
-- legend must remain visible
-- child must not need to memorize symbol-letter mappings
-- child chooses letters using an in-app letter keypad
-- do not use native text inputs for the answer because the phone keyboard must not open
-- show filled letter boxes in the app itself
-- provide an in-app delete/backspace control
+### Parent mode
 
-### Pattern copying / logic
-- show a reference dot-grid pattern
-- show a blank editable grid below
-- child recreates the pattern by selecting / coloring dots
-- do not use multiple-choice pattern matching for this task type
+Parent mode includes:
+- child list
+- add child
+- join child by code
+- child profile
+- edit child
+- sharing code
+- statistics
+- educational report
+- "Przekaż telefon dziecku"
 
-### Sudoku
-- the missing target cell must be clearly highlighted
+### Child mode
 
+Child mode is a separate full-screen context.
 
-### Read-aloud accessibility
-- every task should offer a clear speaker button so a child can hear the instruction without adult help
-- the app should read the child-facing instruction and, when useful, the essential task context
-- reading should start only after the child taps the speaker button
-- MVP should use the browser/device `SpeechSynthesis` API first, with Polish language (`pl-PL`) and a suitable available voice
-- do not require ElevenLabs or another paid TTS provider for the MVP
-- keep the speech layer abstracted so a higher-quality provider such as ElevenLabs can replace browser TTS later without changing task data or UI structure
-- task data should support a dedicated `speech_text` / `speechText` value when the spoken wording should differ from the on-screen instruction
-- the speaker control should be large, obvious and available consistently on every task screen
+It includes:
+- child home
+- Misja z Gobim
+- Ćwicz
+- Moje wyniki
+- first-entry onboarding
+- exit back to parent mode
 
-## 6. UX principles
+The same child profile is used in both modes, but UI and information scope are separated.
+
+## 5. Current Expo implementation
+
+Already implemented:
+- [x] Expo + React Native + TypeScript + Expo Router project
+- [x] shared connection to the current Supabase project
+- [x] Supabase environment configuration
+- [x] public start screen
+- [x] email/password login
+- [x] registration
+- [x] password reset request
+- [x] new password flow
+- [x] Google login on Web
+- [x] existing child list from Supabase
+- [x] create child
+- [x] join child by code
+- [x] edit child profile
+- [x] shared age rules for ages 4-8 based on `birth_date`
+- [x] parent child profile view
+- [x] parent statistics
+- [x] task count
+- [x] mission count
+- [x] first-try accuracy
+- [x] hints
+- [x] category results
+- [x] streak
+- [x] mission history
+- [x] basic educational report
+- [x] stronger/weaker area
+- [x] "Przekaż telefon dziecku" screen
+- [x] separate child home
+- [x] child points, missions and streak
+- [x] child CTA: Misja / Ćwicz / Moje wyniki
+- [x] child-friendly results
+- [x] practice category selection
+
+## 6. Task bank and task architecture
+
+Current Expo task bank:
+- `apps/eduli/assets/tasks.json`
+- 160 tasks at the current migration baseline
+- shared TypeScript `Task` type
+- task-bank logic separated from screen UI
+
+Mechanic IDs use stable technical keys such as:
+- `math:addition`
+- `logic:sudoku_4x4`
+
+Data convention:
+- all technical keys, table names, enums and JSON keys use English
+- child-facing content may be Polish
+
+Mission may use only mechanics already learned by the child.
+New mechanics are introduced only through Training / Ćwicz.
+
+## 7. Mission rules
+
+Current mission:
+- 10 tasks
+- mixed learned mechanics only
+- currently requires at least 3 learned mechanics
+- child vs Gobi
+- session stored in `sessions`
+- answers stored in `session_answers`
+- wrong answers can be corrected
+- active mission has local snapshot recovery
+- final result is stored
+
+Scoring:
+- each task starts with potential 2 child points
+- correct first try without a hint: child +2, Gobi 0
+- wrong answer followed by correction: child +1, Gobi +1
+- Level 1/base hint: child can earn +1, Gobi 0
+- at higher `gobi_level`, using a hint may give Gobi +1
+- repeated mistakes never give Gobi additional points for the same task
+
+## 8. Training / Practice rules
+
+Current Training / Ćwicz:
+- mechanics are listed by category
+- mechanic status is new or learned
+- new mechanic starts with 2 training tasks
+- successful training marks the mechanic as `learned`
+- learned mechanic uses 5 practice tasks
+
+Progression requires two independent dimensions:
+1. mechanic familiarity - whether the child knows the mechanic
+2. mechanic mastery/difficulty - how advanced the child is within that mechanic
+
+Progression is cumulative:
+- old mechanics do not disappear at higher levels
+- difficulty increases within the same mechanic
+- Level 0 must support children learning counting, digits and simple operations up to 5/10
+
+The current minimum of 3 learned mechanics for Mission is temporary and will be replaced by the level system.
+
+## 9. Renderer migration status
+
+Simple renderers already migrated:
+- [x] addition
+- [x] subtraction
+- [x] missing number
+- [x] number order
+- [x] number comparison
+- [x] visual sequences
+- [x] command pattern
+- [x] simple path planning
+
+Complex renderers already present in the Expo task engine:
+- [x] `sudoku_grid`
+- [x] `color_grid_copy`
+- [x] `visual_search`
+- [x] `symbol_code`
+- [x] `binary_grid_copy`
+- [x] `image_memory`
+- [x] `location_memory_grid`
+- [x] `sequence_memory`
+- [x] `number_memory`
+- [x] `pair_memory`
+- [x] interactive dots for addition
+- [x] interactive dots for subtraction
+
+Important:
+- renderer presence does not automatically mean full parity in Mission
+- every renderer must be validated in Training, Practice and Mission where applicable
+- memory mechanics need special care around refresh/interruption because memorize/answer phase state must not create an accidental replay advantage
+
+## 10. Interaction rules
+
+### General
 - one clear action per screen
 - minimal reading burden
-- avoid clutter
-- no unnecessary menus
-- no pressure mechanics
-- no punishment for mistakes
-- no addictive infinite loop
-- short sessions
+- large touch targets
+- phone-first layout
 - immediate understandable feedback
-- interaction must work comfortably on a phone
-- tasks should feel closer to good printable worksheets translated into interactive digital form
+- feedback must not cover answer controls
+- errors must allow retry
+- no punishment loops
+- no addictive infinite loop
 
-## 7. Technical direction
-Current prototype:
-- static/mobile-first web app
-- HTML/CSS/JavaScript is acceptable for first test
-- GitHub repository: LuncherBox/matmakids
-- Railway deployment
-- Railway public domain is sufficient for testing
-- no backend/database needed until results/history become necessary
-- changes committed to main should be deployed by Railway automatically
+### Math with dots
+- equation remains the main task
+- dots are visual support
+- dots stay secondary
+- subtraction may use visibly removed/crossed-out items
 
-Future architecture should preserve migration to:
-- PWA
-- shared backend/API
-- future iOS/Android app
-- reusable task database
+### Missing number
+- target position must be clearly highlighted
+- a question mark alone is not enough
 
-## 8. Future product direction
-Later versions may include:
-- parent account
-- child profiles
-- daily task/minute limits
-- points
-- parent-defined rewards
-- streak/calendar
-- adaptive difficulty
-- progress reporting for parents
-- paid access
-- new educational domains such as:
-  - money
-  - investing
-  - general knowledge
-  - facts to remember
+### Symbol code
+- legend remains visible
+- do not require memorizing mappings
+- use in-app letter controls instead of native phone keyboard
+- provide delete/backspace
 
-These are future directions and should not inflate the current prototype unless explicitly approved.
+### Pattern copying
+- reference grid remains visible
+- editable grid is separate
+- child recreates the pattern directly
+- do not replace this with multiple choice
 
-## 9. Data convention
-All technical keys, table names, enums and JSON key-value structures should be in English.
+### Memory
+- memory tasks have at least `memorize` and `answer` phases
+- the stimulus is shown first, then hidden
+- younger children should rely mainly on visual stimuli
+- phase transitions must be controlled by the renderer
 
-Child-facing content can be in Polish.
+## 11. Migration checklist
 
-Task objects should use:
-- category - one of the 4 main categories: math, logic, coding, memory
-- subcategory - the concrete task type within the category
-- skill - the specific ability being trained
-- difficulty - difficulty within that skill, not the child's global level
+### Task engine and renderers
+- [x] shared task type
+- [x] bank logic extracted from UI
+- [x] stable mechanic IDs
+- [x] simple renderer set migrated
+- [x] complex grid renderers migrated
+- [x] memory renderers migrated into `TaskInteraction`
+- [x] interactive math dots migrated
+- [ ] validate every published renderer against current `tasks.json`
+- [ ] add renderer-level regression tests for pure validation/helpers
+- [ ] verify responsive behavior for small phones and Web
 
-Do not use min_age / max_age as task-selection constraints. Child level is tracked separately and should drive adaptive task selection.
+### Mission
+- [x] 10-task mission
+- [x] learned-mechanics-only selection
+- [x] scoring module separated from UI
+- [x] session creation and answer persistence
+- [x] correction after wrong answer
+- [x] mission finish result
+- [x] local active-mission snapshot
+- [ ] validate restored snapshot against live Supabase session status
+- [ ] make interruption recovery safe for memory-task phase state
+- [ ] extend Mission to memory mechanics after recovery behavior is safe
+- [ ] replace temporary 3-mechanic gate with level/progression rules
+- [ ] generalize Level 1 hints across renderers
+- [ ] generalize guided help after an error across renderers
 
-## 10. Conversation split
+### Training / Practice
+- [x] new vs learned mechanic list
+- [x] 2-task training for new mechanics
+- [x] persist `learned`
+- [x] 5-task practice for learned mechanics
+- [ ] add mastery/difficulty progression per mechanic
+- [ ] introduce Level 0 content and selection rules
 
-### CHAT A - APP BUILD / UI / UX
-Scope:
-- product flow
-- screens
-- UI
-- UX
-- interaction design
-- navigation
-- feedback
-- session mechanics
-- responsive/mobile layout
-- frontend implementation
-- GitHub
-- Railway
-- technical architecture
-- future PWA/native migration
-
-Do not use this chat to build the task bank in detail.
-
-When a task interaction impacts UI, document only the interaction requirement and sync it into this master file.
-
-### CHAT B - TASKS / EDUCATIONAL CONTENT
-Scope:
-- task ideas
-- math
-- logic
-- memory
-- sudoku
-- coding
-- task difficulty
-- task wording
-- correct answers
-- hints
-- educational quality
-- task JSON/data structures
-- future content domains
-
-Do not redesign application navigation or visual system here.
-
-When a task requires a new interaction type or UI capability, record that requirement in this master file so CHAT A can implement it.
-
-## 11. Shared-context rule
-Both chats should treat this file as the source of truth for project-wide decisions.
-
-At the start of substantial work:
-- check the latest version of this file
-
-Update this file when:
-- a project-wide decision changes
-- a new interaction type is approved
-- MVP scope changes
-- technical direction changes
-- UI rules change
-- task schema changes in a way that affects the app
-
-Do not update it for:
-- individual task wording
-- small styling experiments
-- temporary ideas
-- unapproved options
+### Product / platform
+- [x] parent and child contexts separated
+- [x] shared Supabase user and child data
+- [ ] complete parity review against legacy production
+- [ ] deployment configuration for new Expo Web without breaking legacy Railway app
+- [ ] Android build validation
+- [ ] iOS build validation
+- [ ] release checklist and rollback plan
 
 ## 12. Current priority
-The current priority is not full product architecture.
 
-The current priority is:
-1. create a usable phone prototype
-2. test it with the user's child
-3. observe what works and what does not
-4. iterate from real behavior
-5. only then expand architecture and content volume
+Current priority:
+1. finish task-engine parity in Expo
+2. make full Training / Ćwicz usable with most current task types
+3. make full Mission usable with most current task types
+4. harden hints, guided help and interruption recovery
+5. only then polish final visual design
+
+Do not spend time on final UI polish if it blocks mechanics, correctness, persistence or cross-platform architecture.
+
+## 13. Conversation split
+
+### Main developer chat
+
+Scope:
+- architecture
+- frontend implementation
+- parent/child product flow
+- UI/UX mechanics
+- responsiveness
+- Supabase integration
+- regression prevention
+- migration checklist
+- deployment readiness
+
+### Task/content chat
+
+Scope:
+- task ideas and wording
+- educational correctness
+- task difficulty
+- answers and hints
+- task-bank content
+- future educational domains
+
+When task content requires a new interaction type, record the interaction requirement here so the developer chat can implement it.
