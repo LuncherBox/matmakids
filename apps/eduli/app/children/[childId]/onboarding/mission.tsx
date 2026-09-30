@@ -8,37 +8,33 @@ import {
   View
 } from 'react-native';
 
+import { MISSION_UNLOCK_SKILL_BANDS } from '../../../../src/domain/progression/model';
 import { getChild } from '../../../../src/services/children';
-import { getMechanicProgress } from '../../../../src/services/progress';
+import { getProgressionState } from '../../../../src/services/progression';
 import { colors } from '../../../../src/theme';
 
-const REQUIRED = 3;
+const REQUIRED = MISSION_UNLOCK_SKILL_BANDS;
 
 export default function OnboardingMissionRoute() {
   const { childId } = useLocalSearchParams<{ childId: string }>();
   const [name, setName] = useState('');
   const [learnedCount, setLearnedCount] = useState(0);
+  const [unlocked, setUnlocked] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!childId) return;
 
-    Promise.all([getChild(childId), getMechanicProgress(childId)])
-      .then(([child, progress]) => {
+    Promise.all([getChild(childId), getProgressionState(childId)])
+      .then(([child, progression]) => {
         setName(child.display_name);
-        setLearnedCount(
-          new Set(
-            progress
-              .filter((item) => item.training_status === 'learned')
-              .map((item) => item.task_type)
-          ).size
-        );
+        setLearnedCount(progression.learnedUnits);
+        setUnlocked(progression.missionUnlocked);
       })
       .catch((error) => console.error(error))
       .finally(() => setLoading(false));
   }, [childId]);
 
-  const unlocked = learnedCount >= REQUIRED;
 
   return (
     <SafeAreaView style={styles.safe}>
