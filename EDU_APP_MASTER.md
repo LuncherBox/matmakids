@@ -185,7 +185,15 @@ Progression is cumulative:
 - difficulty increases within the same mechanic
 - Level 0 must support children learning counting, digits and simple operations up to 5/10
 
-The current minimum of 3 learned mechanics for Mission is temporary and will be replaced by the level system.
+The Expo code now has a level-aware skill-band path:
+- each mechanic can have cumulative difficulty bands
+- Practice trains the highest available band that does not exceed the child's progression level
+- learned higher bands keep easier tasks available for repetition
+- Mission selects only tasks covered by learned skill bands when the progression schema is available
+- onboarding and Mission use one shared progression gate
+- the legacy learned-mechanic fallback remains active until migration 13 is applied to the production Supabase project
+
+The current bank contains difficulty bands 1 and 2 only. There are currently no published difficulty-band 0 tasks, so Level 0 selection logic is implemented but Level 0 content is still missing.
 
 ## 9. Renderer migration status
 
@@ -284,7 +292,8 @@ Important:
 - [x] validate restored snapshot against live Supabase session status
 - [x] make interruption recovery safe for memory-task phase state
 - [x] extend Mission to memory mechanics after recovery behavior is safe
-- [ ] replace temporary 3-mechanic gate with level/progression rules
+- [x] replace temporary 3-mechanic gate with level/progression rules in the Expo code path
+- [ ] apply progression migration 13 to production Supabase after review
 - [x] generalize Level 1 hints across renderers
 - [x] generalize guided help after an error across renderers
 
@@ -293,8 +302,10 @@ Important:
 - [x] 2-task training for new mechanics
 - [x] persist `learned`
 - [x] 5-task practice for learned mechanics
-- [ ] add mastery/difficulty progression per mechanic
-- [ ] introduce Level 0 content and selection rules
+- [x] add progression-aware difficulty-band selection per mechanic
+- [ ] add mastery advancement rules and update per-band mastery counters
+- [x] introduce Level 0 selection rules
+- [ ] add published Level 0 task content
 
 ### Product / platform
 - [x] parent and child contexts separated
