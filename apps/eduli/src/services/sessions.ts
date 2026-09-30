@@ -193,3 +193,20 @@ export async function getRecentTaskIds(
       .filter(Boolean)
   );
 }
+
+
+export async function isMissionSessionActive(
+  sessionId: string,
+  childId: string
+) {
+  const { data, error } = await supabase
+    .from('sessions')
+    .select('id, child_id, status')
+    .eq('id', sessionId)
+    .eq('child_id', childId)
+    .maybeSingle();
+
+  if (error) throw error;
+
+  return Boolean(data && data.status === 'started');
+}
