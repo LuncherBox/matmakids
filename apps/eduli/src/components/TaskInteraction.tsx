@@ -8,6 +8,7 @@ import {
 
 import { displayOption, taskInstruction, taskQuestion } from '../domain/tasks/presentation';
 import { shuffled } from '../domain/tasks/bank';
+import { resolveMemoryResumeState } from '../domain/tasks/memory';
 import { colors } from '../theme';
 import type { Task } from '../types/tasks';
 
@@ -96,41 +97,34 @@ export function TaskInteraction({
     }
 
     const seconds = Number(task.content?.display_seconds ?? 3);
-    const now = Date.now();
-    const hideAt =
-      memoryState?.memoryHideAt && Number.isFinite(memoryState.memoryHideAt)
-        ? memoryState.memoryHideAt
-        : now + seconds * 1000;
+    const resolved = resolveMemoryResumeState({
+      storedPhase: memoryState?.memoryPhase,
+      storedHideAt: memoryState?.memoryHideAt,
+      displaySeconds: seconds,
+      now: Date.now()
+    });
 
-    if (memoryState?.memoryPhase === 'answer' || hideAt <= now) {
-      setMemoryPhase('answer');
+    setMemoryPhase(resolved.phase);
 
-      if (memoryState?.memoryPhase !== 'answer') {
-        onMemoryStateChange?.({
-          memoryPhase: 'answer',
-          memoryHideAt: hideAt
-        });
-      }
-
-      return;
-    }
-
-    setMemoryPhase('memorize');
-
-    if (!memoryState?.memoryHideAt) {
+    if (
+      memoryState?.memoryPhase !== resolved.phase ||
+      memoryState?.memoryHideAt !== resolved.hideAt
+    ) {
       onMemoryStateChange?.({
-        memoryPhase: 'memorize',
-        memoryHideAt: hideAt
+        memoryPhase: resolved.phase,
+        memoryHideAt: resolved.hideAt
       });
     }
+
+    if (resolved.phase === 'answer') return;
 
     const timer = setTimeout(() => {
       setMemoryPhase('answer');
       onMemoryStateChange?.({
         memoryPhase: 'answer',
-        memoryHideAt: hideAt
+        memoryHideAt: resolved.hideAt
       });
-    }, Math.max(0, hideAt - now));
+    }, resolved.delayMs);
 
     return () => clearTimeout(timer);
   }, [
