@@ -191,6 +191,8 @@ The Expo code now has a level-aware skill-band path:
 - learned higher bands keep easier tasks available for repetition
 - Mission selects only tasks covered by learned skill bands when the progression schema is available
 - onboarding and Mission use one shared progression gate
+- learned Practice and Mission results update per-band counters for successful tasks, first-try success, hints and guided help
+- no automatic mastery promotion threshold has been defined yet; project sources only require gradual adaptation based on results
 - the legacy learned-mechanic fallback remains active until migration 13 is applied to the production Supabase project
 
 The current bank contains difficulty bands 1 and 2 only. There are currently no published difficulty-band 0 tasks, so Level 0 selection logic is implemented but Level 0 content is still missing.
@@ -303,7 +305,8 @@ Important:
 - [x] persist `learned`
 - [x] 5-task practice for learned mechanics
 - [x] add progression-aware difficulty-band selection per mechanic
-- [ ] add mastery advancement rules and update per-band mastery counters
+- [x] update per-band mastery counters from learned Practice and Mission results
+- [ ] define and implement mastery advancement thresholds for moving to a higher band
 - [x] introduce Level 0 selection rules
 - [ ] add published Level 0 task content
 
