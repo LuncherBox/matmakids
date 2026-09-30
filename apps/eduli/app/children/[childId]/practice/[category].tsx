@@ -22,7 +22,6 @@ import {
 import {
   highestAvailableBandAtOrBelow,
   isSkillBandLearned,
-  progressionDifficultyBand,
   tasksAtOrBelowDifficultyBand,
   tasksForDifficultyBand,
   type SkillBandProgress
