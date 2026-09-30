@@ -269,7 +269,7 @@ Important:
 - [x] complex grid renderers migrated
 - [x] memory renderers migrated into `TaskInteraction`
 - [x] interactive math dots migrated
-- [ ] validate every published renderer against current `tasks.json`
+- [x] validate every published renderer against current `tasks.json`
 - [ ] add renderer-level regression tests for pure validation/helpers
 - [ ] verify responsive behavior for small phones and Web
 
@@ -282,8 +282,8 @@ Important:
 - [x] mission finish result
 - [x] local active-mission snapshot
 - [x] validate restored snapshot against live Supabase session status
-- [ ] make interruption recovery safe for memory-task phase state
-- [ ] extend Mission to memory mechanics after recovery behavior is safe
+- [x] make interruption recovery safe for memory-task phase state
+- [x] extend Mission to memory mechanics after recovery behavior is safe
 - [ ] replace temporary 3-mechanic gate with level/progression rules
 - [ ] generalize Level 1 hints across renderers
 - [ ] generalize guided help after an error across renderers
