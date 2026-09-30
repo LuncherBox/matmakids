@@ -1,10 +1,15 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  availableDifficultyBands,
   currentLevelTrainingCount,
   isProgressionMissionUnlocked,
+  isSkillBandLearned,
   isTaskEligibleFromSkillBands,
   maxLearnedBandByMechanic,
+  progressionDifficultyBand,
+  tasksAtOrBelowDifficultyBand,
+  tasksForDifficultyBand,
   type SkillBandProgress
 } from './model';
 
@@ -98,5 +103,61 @@ describe('progression skill bands', () => {
         rows
       )
     ).toBe(false);
+  });
+});
+
+
+describe('progression band selection', () => {
+  const tasks = [
+    {
+      id: 'l0',
+      category: 'math' as const,
+      subcategory: 'addition',
+      renderer: 'equation_with_dots',
+      correct_answer: 3,
+      difficulty: 0
+    },
+    {
+      id: 'l1',
+      category: 'math' as const,
+      subcategory: 'addition',
+      renderer: 'equation_with_dots',
+      correct_answer: 5,
+      difficulty: 1
+    },
+    {
+      id: 'l2',
+      category: 'math' as const,
+      subcategory: 'addition',
+      renderer: 'equation_with_dots',
+      correct_answer: 12,
+      difficulty: 2
+    }
+  ];
+
+  it('maps progression levels directly to non-negative difficulty bands', () => {
+    expect(progressionDifficultyBand(0)).toBe(0);
+    expect(progressionDifficultyBand(2)).toBe(2);
+    expect(progressionDifficultyBand(-3)).toBe(0);
+  });
+
+  it('detects learned state for a specific mechanic and band', () => {
+    const rows = [row('math:addition', 1, 1)];
+
+    expect(isSkillBandLearned(rows, 'math:addition', 1)).toBe(true);
+    expect(isSkillBandLearned(rows, 'math:addition', 2)).toBe(false);
+  });
+
+  it('returns available bands and exact-band training tasks', () => {
+    expect(availableDifficultyBands(tasks)).toEqual([0, 1, 2]);
+    expect(tasksForDifficultyBand(tasks, 1).map((task) => task.id)).toEqual([
+      'l1'
+    ]);
+  });
+
+  it('keeps lower-band tasks available cumulatively', () => {
+    expect(
+      tasksAtOrBelowDifficultyBand(tasks, 1).map((task) => task.id)
+    ).toEqual(['l0', 'l1']);
   });
 });
