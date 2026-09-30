@@ -285,8 +285,8 @@ Important:
 - [x] make interruption recovery safe for memory-task phase state
 - [x] extend Mission to memory mechanics after recovery behavior is safe
 - [ ] replace temporary 3-mechanic gate with level/progression rules
-- [ ] generalize Level 1 hints across renderers
-- [ ] generalize guided help after an error across renderers
+- [x] generalize Level 1 hints across renderers
+- [x] generalize guided help after an error across renderers
 
 ### Training / Practice
 - [x] new vs learned mechanic list
