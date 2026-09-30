@@ -9,11 +9,12 @@ import {
   View
 } from 'react-native';
 
-import { getMechanicProgress } from '../../../../src/services/progress';
+import { MISSION_UNLOCK_SKILL_BANDS } from '../../../../src/domain/progression/model';
+import { getProgressionState } from '../../../../src/services/progression';
 import { setChildOnboardingStage } from '../../../../src/services/onboarding';
 import { colors } from '../../../../src/theme';
 
-const REQUIRED = 3;
+const REQUIRED = MISSION_UNLOCK_SKILL_BANDS;
 
 const CATEGORIES = [
   ['math', 'Matematyka'],
@@ -24,27 +25,23 @@ const CATEGORIES = [
 export default function OnboardingTrainingRoute() {
   const { childId } = useLocalSearchParams<{ childId: string }>();
   const [learnedCount, setLearnedCount] = useState(0);
+  const [missionUnlocked, setMissionUnlocked] = useState(false);
   const [busy, setBusy] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
       if (!childId) return;
 
-      getMechanicProgress(childId)
-        .then((rows) => {
-          setLearnedCount(
-            new Set(
-              rows
-                .filter((row) => row.training_status === 'learned')
-                .map((row) => row.task_type)
-            ).size
-          );
+      getProgressionState(childId)
+        .then((progression) => {
+          setLearnedCount(progression.learnedUnits);
+          setMissionUnlocked(progression.missionUnlocked);
         })
         .catch((error) => console.error(error));
     }, [childId])
   );
 
-  const complete = learnedCount >= REQUIRED;
+  const complete = missionUnlocked;
 
   async function continueToMission() {
     if (!childId || !complete || busy) return;
