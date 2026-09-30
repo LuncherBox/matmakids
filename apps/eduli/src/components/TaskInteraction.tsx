@@ -9,6 +9,14 @@ import {
 import { displayOption, taskInstruction, taskQuestion } from '../domain/tasks/presentation';
 import { shuffled } from '../domain/tasks/bank';
 import { resolveMemoryResumeState } from '../domain/tasks/memory';
+import {
+  findVisualSearchMatches,
+  isGridPatternCorrect,
+  isOptionAnswerCorrect,
+  isSudokuAnswerCorrect,
+  isSymbolCodeCorrect,
+  isVisualSearchSelectionCorrect
+} from '../domain/tasks/validation';
 import { colors } from '../theme';
 import type { Task } from '../types/tasks';
 
@@ -213,7 +221,10 @@ export function TaskInteraction({
         <CheckButton
           disabled={disabled || selectedOption == null}
           onPress={() => {
-            String(selectedOption) === String(task.correct_answer)
+            isOptionAnswerCorrect(
+              selectedOption,
+              task.correct_answer as string | number
+            )
               ? onCorrect()
               : onWrong();
           }}
@@ -233,12 +244,9 @@ export function TaskInteraction({
     });
 
     function checkSudoku() {
-      const complete = correct.every(
-        (value, index) => sudokuValues[index] === Number(value)
-      );
-
-      if (complete) onCorrect();
-      else onWrong();
+      isSudokuAnswerCorrect(correct, sudokuValues)
+        ? onCorrect()
+        : onWrong();
     }
 
     return (
@@ -351,10 +359,9 @@ export function TaskInteraction({
         <CheckButton
           disabled={disabled}
           onPress={() => {
-            const correct = pattern.every(
-              (value, index) => String(gridValues[index]) === String(value)
-            );
-            correct ? onCorrect() : onWrong();
+            isGridPatternCorrect(pattern, gridValues)
+              ? onCorrect()
+              : onWrong();
           }}
         />
       </TaskShell>
@@ -405,10 +412,9 @@ export function TaskInteraction({
         <CheckButton
           disabled={disabled}
           onPress={() => {
-            const correct = pattern.every(
-              (value, index) => Number(gridValues[index]) === Number(value)
-            );
-            correct ? onCorrect() : onWrong();
+            isGridPatternCorrect(pattern, gridValues)
+              ? onCorrect()
+              : onWrong();
           }}
         />
       </TaskShell>
@@ -461,17 +467,12 @@ export function TaskInteraction({
         <CheckButton
           disabled={disabled || selectedCells.length !== target.length}
           onPress={() => {
-            const actual = [...selectedCells].sort((a, b) => a - b);
-
-            const correct = validMatches.some((match) => {
-              const expected = [...match].sort((a, b) => a - b);
-              return (
-                actual.length === expected.length &&
-                actual.every((value, index) => value === expected[index])
-              );
-            });
-
-            correct ? onCorrect() : onWrong();
+            isVisualSearchSelectionCorrect(
+              selectedCells,
+              validMatches
+            )
+              ? onCorrect()
+              : onWrong();
           }}
         />
       </TaskShell>
@@ -542,8 +543,7 @@ export function TaskInteraction({
             codeLetters.some((value) => !value)
           }
           onPress={() => {
-            const answer = codeLetters.join('').toUpperCase();
-            answer === String(task.correct_answer).toUpperCase()
+            isSymbolCodeCorrect(codeLetters, task.correct_answer)
               ? onCorrect()
               : onWrong();
           }}
@@ -582,7 +582,10 @@ export function TaskInteraction({
       <CheckButton
         disabled={disabled || selectedOption == null}
         onPress={() => {
-          String(selectedOption) === String(task.correct_answer)
+          isOptionAnswerCorrect(
+            selectedOption,
+            task.correct_answer as string | number
+          )
             ? onCorrect()
             : onWrong();
         }}
@@ -755,33 +758,6 @@ function MemoryLocationGrid({ task }: { task: Task }) {
       })}
     </View>
   );
-}
-
-function findVisualSearchMatches(
-  grid: Array<string | number>,
-  rows: number,
-  columns: number,
-  target: Array<string | number>
-) {
-  const matches: number[][] = [];
-
-  if (!target.length) return matches;
-
-  for (let row = 0; row < rows; row += 1) {
-    for (let col = 0; col <= columns - target.length; col += 1) {
-      const indexes = target.map(
-        (_, offset) => row * columns + col + offset
-      );
-
-      const isMatch = indexes.every(
-        (index, offset) => String(grid[index]) === String(target[offset])
-      );
-
-      if (isMatch) matches.push(indexes);
-    }
-  }
-
-  return matches;
 }
 
 function displayMemoryOption(option: string | number) {
