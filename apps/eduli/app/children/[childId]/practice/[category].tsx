@@ -33,7 +33,8 @@ import {
 } from '../../../../src/services/progress';
 import {
   getSkillBandState,
-  markSkillBandLearned
+  markSkillBandLearned,
+  recordSkillBandTaskResult
 } from '../../../../src/services/progression';
 import { colors } from '../../../../src/theme';
 import type { Task } from '../../../../src/types/tasks';
@@ -75,6 +76,7 @@ export default function PracticeCategoryRoute() {
   const [trainingTasks, setTrainingTasks] = useState<Task[]>([]);
   const [trainingIndex, setTrainingIndex] = useState(0);
   const [feedback, setFeedback] = useState('');
+  const [taskHadError, setTaskHadError] = useState(false);
   const [finished, setFinished] = useState(false);
 
   useEffect(() => {
@@ -165,10 +167,12 @@ export default function PracticeCategoryRoute() {
     setTrainingTasks(shuffled(candidates).slice(0, count));
     setTrainingIndex(0);
     setFeedback('');
+    setTaskHadError(false);
     setFinished(false);
   }
 
   function handleWrongAnswer() {
+    setTaskHadError(true);
     setFeedback('Spróbuj jeszcze raz');
   }
 
@@ -176,6 +180,25 @@ export default function PracticeCategoryRoute() {
     if (!task || !selectedMechanic) return;
 
     setFeedback('Super!');
+
+    if (
+      sessionWasLearned &&
+      skillSchemaReady &&
+      activeBand != null
+    ) {
+      try {
+        await recordSkillBandTaskResult({
+          childId,
+          taskType: selectedMechanic,
+          difficultyBand: activeBand,
+          correctFirstTry: !taskHadError,
+          usedHint: false,
+          usedGuidedHelp: taskHadError
+        });
+      } catch (error) {
+        console.error(error);
+      }
+    }
 
     if (trainingIndex + 1 >= trainingTasks.length) {
       if (!sessionWasLearned) {
@@ -236,6 +259,7 @@ export default function PracticeCategoryRoute() {
     setTimeout(() => {
       setTrainingIndex((current) => current + 1);
       setFeedback('');
+      setTaskHadError(false);
     }, 400);
   }
 
