@@ -29,6 +29,7 @@ import {
 } from '../../../src/domain/tasks/help';
 import {
   isTaskEligibleFromSkillBands,
+  taskDifficultyBand,
   type SkillBandProgress
 } from '../../../src/domain/progression/model';
 import { TaskInteraction } from '../../../src/components/TaskInteraction';
@@ -37,7 +38,8 @@ import { setChildOnboardingStage } from '../../../src/services/onboarding';
 import { getLearnedMechanics } from '../../../src/services/progress';
 import {
   getProgressionState,
-  getSkillBandState
+  getSkillBandState,
+  recordSkillBandTaskResult
 } from '../../../src/services/progression';
 import {
   clearMissionSnapshot,
@@ -364,7 +366,7 @@ export default function MissionRoute() {
     let nextTotals: Totals;
 
     try {
-      await saveMissionAnswer({
+      const answerInserted = await saveMissionAnswer({
         sessionId,
         taskId: task.id,
         taskType: taskMechanicId(task),
@@ -376,6 +378,17 @@ export default function MissionRoute() {
         pointsChild: score.childPoints,
         pointsGobi: finalTaskState.gobiPoint
       });
+
+      if (answerInserted) {
+        await recordSkillBandTaskResult({
+          childId,
+          taskType: taskMechanicId(task),
+          difficultyBand: taskDifficultyBand(task),
+          correctFirstTry: score.correctFirstTry,
+          usedHint: finalTaskState.usedHint,
+          usedGuidedHelp: finalTaskState.usedGuidedHelp
+        });
+      }
 
       nextTotals = await recalculateMissionTotals(sessionId);
 
