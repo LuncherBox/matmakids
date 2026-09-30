@@ -1,5 +1,5 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   Pressable,
   SafeAreaView,
@@ -30,7 +30,8 @@ import { getProgressionState } from '../../../src/services/progression';
 import {
   clearMissionSnapshot,
   readMissionSnapshot,
-  saveMissionSnapshot
+  saveMissionSnapshot,
+  type MissionInteractionState
 } from '../../../src/services/missionSnapshot';
 import {
   abandonMission,
@@ -61,7 +62,12 @@ const SUPPORTED_RENDERERS = new Set([
   'color_grid_copy',
   'visual_search',
   'symbol_code',
-  'binary_grid_copy'
+  'binary_grid_copy',
+  'image_memory',
+  'location_memory_grid',
+  'sequence_memory',
+  'number_memory',
+  'pair_memory'
 ]);
 
 type Totals = {
@@ -84,7 +90,6 @@ function buildMissionTasks(
 ) {
   const allowed = activeTasks().filter(
     (task) =>
-      task.category !== 'memory' &&
       learnedMechanics.has(taskMechanicId(task)) &&
       SUPPORTED_RENDERERS.has(task.renderer)
   );
@@ -114,6 +119,8 @@ export default function MissionRoute() {
   const [taskState, setTaskState] = useState<MissionTaskState>(
     initialMissionTaskState()
   );
+  const [interactionState, setInteractionState] =
+    useState<MissionInteractionState | null>(null);
   const [totals, setTotals] = useState<Totals>(EMPTY_TOTALS);
   const [feedback, setFeedback] = useState('');
   const [error, setError] = useState('');
@@ -152,6 +159,7 @@ export default function MissionRoute() {
             setIndex(snapshot.index);
             setTotals(snapshot.totals);
             setTaskState(snapshot.taskState);
+            setInteractionState(snapshot.interactionState ?? null);
             setStarting(false);
             return;
           }
@@ -232,7 +240,8 @@ export default function MissionRoute() {
       taskIds: tasks.map((item) => item.id),
       index,
       totals,
-      taskState
+      taskState,
+      interactionState
     });
   }, [
     childId,
@@ -241,11 +250,28 @@ export default function MissionRoute() {
     index,
     totals,
     taskState,
+    interactionState,
     finished,
     feedback
   ]);
 
   const task = tasks[index];
+
+  const handleMemoryStateChange = useCallback(
+    (nextState: MissionInteractionState) => {
+      setInteractionState((current) => {
+        if (
+          current?.memoryPhase === nextState.memoryPhase &&
+          current?.memoryHideAt === nextState.memoryHideAt
+        ) {
+          return current;
+        }
+
+        return nextState;
+      });
+    },
+    []
+  );
 
   function handleWrongAnswer() {
     if (!task || !sessionId || finished) return;
@@ -350,12 +376,14 @@ export default function MissionRoute() {
       taskIds: tasks.map((item) => item.id),
       index: index + 1,
       totals: nextTotals,
-      taskState: nextTaskState
+      taskState: nextTaskState,
+      interactionState: null
     });
 
     setTimeout(() => {
       setIndex((current) => current + 1);
       setTaskState(nextTaskState);
+      setInteractionState(null);
       setFeedback('');
     }, 450);
   }
@@ -530,6 +558,8 @@ export default function MissionRoute() {
             taskState.usedHint ||
             taskState.hadError
           }
+          memoryState={interactionState}
+          onMemoryStateChange={handleMemoryStateChange}
         />
 
         {feedback ? (
