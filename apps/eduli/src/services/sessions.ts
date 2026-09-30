@@ -50,7 +50,7 @@ export async function saveMissionAnswer(input: {
     .limit(1);
 
   if (readError) throw readError;
-  if (existing?.length) return;
+  if (existing?.length) return false;
 
   const { error } = await supabase.from('session_answers').insert({
     session_id: input.sessionId,
@@ -66,6 +66,7 @@ export async function saveMissionAnswer(input: {
   });
 
   if (error) throw error;
+  return true;
 }
 
 export async function updateMissionTotals(input: {
