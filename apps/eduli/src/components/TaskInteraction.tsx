@@ -17,6 +17,14 @@ type Props = {
   onWrong: () => void;
   disabled?: boolean;
   showVisualHelp?: boolean;
+  memoryState?: {
+    memoryPhase?: 'memorize' | 'answer';
+    memoryHideAt?: number;
+  } | null;
+  onMemoryStateChange?: (state: {
+    memoryPhase: 'memorize' | 'answer';
+    memoryHideAt: number;
+  }) => void;
 };
 
 const COLOR_MAP: Record<string, string> = {
@@ -30,7 +38,9 @@ export function TaskInteraction({
   onCorrect,
   onWrong,
   disabled = false,
-  showVisualHelp = true
+  showVisualHelp = true,
+  memoryState = null,
+  onMemoryStateChange
 }: Props) {
   const [selectedCells, setSelectedCells] = useState<number[]>([]);
   const [gridValues, setGridValues] = useState<(string | number)[]>([]);
@@ -53,7 +63,6 @@ export function TaskInteraction({
     setSudokuValues({});
     setActiveSudoku(null);
     setCodeLetters([]);
-    setMemoryPhase('memorize');
     setSelectedOption(null);
 
     if (task.renderer === 'color_grid_copy') {
@@ -74,13 +83,57 @@ export function TaskInteraction({
       'pair_memory'
     ]);
 
-    if (!memoryRenderers.has(task.renderer)) return;
+    if (!memoryRenderers.has(task.renderer)) {
+      setMemoryPhase('memorize');
+      return;
+    }
 
     const seconds = Number(task.content?.display_seconds ?? 3);
-    const timer = setTimeout(() => setMemoryPhase('answer'), seconds * 1000);
+    const now = Date.now();
+    const hideAt =
+      memoryState?.memoryHideAt && Number.isFinite(memoryState.memoryHideAt)
+        ? memoryState.memoryHideAt
+        : now + seconds * 1000;
+
+    if (memoryState?.memoryPhase === 'answer' || hideAt <= now) {
+      setMemoryPhase('answer');
+
+      if (memoryState?.memoryPhase !== 'answer') {
+        onMemoryStateChange?.({
+          memoryPhase: 'answer',
+          memoryHideAt: hideAt
+        });
+      }
+
+      return;
+    }
+
+    setMemoryPhase('memorize');
+
+    if (!memoryState?.memoryHideAt) {
+      onMemoryStateChange?.({
+        memoryPhase: 'memorize',
+        memoryHideAt: hideAt
+      });
+    }
+
+    const timer = setTimeout(() => {
+      setMemoryPhase('answer');
+      onMemoryStateChange?.({
+        memoryPhase: 'answer',
+        memoryHideAt: hideAt
+      });
+    }, Math.max(0, hideAt - now));
 
     return () => clearTimeout(timer);
-  }, [task.id, task.renderer, task.content]);
+  }, [
+    task.id,
+    task.renderer,
+    task.content,
+    memoryState?.memoryPhase,
+    memoryState?.memoryHideAt,
+    onMemoryStateChange
+  ]);
 
   if (
     task.renderer === 'image_memory' ||
