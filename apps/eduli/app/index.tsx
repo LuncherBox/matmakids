@@ -1,15 +1,22 @@
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 
 import { useAuth } from '../src/providers/AuthProvider';
 import { logout } from '../src/services/auth';
 import { listChildren } from '../src/services/children';
+import {
+  isCompactPhone,
+  responsiveHeadingSize,
+  screenHorizontalPadding
+} from '../src/domain/layout/responsive';
 import { colors } from '../src/theme';
 import type { Child } from '../src/types/models';
 
 export default function HomeRoute() {
   const { session, loading: authLoading } = useAuth();
+  const { width } = useWindowDimensions();
+  const compact = isCompactPhone(width);
   const [children, setChildren] = useState<Child[]>([]);
   const [childrenLoading, setChildrenLoading] = useState(false);
   const [error, setError] = useState('');
@@ -45,7 +52,12 @@ export default function HomeRoute() {
   if (!session) {
     return (
       <SafeAreaView style={styles.safe}>
-        <ScrollView contentContainerStyle={styles.publicContent}>
+        <ScrollView
+          contentContainerStyle={[
+            styles.publicContent,
+            { paddingHorizontal: screenHorizontalPadding(width) }
+          ]}
+        >
           <View style={styles.publicTopbar}>
             <Text style={styles.brand}>Eduli</Text>
             <Pressable onPress={() => router.push('/login')}>
@@ -55,7 +67,15 @@ export default function HomeRoute() {
 
           <View style={styles.hero}>
             <Text style={styles.pill}>Dla dzieci 4-8 lat</Text>
-            <Text style={styles.heroTitle}>
+            <Text
+              style={[
+                styles.heroTitle,
+                {
+                  fontSize: responsiveHeadingSize(width, 48, 36),
+                  lineHeight: responsiveHeadingSize(width, 52, 40)
+                }
+              ]}
+            >
               Krótkie ćwiczenia. Widoczny postęp.
             </Text>
             <Text style={styles.heroCopy}>
@@ -121,7 +141,12 @@ export default function HomeRoute() {
             </View>
           </View>
 
-          <View style={styles.gobiCard}>
+          <View
+            style={[
+              styles.gobiCard,
+              compact ? styles.gobiCardCompact : null
+            ]}
+          >
             <View style={styles.gobiBadge}>
               <Text style={styles.gobiBadgeText}>G</Text>
             </View>
@@ -172,7 +197,12 @@ export default function HomeRoute() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.content,
+          { paddingHorizontal: screenHorizontalPadding(width) }
+        ]}
+      >
         <View style={styles.topbar}>
           <Text style={styles.brand}>Eduli</Text>
           <Pressable onPress={() => logout()}>
@@ -180,7 +210,14 @@ export default function HomeRoute() {
           </Pressable>
         </View>
 
-        <Text style={styles.title}>Twoje dzieci</Text>
+        <Text
+          style={[
+            styles.title,
+            { fontSize: responsiveHeadingSize(width, 42, 34) }
+          ]}
+        >
+          Twoje dzieci
+        </Text>
         <Text style={styles.subtitle}>Profile pobrane z obecnego backendu Supabase.</Text>
 
         <View style={styles.parentActions}>
@@ -243,6 +280,7 @@ const styles = StyleSheet.create({
   exampleTask: { color: colors.text, fontSize: 30, fontWeight: '900', marginTop: 10 },
   exampleCopy: { color: colors.muted, marginTop: 6 },
   gobiCard: { flexDirection: 'row', alignItems: 'center', gap: 18, backgroundColor: '#FFF8E8', borderRadius: 24, padding: 22, marginTop: 52 },
+  gobiCardCompact: { flexDirection: 'column', alignItems: 'flex-start' },
   gobiBadge: { width: 72, height: 72, borderRadius: 36, backgroundColor: '#D9E8D9', alignItems: 'center', justifyContent: 'center' },
   gobiBadgeText: { color: colors.accentDark, fontSize: 30, fontWeight: '900' },
   gobiCopyWrap: { flex: 1 },
