@@ -6,9 +6,14 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  View
+  View,
+  useWindowDimensions
 } from 'react-native';
 
+import {
+  responsiveHeadingSize,
+  screenHorizontalPadding
+} from '../../../../src/domain/layout/responsive';
 import { MISSION_UNLOCK_SKILL_BANDS } from '../../../../src/domain/progression/model';
 import { getProgressionState } from '../../../../src/services/progression';
 import { setChildOnboardingStage } from '../../../../src/services/onboarding';
@@ -24,6 +29,7 @@ const CATEGORIES = [
 
 export default function OnboardingTrainingRoute() {
   const { childId } = useLocalSearchParams<{ childId: string }>();
+  const { width } = useWindowDimensions();
   const [learnedCount, setLearnedCount] = useState(0);
   const [missionUnlocked, setMissionUnlocked] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -59,9 +65,22 @@ export default function OnboardingTrainingRoute() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.content,
+          { paddingHorizontal: screenHorizontalPadding(width) }
+        ]}
+      >
         <Text style={styles.kicker}>TWÓJ PIERWSZY TRENING</Text>
-        <Text style={styles.title}>
+        <Text
+          style={[
+            styles.title,
+            {
+              fontSize: responsiveHeadingSize(width, 38, 32),
+              lineHeight: responsiveHeadingSize(width, 42, 36)
+            }
+          ]}
+        >
           Poznaj {REQUIRED} typy zadań
         </Text>
         <Text style={styles.copy}>
