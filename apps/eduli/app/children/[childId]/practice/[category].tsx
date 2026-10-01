@@ -6,7 +6,8 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  View
+  View,
+  useWindowDimensions
 } from 'react-native';
 
 import {
@@ -36,6 +37,10 @@ import {
   markSkillBandLearned,
   recordSkillBandTaskResult
 } from '../../../../src/services/progression';
+import {
+  responsiveHeadingSize,
+  screenHorizontalPadding
+} from '../../../../src/domain/layout/responsive';
 import { colors } from '../../../../src/theme';
 import type { Task } from '../../../../src/types/tasks';
 
@@ -60,6 +65,7 @@ const SUPPORTED_RENDERERS = new Set([
 ]);
 
 export default function PracticeCategoryRoute() {
+  const { width } = useWindowDimensions();
   const { childId, category, returnTo } = useLocalSearchParams<{
     childId: string;
     category: string;
@@ -317,7 +323,12 @@ export default function PracticeCategoryRoute() {
   if (selectedMechanic && task) {
     return (
       <SafeAreaView style={styles.safe}>
-        <ScrollView contentContainerStyle={styles.content}>
+        <ScrollView
+        contentContainerStyle={[
+          styles.content,
+          { paddingHorizontal: screenHorizontalPadding(width) }
+        ]}
+      >
           <View style={styles.topbar}>
             <Pressable onPress={() => setSelectedMechanic(null)}>
               <Text style={styles.back}>← Wróć</Text>
@@ -361,7 +372,12 @@ export default function PracticeCategoryRoute() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.content,
+          { paddingHorizontal: screenHorizontalPadding(width) }
+        ]}
+      >
         <Pressable
           onPress={() =>
             returnTo === 'onboarding'
@@ -375,7 +391,14 @@ export default function PracticeCategoryRoute() {
         </Pressable>
 
         <Text style={styles.kicker}>ĆWICZ</Text>
-        <Text style={styles.title}>{label}</Text>
+        <Text
+          style={[
+            styles.title,
+            { fontSize: responsiveHeadingSize(width, 40, 32) }
+          ]}
+        >
+          {label}
+        </Text>
         <Text style={styles.copy}>
           Nowy typ zaczyna się od krótkiego treningu. Poznane typy możesz ćwiczyć ponownie.
         </Text>
@@ -407,7 +430,7 @@ export default function PracticeCategoryRoute() {
                 style={styles.mechanicCard}
                 onPress={() => startMechanic(mechanicId)}
               >
-                <View>
+                <View style={styles.mechanicCopy}>
                   <Text style={styles.mechanicName}>
                     {MECHANIC_LABELS[mechanicId] ?? mechanicId}
                   </Text>
@@ -450,10 +473,11 @@ const styles = StyleSheet.create({
   title: { color: colors.text, fontSize: 40, fontWeight: '900', marginTop: 8 },
   copy: { color: colors.muted, fontSize: 17, lineHeight: 24, marginTop: 10 },
   list: { gap: 10, marginTop: 24 },
-  mechanicCard: { backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1, borderRadius: 20, padding: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  mechanicName: { color: colors.text, fontSize: 18, fontWeight: '900' },
+  mechanicCard: { backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1, borderRadius: 20, padding: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+  mechanicCopy: { flex: 1, minWidth: 0 },
+  mechanicName: { color: colors.text, fontSize: 18, fontWeight: '900', flexShrink: 1 },
   mechanicStatus: { color: colors.muted, marginTop: 4, fontSize: 13 },
-  arrow: { color: colors.muted, fontSize: 28 },
+  arrow: { color: colors.muted, fontSize: 28, flexShrink: 0 },
   modeLabel: { color: colors.accentDark, fontSize: 12, fontWeight: '900', marginTop: 28 },
   mechanicTitle: { color: colors.text, fontSize: 30, fontWeight: '900', marginTop: 6, marginBottom: 18 },
   taskCard: { backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1, borderRadius: 24, padding: 22 },
