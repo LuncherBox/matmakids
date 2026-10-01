@@ -1,13 +1,18 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 
+import {
+  responsiveHeadingSize,
+  screenHorizontalPadding
+} from '../../../src/domain/layout/responsive';
 import { getChild } from '../../../src/services/children';
 import { colors } from '../../../src/theme';
 import type { Child } from '../../../src/types/models';
 
 export default function ParentChildProfileRoute() {
   const { childId } = useLocalSearchParams<{ childId: string }>();
+  const { width } = useWindowDimensions();
   const [child, setChild] = useState<Child | null>(null);
   const [error, setError] = useState('');
 
@@ -24,7 +29,12 @@ export default function ParentChildProfileRoute() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.content,
+          { paddingHorizontal: screenHorizontalPadding(width) }
+        ]}
+      >
         <Pressable onPress={() => router.replace('/')}>
           <Text style={styles.back}>← Wróć do dzieci</Text>
         </Pressable>
@@ -36,7 +46,14 @@ export default function ParentChildProfileRoute() {
         {child ? (
           <View style={styles.card}>
             <Text style={styles.kicker}>PROFIL DZIECKA - WIDOK RODZICA</Text>
-            <Text style={styles.title}>{child.display_name}</Text>
+            <Text
+              style={[
+                styles.title,
+                { fontSize: responsiveHeadingSize(width, 40, 32) }
+              ]}
+            >
+              {child.display_name}
+            </Text>
             <Text style={styles.meta}>Data urodzenia: {child.birth_date ?? 'brak'}</Text>
             <Text style={styles.meta}>Kod dziecka: {child.share_code ?? 'brak'}</Text>
 
