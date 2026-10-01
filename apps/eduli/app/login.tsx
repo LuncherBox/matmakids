@@ -2,11 +2,15 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Platform, Pressable, SafeAreaView, StyleSheet, Text, TextInput, View } from 'react-native';
 
+import { safeReturnPath } from '../src/domain/auth/navigation';
 import { loginWithPassword, startGoogleLogin } from '../src/services/auth';
 import { colors } from '../src/theme';
 
 export default function LoginRoute() {
-  const params = useLocalSearchParams<{ passwordChanged?: string }>();
+  const params = useLocalSearchParams<{
+    passwordChanged?: string;
+    returnTo?: string | string[];
+  }>();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [status, setStatus] = useState('');
@@ -30,7 +34,7 @@ export default function LoginRoute() {
       return;
     }
 
-    router.replace('/');
+    router.replace(safeReturnPath(params.returnTo));
   }
 
   return (
