@@ -1,10 +1,14 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 
 import { MECHANIC_LABELS } from '../../../src/domain/tasks/labels';
 import { getChild } from '../../../src/services/children';
 import { getChildStats, type ChildStats } from '../../../src/services/stats';
+import {
+  responsiveHeadingSize,
+  screenHorizontalPadding
+} from '../../../src/domain/layout/responsive';
 import { colors } from '../../../src/theme';
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -16,6 +20,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 export default function ChildStatsRoute() {
   const { childId } = useLocalSearchParams<{ childId: string }>();
+  const { width } = useWindowDimensions();
   const [childName, setChildName] = useState('');
   const [stats, setStats] = useState<ChildStats | null>(null);
   const [error, setError] = useState('');
@@ -36,13 +41,25 @@ export default function ChildStatsRoute() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.content,
+          { paddingHorizontal: screenHorizontalPadding(width) }
+        ]}
+      >
         <Pressable onPress={() => router.replace(`/children/${childId}`)}>
           <Text style={styles.back}>← Wróć do profilu</Text>
         </Pressable>
 
         <Text style={styles.kicker}>STATYSTYKI RODZICA</Text>
-        <Text style={styles.title}>{childName || 'Statystyki'}</Text>
+        <Text
+          style={[
+            styles.title,
+            { fontSize: responsiveHeadingSize(width, 40, 32) }
+          ]}
+        >
+          {childName || 'Statystyki'}
+        </Text>
 
         {error ? <Text style={styles.error}>{error}</Text> : null}
         {!stats && !error ? <Text style={styles.meta}>Wczytuję dane...</Text> : null}
@@ -81,7 +98,7 @@ export default function ChildStatsRoute() {
               {stats.recentMissions.length ? (
                 stats.recentMissions.map((mission) => (
                   <View key={mission.id} style={styles.row}>
-                    <View>
+                    <View style={styles.rowCopy}>
                       <Text style={styles.rowTitle}>
                         {new Date(mission.date).toLocaleDateString('pl-PL')}
                       </Text>
@@ -108,7 +125,7 @@ export default function ChildStatsRoute() {
               {stats.categories.length ? (
                 stats.categories.map((category) => (
                   <View key={category.category} style={styles.row}>
-                    <View>
+                    <View style={styles.rowCopy}>
                       <Text style={styles.rowTitle}>
                         {CATEGORY_LABELS[category.category] ?? category.category}
                       </Text>
@@ -127,7 +144,7 @@ export default function ChildStatsRoute() {
               {stats.mechanics.length ? (
                 stats.mechanics.map((mechanic) => (
                   <View key={mechanic.taskType} style={styles.row}>
-                    <View>
+                    <View style={styles.rowCopy}>
                       <Text style={styles.rowTitle}>
                         {MECHANIC_LABELS[mechanic.taskType] ?? mechanic.taskType}
                       </Text>
@@ -159,10 +176,11 @@ const styles = StyleSheet.create({
   metricLabel: { color: colors.muted, marginTop: 4, lineHeight: 19 },
   sectionTitle: { color: colors.text, fontSize: 24, fontWeight: '900', marginTop: 30, marginBottom: 12 },
   list: { gap: 10 },
-  row: { backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1, borderRadius: 18, padding: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  rowTitle: { color: colors.text, fontSize: 17, fontWeight: '900' },
+  row: { backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1, borderRadius: 18, padding: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+  rowCopy: { flex: 1, minWidth: 0 },
+  rowTitle: { color: colors.text, fontSize: 17, fontWeight: '900', flexShrink: 1 },
   rowMeta: { color: colors.muted, marginTop: 3 },
-  rowValue: { color: colors.accentDark, fontSize: 22, fontWeight: '900' },
+  rowValue: { color: colors.accentDark, fontSize: 22, fontWeight: '900', flexShrink: 0 },
   meta: { color: colors.muted },
   error: { color: colors.danger }
 });
