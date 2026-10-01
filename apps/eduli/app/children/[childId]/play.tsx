@@ -1,13 +1,18 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, SafeAreaView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 
+import {
+  responsiveHeadingSize,
+  screenHorizontalPadding
+} from '../../../src/domain/layout/responsive';
 import { getChild } from '../../../src/services/children';
 import { getChildOnboardingState } from '../../../src/services/onboarding';
 import { colors } from '../../../src/theme';
 
 export default function ChildHandoffRoute() {
   const { childId } = useLocalSearchParams<{ childId: string }>();
+  const { width } = useWindowDimensions();
   const [name, setName] = useState('');
   const [opening, setOpening] = useState(false);
 
@@ -21,10 +26,25 @@ export default function ChildHandoffRoute() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <View style={styles.wrap}>
+      <View
+        style={[
+          styles.wrap,
+          { paddingHorizontal: screenHorizontalPadding(width) }
+        ]}
+      >
         <View style={styles.card}>
           <Text style={styles.kicker}>TRYB DZIECKA</Text>
-          <Text style={styles.title}>Czas na zabawę{name ? `, ${name}!` : '!'}</Text>
+          <Text
+            style={[
+              styles.title,
+              {
+                fontSize: responsiveHeadingSize(width, 40, 32),
+                lineHeight: responsiveHeadingSize(width, 44, 36)
+              }
+            ]}
+          >
+            Czas na zabawę{name ? `, ${name}!` : '!'}
+          </Text>
           <Text style={styles.copy}>
             Od tego momentu Eduli pokazuje tylko zadania, misje i wyniki dziecka.
           </Text>
