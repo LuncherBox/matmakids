@@ -43,3 +43,17 @@ jobs:
           EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci-placeholder
           EXPO_PUBLIC_APP_URL: https://example.com
         run: npx expo export --platform web
+
+      - name: Export Android bundle
+        env:
+          EXPO_PUBLIC_SUPABASE_URL: https://example.supabase.co
+          EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci-placeholder
+          EXPO_PUBLIC_APP_URL: https://example.com
+        run: npx expo export --platform android --output-dir dist-android
+
+      - name: Export iOS bundle
+        env:
+          EXPO_PUBLIC_SUPABASE_URL: https://example.supabase.co
+          EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci-placeholder
+          EXPO_PUBLIC_APP_URL: https://example.com
+        run: npx expo export --platform ios --output-dir dist-ios
