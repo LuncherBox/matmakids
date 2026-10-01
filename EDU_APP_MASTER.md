@@ -322,6 +322,7 @@ Important:
   - [x] public demo restored to balanced 4 math / 4 logic / 2 coding mix
 - [x] deployment configuration for new Expo Web without breaking legacy Railway app
   - [x] isolated Railway staging plan in `docs/EXPO_WEB_RAILWAY_DEPLOYMENT.md`
+  - [x] exported Web build and production-style static server smoke pass in CI
   - [ ] create and smoke-test the separate Railway staging service
 - [ ] Android build validation
   - [x] Android production JS/assets bundle export passes in CI
