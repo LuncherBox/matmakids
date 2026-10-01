@@ -54,13 +54,16 @@ jobs:
 
           for attempt in $(seq 1 20); do
             if curl --fail --silent "http://127.0.0.1:$PORT/" > /dev/null; then
-              exit 0
+              break
             fi
             sleep 1
           done
 
-          cat /tmp/eduli-serve.log
-          exit 1
+          curl --fail --silent "http://127.0.0.1:$PORT/" > /dev/null
+          curl --fail --silent "http://127.0.0.1:$PORT/login" > /dev/null
+          curl --fail --silent "http://127.0.0.1:$PORT/demo" > /dev/null
+          curl --fail --silent "http://127.0.0.1:$PORT/new-password" > /dev/null
+          curl --fail --silent "http://127.0.0.1:$PORT/children/test-child/home" > /dev/null
 
       - name: Export Android bundle
         env:
