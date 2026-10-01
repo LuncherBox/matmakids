@@ -5,9 +5,14 @@ import {
   SafeAreaView,
   StyleSheet,
   Text,
-  View
+  View,
+  useWindowDimensions
 } from 'react-native';
 
+import {
+  responsiveHeadingSize,
+  screenHorizontalPadding
+} from '../../../src/domain/layout/responsive';
 import { getChild } from '../../../src/services/children';
 import { setChildOnboardingStage } from '../../../src/services/onboarding';
 import { colors } from '../../../src/theme';
@@ -37,6 +42,7 @@ const STEPS = [
 
 export default function ChildOnboardingRoute() {
   const { childId } = useLocalSearchParams<{ childId: string }>();
+  const { width } = useWindowDimensions();
   const [name, setName] = useState('');
   const [step, setStep] = useState(0);
   const [busy, setBusy] = useState(false);
@@ -73,7 +79,12 @@ export default function ChildOnboardingRoute() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <View style={styles.wrap}>
+      <View
+        style={[
+          styles.wrap,
+          { paddingHorizontal: screenHorizontalPadding(width) }
+        ]}
+      >
         <View style={styles.progress}>
           {STEPS.map((_, index) => (
             <View
@@ -99,7 +110,17 @@ export default function ChildOnboardingRoute() {
             </View>
           ) : null}
 
-          <Text style={styles.title}>{current.title}</Text>
+          <Text
+            style={[
+              styles.title,
+              {
+                fontSize: responsiveHeadingSize(width, 34, 30),
+                lineHeight: responsiveHeadingSize(width, 39, 34)
+              }
+            ]}
+          >
+            {current.title}
+          </Text>
           <Text style={styles.copy}>{current.copy}</Text>
 
           <Pressable style={styles.primary} onPress={next} disabled={busy}>
