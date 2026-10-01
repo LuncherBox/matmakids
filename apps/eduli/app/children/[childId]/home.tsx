@@ -1,14 +1,21 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 
 import { getChild } from '../../../src/services/children';
 import { getProgressionState } from '../../../src/services/progression';
 import { getChildStats, type ChildStats } from '../../../src/services/stats';
+import {
+  isCompactPhone,
+  responsiveHeadingSize,
+  screenHorizontalPadding
+} from '../../../src/domain/layout/responsive';
 import { colors } from '../../../src/theme';
 
 export default function ChildHomeRoute() {
   const { childId } = useLocalSearchParams<{ childId: string }>();
+  const { width } = useWindowDimensions();
+  const compact = isCompactPhone(width);
   const [name, setName] = useState('');
   const [stats, setStats] = useState<ChildStats | null>(null);
   const [learnedCount, setLearnedCount] = useState(0);
@@ -33,7 +40,12 @@ export default function ChildHomeRoute() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.content,
+          { paddingHorizontal: screenHorizontalPadding(width) }
+        ]}
+      >
         <View style={styles.topbar}>
           <Text style={styles.brand}>Eduli</Text>
           <Pressable onPress={() => router.push(`/children/${childId}/exit`)}>
@@ -41,19 +53,31 @@ export default function ChildHomeRoute() {
           </Pressable>
         </View>
 
-        <Text style={styles.title}>Cześć{name ? `, ${name}!` : '!'}</Text>
+        <Text
+          style={[
+            styles.title,
+            { fontSize: responsiveHeadingSize(width, 42, 34) }
+          ]}
+        >
+          Cześć{name ? `, ${name}!` : '!'}
+        </Text>
         <Text style={styles.subtitle}>Co dzisiaj robimy?</Text>
 
-        <View style={styles.statsRow}>
-          <View style={styles.stat}>
+        <View
+          style={[
+            styles.statsRow,
+            compact ? styles.statsRowCompact : null
+          ]}
+        >
+          <View style={[styles.stat, compact ? styles.statCompact : null]}>
             <Text style={styles.statValue}>{stats?.totalPoints ?? 0}</Text>
             <Text style={styles.statLabel}>punkty</Text>
           </View>
-          <View style={styles.stat}>
+          <View style={[styles.stat, compact ? styles.statCompact : null]}>
             <Text style={styles.statValue}>{stats?.completedMissions ?? 0}</Text>
             <Text style={styles.statLabel}>misje</Text>
           </View>
-          <View style={styles.stat}>
+          <View style={[styles.stat, compact ? styles.statCompact : null]}>
             <Text style={styles.statValue}>{stats?.streak ?? 0}</Text>
             <Text style={styles.statLabel}>dni z rzędu</Text>
           </View>
@@ -108,7 +132,9 @@ const styles = StyleSheet.create({
   title: { color: colors.text, fontSize: 42, fontWeight: '900', marginTop: 42 },
   subtitle: { color: colors.muted, fontSize: 18, marginTop: 6 },
   statsRow: { flexDirection: 'row', gap: 10, marginTop: 24 },
+  statsRowCompact: { flexWrap: 'wrap' },
   stat: { flex: 1, backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1, borderRadius: 18, padding: 16, alignItems: 'center' },
+  statCompact: { flexBasis: '47%', minWidth: 120 },
   statValue: { color: colors.text, fontSize: 26, fontWeight: '900' },
   statLabel: { color: colors.muted, marginTop: 3 },
   actions: { gap: 12, marginTop: 28 },
