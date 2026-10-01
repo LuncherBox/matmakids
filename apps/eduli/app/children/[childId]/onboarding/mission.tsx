@@ -5,9 +5,14 @@ import {
   SafeAreaView,
   StyleSheet,
   Text,
-  View
+  View,
+  useWindowDimensions
 } from 'react-native';
 
+import {
+  responsiveHeadingSize,
+  screenHorizontalPadding
+} from '../../../../src/domain/layout/responsive';
 import { MISSION_UNLOCK_SKILL_BANDS } from '../../../../src/domain/progression/model';
 import { getChild } from '../../../../src/services/children';
 import { getProgressionState } from '../../../../src/services/progression';
@@ -17,6 +22,7 @@ const REQUIRED = MISSION_UNLOCK_SKILL_BANDS;
 
 export default function OnboardingMissionRoute() {
   const { childId } = useLocalSearchParams<{ childId: string }>();
+  const { width } = useWindowDimensions();
   const [name, setName] = useState('');
   const [learnedCount, setLearnedCount] = useState(0);
   const [unlocked, setUnlocked] = useState(false);
@@ -38,7 +44,12 @@ export default function OnboardingMissionRoute() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <View style={styles.wrap}>
+      <View
+        style={[
+          styles.wrap,
+          { paddingHorizontal: screenHorizontalPadding(width) }
+        ]}
+      >
         <View style={styles.card}>
           <Text style={styles.kicker}>PIERWSZA MISJA</Text>
 
@@ -46,7 +57,15 @@ export default function OnboardingMissionRoute() {
             <Text style={styles.gobiText}>G</Text>
           </View>
 
-          <Text style={styles.title}>
+          <Text
+            style={[
+              styles.title,
+              {
+                fontSize: responsiveHeadingSize(width, 34, 30),
+                lineHeight: responsiveHeadingSize(width, 39, 34)
+              }
+            ]}
+          >
             {name ? `${name}, Gobi już czeka!` : 'Gobi już czeka!'}
           </Text>
 
