@@ -298,7 +298,7 @@ Important:
 - [x] make interruption recovery safe for memory-task phase state
 - [x] extend Mission to memory mechanics after recovery behavior is safe
 - [x] replace temporary 3-mechanic gate with level/progression rules in the Expo code path
-- [ ] apply progression migration 13 to production Supabase after review
+- [ ] apply progression migration 13 to production Supabase after review - deferred until after the first Web MVP test unless staging proves it is required
   - [x] rollout, validation and rollback plan prepared in `docs/PROGRESSION_MIGRATION_13_ROLLOUT.md`
 - [x] generalize Level 1 hints across renderers
 - [x] generalize guided help after an error across renderers
@@ -310,9 +310,9 @@ Important:
 - [x] 5-task practice for learned mechanics
 - [x] add progression-aware difficulty-band selection per mechanic
 - [x] update per-band mastery counters from learned Practice and Mission results
-- [ ] define and implement mastery advancement thresholds for moving to a higher band
+- [ ] define and implement mastery advancement thresholds for moving to a higher band - deferred until after first Web MVP observations
 - [x] introduce Level 0 selection rules
-- [ ] add published Level 0 task content
+- [ ] add published Level 0 task content - not required for the first Web MVP test unless the selected test child needs it
 
 ### Product / platform
 - [x] parent and child contexts separated
@@ -331,6 +331,7 @@ Important:
   - [x] iOS JS/assets bundle compatibility check passes in CI
   - [x] native readiness notes in `docs/NATIVE_BUILD_READINESS.md`
 - [x] release checklist and rollback plan prepared in `docs/RELEASE_CHECKLIST.md`
+- [x] first real Web MVP test scenario prepared in `docs/FIRST_WEB_MVP_TEST.md`
 
 ## 12. Current priority
 
