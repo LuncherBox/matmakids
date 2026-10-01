@@ -44,6 +44,24 @@ jobs:
           EXPO_PUBLIC_APP_URL: https://example.com
         run: npx expo export --platform web
 
+      - name: Smoke test exported web server
+        env:
+          PORT: 4173
+        run: |
+          npm run serve:web > /tmp/eduli-serve.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID' EXIT
+
+          for attempt in $(seq 1 20); do
+            if curl --fail --silent "http://127.0.0.1:$PORT/" > /dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+
+          cat /tmp/eduli-serve.log
+          exit 1
+
       - name: Export Android bundle
         env:
           EXPO_PUBLIC_SUPABASE_URL: https://example.supabase.co
