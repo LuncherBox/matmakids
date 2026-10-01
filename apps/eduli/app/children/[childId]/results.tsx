@@ -1,13 +1,20 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 
 import { getChild } from '../../../src/services/children';
 import { getChildStats, type ChildStats } from '../../../src/services/stats';
+import {
+  isCompactPhone,
+  responsiveHeadingSize,
+  screenHorizontalPadding
+} from '../../../src/domain/layout/responsive';
 import { colors } from '../../../src/theme';
 
 export default function ChildResultsRoute() {
   const { childId } = useLocalSearchParams<{ childId: string }>();
+  const { width } = useWindowDimensions();
+  const compact = isCompactPhone(width);
   const [name, setName] = useState('');
   const [stats, setStats] = useState<ChildStats | null>(null);
 
@@ -24,23 +31,35 @@ export default function ChildResultsRoute() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.content,
+          { paddingHorizontal: screenHorizontalPadding(width) }
+        ]}
+      >
         <Pressable onPress={() => router.replace(`/children/${childId}/home`)}>
           <Text style={styles.back}>← Wróć</Text>
         </Pressable>
 
-        <Text style={styles.title}>Moje wyniki{name ? `, ${name}` : ''}</Text>
+        <Text
+          style={[
+            styles.title,
+            { fontSize: responsiveHeadingSize(width, 38, 32) }
+          ]}
+        >
+          Moje wyniki{name ? `, ${name}` : ''}
+        </Text>
 
-        <View style={styles.grid}>
-          <View style={styles.card}>
+        <View style={[styles.grid, compact ? styles.gridCompact : null]}>
+          <View style={[styles.card, compact ? styles.cardCompact : null]}>
             <Text style={styles.value}>{stats?.totalPoints ?? 0}</Text>
             <Text style={styles.label}>punkty</Text>
           </View>
-          <View style={styles.card}>
+          <View style={[styles.card, compact ? styles.cardCompact : null]}>
             <Text style={styles.value}>{stats?.completedMissions ?? 0}</Text>
             <Text style={styles.label}>misje</Text>
           </View>
-          <View style={styles.card}>
+          <View style={[styles.card, compact ? styles.cardCompact : null]}>
             <Text style={styles.value}>{stats?.streak ?? 0}</Text>
             <Text style={styles.label}>dni z rzędu</Text>
           </View>
@@ -65,7 +84,9 @@ const styles = StyleSheet.create({
   back: { color: colors.muted, fontWeight: '800', marginBottom: 24 },
   title: { color: colors.text, fontSize: 38, fontWeight: '900', marginBottom: 24 },
   grid: { flexDirection: 'row', gap: 10 },
+  gridCompact: { flexWrap: 'wrap' },
   card: { flex: 1, backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1, borderRadius: 20, padding: 18, alignItems: 'center' },
+  cardCompact: { flexBasis: '47%', minWidth: 120 },
   value: { color: colors.text, fontSize: 30, fontWeight: '900' },
   label: { color: colors.muted, marginTop: 4 },
   progressCard: { backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1, borderRadius: 20, padding: 20, marginTop: 18 },
