@@ -25,7 +25,10 @@ function AppNavigator() {
     const publicRoute = PUBLIC_ROUTES.has(pathname);
 
     if (!user && !publicRoute) {
-      router.replace('/login');
+      router.replace({
+        pathname: '/login',
+        params: { returnTo: pathname }
+      });
       return;
     }
 
