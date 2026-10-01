@@ -317,6 +317,7 @@ Important:
 ### Product / platform
 - [x] parent and child contexts separated
 - [x] shared Supabase user and child data
+- [x] Web-first architecture remains compatible with future Android/iOS
 - [x] complete parity review against legacy production
   - [x] audit recorded in `docs/LEGACY_EXPO_PARITY_AUDIT.md`
   - [x] public demo restored to balanced 4 math / 4 logic / 2 coding mix
@@ -324,27 +325,31 @@ Important:
   - [x] isolated Railway staging plan in `docs/EXPO_WEB_RAILWAY_DEPLOYMENT.md`
   - [x] exported Web build and production-style static server smoke pass in CI
   - [ ] create and smoke-test the separate Railway staging service
-- [ ] Android build validation
-  - [x] Android production JS/assets bundle export passes in CI
-  - [ ] installable Android binary build
-  - [ ] emulator/device smoke test
-- [ ] iOS build validation
-  - [x] iOS production JS/assets bundle export passes in CI
-  - [ ] installable iOS binary build
-  - [ ] simulator/device smoke test
+- [ ] Android implementation - intentionally deferred until after Web MVP tests
+  - [x] Android JS/assets bundle compatibility check passes in CI
+- [ ] iOS implementation - intentionally deferred until after Web MVP tests
+  - [x] iOS JS/assets bundle compatibility check passes in CI
   - [x] native readiness notes in `docs/NATIVE_BUILD_READINESS.md`
 - [x] release checklist and rollback plan prepared in `docs/RELEASE_CHECKLIST.md`
 
 ## 12. Current priority
 
-Current priority:
-1. finish task-engine parity in Expo
-2. make full Training / Ćwicz usable with most current task types
-3. make full Mission usable with most current task types
-4. harden hints, guided help and interruption recovery
-5. only then polish final visual design
+The project is Web-first for the MVP.
 
-Do not spend time on final UI polish if it blocks mechanics, correctness, persistence or cross-platform architecture.
+Current priority:
+1. keep the architecture compatible with future Android and iOS
+2. build and validate the complete Web MVP first
+3. run the first real MVP tests in Web
+4. iterate on product, mechanics, UX and content based on those tests
+5. only after Web MVP validation decide when to start native Android/iOS implementation
+
+Native scope rule:
+- do not start native-specific product development now
+- do not add Android/iOS identifiers, signing, store configuration, native OAuth or installable native builds yet
+- cross-platform code and bundle compatibility checks may remain as architecture safeguards only
+- Web behavior is the active product scope until the MVP has been tested
+
+Do not spend time on native release work or final UI polish if it blocks Web MVP mechanics, correctness, persistence or architecture.
 
 ## 13. Conversation split
 
