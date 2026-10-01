@@ -281,9 +281,10 @@ Important:
 - [x] interactive math dots migrated
 - [x] validate every published renderer against current `tasks.json`
 - [x] add renderer-level regression tests for pure validation/helpers
-- [ ] verify responsive behavior for small phones and Web
+- [x] verify responsive behavior for small phones and Web
   - [x] complex task grids adapt to narrow phone widths
-  - [ ] complete screen-by-screen responsive audit outside task renderers
+  - [x] complete screen-by-screen responsive code audit outside task renderers
+  - [ ] complete Android/iOS device or simulator smoke tests
 
 ### Mission
 - [x] 10-task mission
@@ -298,6 +299,7 @@ Important:
 - [x] extend Mission to memory mechanics after recovery behavior is safe
 - [x] replace temporary 3-mechanic gate with level/progression rules in the Expo code path
 - [ ] apply progression migration 13 to production Supabase after review
+  - [x] rollout, validation and rollback plan prepared in `docs/PROGRESSION_MIGRATION_13_ROLLOUT.md`
 - [x] generalize Level 1 hints across renderers
 - [x] generalize guided help after an error across renderers
 
