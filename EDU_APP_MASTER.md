@@ -324,7 +324,14 @@ Important:
   - [x] isolated Railway staging plan in `docs/EXPO_WEB_RAILWAY_DEPLOYMENT.md`
   - [ ] create and smoke-test the separate Railway staging service
 - [ ] Android build validation
+  - [x] Android production JS/assets bundle export passes in CI
+  - [ ] installable Android binary build
+  - [ ] emulator/device smoke test
 - [ ] iOS build validation
+  - [x] iOS production JS/assets bundle export passes in CI
+  - [ ] installable iOS binary build
+  - [ ] simulator/device smoke test
+  - [x] native readiness notes in `docs/NATIVE_BUILD_READINESS.md`
 - [x] release checklist and rollback plan prepared in `docs/RELEASE_CHECKLIST.md`
 
 ## 12. Current priority
