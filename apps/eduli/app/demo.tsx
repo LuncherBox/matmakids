@@ -6,11 +6,17 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  View
+  View,
+  useWindowDimensions
 } from 'react-native';
 
 import { TaskInteraction } from '../src/components/TaskInteraction';
-import { activeTasks, shuffled } from '../src/domain/tasks/bank';
+import { buildBalancedDemoTasks } from '../src/domain/demo/session';
+import {
+  responsiveHeadingSize,
+  screenHorizontalPadding
+} from '../src/domain/layout/responsive';
+import { activeTasks } from '../src/domain/tasks/bank';
 import { colors } from '../src/theme';
 import type { Task } from '../src/types/tasks';
 
@@ -36,10 +42,11 @@ function buildDemoTasks() {
       SUPPORTED_RENDERERS.has(task.renderer)
   );
 
-  return shuffled(pool).slice(0, 10);
+  return buildBalancedDemoTasks(pool);
 }
 
 export default function DemoRoute() {
+  const { width } = useWindowDimensions();
   const tasks = useMemo(() => buildDemoTasks(), []);
   const [index, setIndex] = useState(0);
   const [feedback, setFeedback] = useState('');
@@ -72,7 +79,17 @@ export default function DemoRoute() {
         <View style={styles.centered}>
           <View style={styles.finishCard}>
             <Text style={styles.kicker}>GOTOWE</Text>
-            <Text style={styles.title}>To było 10 zadań</Text>
+            <Text
+              style={[
+                styles.title,
+                {
+                  fontSize: responsiveHeadingSize(width, 38, 32),
+                  lineHeight: responsiveHeadingSize(width, 42, 36)
+                }
+              ]}
+            >
+              To było 10 zadań
+            </Text>
             <Text style={styles.copy}>
               Na koncie dziecka Eduli zapisuje postępy, misje i wyniki.
             </Text>
@@ -102,7 +119,12 @@ export default function DemoRoute() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.content,
+          { paddingHorizontal: screenHorizontalPadding(width) }
+        ]}
+      >
         <View style={styles.topbar}>
           <Pressable onPress={() => router.replace('/')}>
             <Text style={styles.exit}>WYJDŹ</Text>
