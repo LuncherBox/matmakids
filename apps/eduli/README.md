@@ -39,3 +39,24 @@ The universal frontend now contains:
 - no-account 10-task public demo
 
 The legacy root frontend stays live until the Expo web build reaches verified parity.
+
+
+## Build and release references
+
+Web staging / Railway:
+- `docs/EXPO_WEB_RAILWAY_DEPLOYMENT.md`
+
+Progression migration 13:
+- `docs/PROGRESSION_MIGRATION_13_ROLLOUT.md`
+
+Legacy vs Expo parity:
+- `docs/LEGACY_EXPO_PARITY_AUDIT.md`
+
+Release and rollback:
+- `docs/RELEASE_CHECKLIST.md`
+
+Responsive audit:
+- `docs/RESPONSIVE_AUDIT.md`
+
+Production rule:
+- keep the legacy root Railway service untouched until Expo Web staging passes smoke tests and production cutover is explicitly performed.
