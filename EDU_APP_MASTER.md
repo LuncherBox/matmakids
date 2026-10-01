@@ -317,11 +317,15 @@ Important:
 ### Product / platform
 - [x] parent and child contexts separated
 - [x] shared Supabase user and child data
-- [ ] complete parity review against legacy production
-- [ ] deployment configuration for new Expo Web without breaking legacy Railway app
+- [x] complete parity review against legacy production
+  - [x] audit recorded in `docs/LEGACY_EXPO_PARITY_AUDIT.md`
+  - [x] public demo restored to balanced 4 math / 4 logic / 2 coding mix
+- [x] deployment configuration for new Expo Web without breaking legacy Railway app
+  - [x] isolated Railway staging plan in `docs/EXPO_WEB_RAILWAY_DEPLOYMENT.md`
+  - [ ] create and smoke-test the separate Railway staging service
 - [ ] Android build validation
 - [ ] iOS build validation
-- [ ] release checklist and rollback plan
+- [x] release checklist and rollback plan prepared in `docs/RELEASE_CHECKLIST.md`
 
 ## 12. Current priority
 
