@@ -87,7 +87,7 @@ export function TaskInteraction({
     setSelectedCells([]);
     setActiveGridColor('b');
     setSudokuValues({});
-    setActiveSudoku(null);
+    setActiveSudoku(task.renderer === 'sudoku_grid' ? 0 : null);
     setCodeLetters([]);
     setSelectedOption(null);
 
@@ -312,12 +312,31 @@ export function TaskInteraction({
               style={styles.smallOption}
               disabled={disabled || activeSudoku === null}
               onPress={() => {
-              if (disabled) return;
-                if (activeSudoku === null) return;
+                if (disabled || activeSudoku === null) return;
+
                 setSudokuValues((current) => ({
                   ...current,
                   [activeSudoku]: value
                 }));
+
+                const nextBlank = correct.findIndex(
+                  (_, index) =>
+                    index > activeSudoku &&
+                    sudokuValues[index] === undefined
+                );
+
+                if (nextBlank !== -1) {
+                  setActiveSudoku(nextBlank);
+                  return;
+                }
+
+                const firstEmpty = correct.findIndex(
+                  (_, index) =>
+                    index !== activeSudoku &&
+                    sudokuValues[index] === undefined
+                );
+
+                setActiveSudoku(firstEmpty === -1 ? null : firstEmpty);
               }}
             >
               <Text style={styles.optionText}>{value}</Text>
