@@ -38,6 +38,9 @@ export function taskQuestion(task: Task) {
     case 'command_grid_plan':
       return 'Która droga prowadzi do celu?';
 
+    case 'sudoku_grid':
+      return 'Sudoku 4x4';
+
     default:
       return task.prompt || task.name || 'Wybierz poprawną odpowiedź.';
   }
