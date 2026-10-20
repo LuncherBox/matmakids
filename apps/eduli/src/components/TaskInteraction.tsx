@@ -61,6 +61,7 @@ export function TaskInteraction({
 
   const [selectedCells, setSelectedCells] = useState<number[]>([]);
   const [gridValues, setGridValues] = useState<(string | number)[]>([]);
+  const [activeGridColor, setActiveGridColor] = useState('b');
   const [sudokuValues, setSudokuValues] = useState<Record<number, number>>({});
   const [activeSudoku, setActiveSudoku] = useState<number | null>(null);
   const [codeLetters, setCodeLetters] = useState<string[]>([]);
@@ -84,6 +85,7 @@ export function TaskInteraction({
 
   useEffect(() => {
     setSelectedCells([]);
+    setActiveGridColor('b');
     setSudokuValues({});
     setActiveSudoku(null);
     setCodeLetters([]);
@@ -336,15 +338,14 @@ export function TaskInteraction({
 
   if (task.renderer === 'color_grid_copy') {
     const pattern = (task.content?.pattern ?? []) as string[];
-    const colors = ['w', ...((task.content?.colors ?? []) as string[])];
+    const palette = ['w', ...((task.content?.colors ?? []) as string[])];
+    const uniquePalette = [...new Set(palette)];
 
-    function cycleCell(index: number) {
+    function paintCell(index: number) {
       if (disabled) return;
-      const current = String(gridValues[index] ?? 'w');
-      const nextIndex = (colors.indexOf(current) + 1) % colors.length;
       setGridValues((values) =>
         values.map((value, cellIndex) =>
-          cellIndex === index ? colors[nextIndex] : value
+          cellIndex === index ? activeGridColor : value
         )
       );
     }
@@ -365,6 +366,38 @@ export function TaskInteraction({
           )}
         />
 
+        <Text style={styles.miniLabel}>Wybierz kolor</Text>
+        <View style={styles.colorPalette}>
+          {uniquePalette.map((color) => {
+            const selected = activeGridColor === color;
+
+            return (
+              <Pressable
+                key={color}
+                accessibilityRole="button"
+                accessibilityLabel={colorGridColorLabel(color)}
+                accessibilityState={{ selected }}
+                style={[
+                  styles.colorSwatchButton,
+                  selected ? styles.colorSwatchButtonSelected : null
+                ]}
+                disabled={disabled}
+                onPress={() => setActiveGridColor(color)}
+              >
+                <View
+                  style={[
+                    styles.colorSwatch,
+                    { backgroundColor: COLOR_MAP[color] ?? '#FFFFFF' }
+                  ]}
+                />
+                <Text style={styles.colorSwatchLabel}>
+                  {colorGridColorLabel(color)}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
         <Text style={styles.miniLabel}>Twoja siatka</Text>
         <Grid
           values={gridValues}
@@ -375,7 +408,7 @@ export function TaskInteraction({
                 styles.colorCell,
                 { backgroundColor: COLOR_MAP[String(value)] ?? '#FFFFFF' }
               ]}
-              onPress={() => cycleCell(index)}
+              onPress={() => paintCell(index)}
               disabled={disabled}
             />
           )}
@@ -833,6 +866,16 @@ function MemoryLocationGrid({
   );
 }
 
+function colorGridColorLabel(color: string) {
+  const labels: Record<string, string> = {
+    w: 'Biały',
+    b: 'Niebieski',
+    y: 'Żółty'
+  };
+
+  return labels[color] ?? color;
+}
+
 function displayMemoryOption(option: string | number) {
   const labels: Record<string, string> = {
     top_left: '↖ Góra lewa',
@@ -1046,6 +1089,42 @@ const styles = StyleSheet.create({
     height: 46,
     borderWidth: 1,
     borderColor: colors.border
+  },
+  colorPalette: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 8,
+    marginBottom: 14
+  },
+  colorSwatchButton: {
+    minWidth: 92,
+    minHeight: 52,
+    borderWidth: 2,
+    borderColor: colors.border,
+    borderRadius: 14,
+    backgroundColor: '#FFF',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingHorizontal: 10
+  },
+  colorSwatchButtonSelected: {
+    borderColor: colors.accentDark,
+    backgroundColor: '#EEF6F2'
+  },
+  colorSwatch: {
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: colors.border
+  },
+  colorSwatchLabel: {
+    color: colors.text,
+    fontSize: 13,
+    fontWeight: '900'
   },
   binaryCell: {
     width: 46,
