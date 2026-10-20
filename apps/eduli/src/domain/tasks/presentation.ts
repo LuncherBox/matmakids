@@ -66,8 +66,13 @@ export function taskInstruction(task: Task) {
       return 'Wybierz większą liczbę.';
     case 'command_grid_plan':
       return 'Wybierz poprawną trasę.';
+    case 'sudoku_grid':
+      return task.instruction || 'Uzupełnij puste pola.';
+    case 'color_grid_copy':
+    case 'binary_grid_copy':
+      return task.instruction || 'Odtwórz wzór.';
     default:
-      return task.prompt || 'Wybierz odpowiedź.';
+      return task.instruction || task.prompt || 'Wybierz odpowiedź.';
   }
 }
 
