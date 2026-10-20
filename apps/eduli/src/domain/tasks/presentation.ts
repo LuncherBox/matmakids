@@ -41,6 +41,12 @@ export function taskQuestion(task: Task) {
     case 'sudoku_grid':
       return 'Sudoku 4x4';
 
+    case 'color_grid_copy':
+      return 'Kolorowa siatka';
+
+    case 'binary_grid_copy':
+      return 'Odtwórz wzór';
+
     default:
       return task.prompt || task.name || 'Wybierz poprawną odpowiedź.';
   }
