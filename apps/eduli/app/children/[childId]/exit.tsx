@@ -1,10 +1,32 @@
 import { router, useLocalSearchParams } from 'expo-router';
+import { useRef, useState } from 'react';
 import { Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 
 import { colors } from '../../../src/theme';
 
 export default function ChildExitRoute() {
   const { childId } = useLocalSearchParams<{ childId: string }>();
+  const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [holding, setHolding] = useState(false);
+
+  function cancelHold() {
+    if (holdTimer.current) {
+      clearTimeout(holdTimer.current);
+      holdTimer.current = null;
+    }
+    setHolding(false);
+  }
+
+  function startHold() {
+    cancelHold();
+    setHolding(true);
+
+    holdTimer.current = setTimeout(() => {
+      holdTimer.current = null;
+      setHolding(false);
+      router.replace(`/children/${childId}`);
+    }, 1200);
+  }
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -17,11 +39,16 @@ export default function ChildExitRoute() {
           </Text>
 
           <Pressable
-            style={styles.parentButton}
-            delayLongPress={1200}
-            onLongPress={() => router.replace(`/children/${childId}`)}
+            style={[
+              styles.parentButton,
+              holding ? styles.parentButtonHolding : null
+            ]}
+            onPressIn={startHold}
+            onPressOut={cancelHold}
           >
-            <Text style={styles.parentButtonText}>PRZYTRZYMAJ, ABY WRÓCIĆ</Text>
+            <Text style={styles.parentButtonText}>
+              {holding ? 'TRZYMAJ...' : 'PRZYTRZYMAJ, ABY WRÓCIĆ'}
+            </Text>
           </Pressable>
 
           <Pressable
@@ -84,6 +111,9 @@ const styles = StyleSheet.create({
     padding: 17,
     alignItems: 'center',
     marginTop: 26
+  },
+  parentButtonHolding: {
+    opacity: 0.78
   },
   parentButtonText: {
     color: '#FFF',
