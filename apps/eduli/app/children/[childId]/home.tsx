@@ -1,10 +1,13 @@
-import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 
 import { getChild } from '../../../src/services/children';
 import { getProgressionState } from '../../../src/services/progression';
 import { getChildStats, type ChildStats } from '../../../src/services/stats';
+import {
+  MISSION_UNLOCK_SKILL_BANDS
+} from '../../../src/domain/progression/model';
 import {
   isCompactPhone,
   responsiveHeadingSize,
@@ -21,22 +24,24 @@ export default function ChildHomeRoute() {
   const [learnedCount, setLearnedCount] = useState(0);
   const [missionUnlocked, setMissionUnlocked] = useState(false);
 
-  useEffect(() => {
-    if (!childId) return;
+  useFocusEffect(
+    useCallback(() => {
+      if (!childId) return;
 
-    Promise.all([
-      getChild(childId),
-      getChildStats(childId),
-      getProgressionState(childId)
-    ])
-      .then(([child, childStats, progression]) => {
-        setName(child.display_name);
-        setStats(childStats);
-        setLearnedCount(progression.learnedUnits);
-        setMissionUnlocked(progression.missionUnlocked);
-      })
-      .catch((error) => console.error(error));
-  }, [childId]);
+      Promise.all([
+        getChild(childId),
+        getChildStats(childId),
+        getProgressionState(childId)
+      ])
+        .then(([child, childStats, progression]) => {
+          setName(child.display_name);
+          setStats(childStats);
+          setLearnedCount(progression.learnedUnits);
+          setMissionUnlocked(progression.missionUnlocked);
+        })
+        .catch((error) => console.error(error));
+    }, [childId])
+  );
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -97,7 +102,7 @@ export default function ChildHomeRoute() {
             </Text>
             <Text style={styles.primaryCopy}>
               {!missionUnlocked
-                ? `Poznaj jeszcze ${Math.max(0, 3 - learnedCount)} ${Math.max(0, 3 - learnedCount) === 1 ? 'typ zadania' : 'typy zadań'}`
+                ? `Poznaj jeszcze ${Math.max(0, MISSION_UNLOCK_SKILL_BANDS - learnedCount)} ${Math.max(0, MISSION_UNLOCK_SKILL_BANDS - learnedCount) === 1 ? 'typ zadania' : 'typy zadań'}`
                 : 'Misja z mieszanymi zadaniami'}
             </Text>
           </Pressable>
