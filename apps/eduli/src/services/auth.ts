@@ -29,9 +29,19 @@ export function requestPasswordReset(email: string) {
   });
 }
 
+function webAppUrl() {
+  if (typeof window !== 'undefined' && window.location?.origin) {
+    return window.location.origin;
+  }
+
+  return config.appUrl;
+}
+
 export function startGoogleLogin() {
+  const redirectTo = webAppUrl();
+
   return supabase.auth.signInWithOAuth({
     provider: 'google',
-    options: config.appUrl ? { redirectTo: config.appUrl } : undefined
+    options: redirectTo ? { redirectTo } : undefined
   });
 }
