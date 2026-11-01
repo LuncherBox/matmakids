@@ -3,7 +3,7 @@ import { useCallback, useState } from 'react';
 import { Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 
 import { getChild } from '../../../src/services/children';
-import { getProgressionState } from '../../../src/services/progression';
+import { getMechanicProgress } from '../../../src/services/progress';
 import { getChildStats, type ChildStats } from '../../../src/services/stats';
 import {
   MISSION_UNLOCK_SKILL_BANDS
@@ -31,13 +31,21 @@ export default function ChildHomeRoute() {
       Promise.all([
         getChild(childId),
         getChildStats(childId),
-        getProgressionState(childId)
+        getMechanicProgress(childId)
       ])
-        .then(([child, childStats, progression]) => {
+        .then(([child, childStats, progressRows]) => {
+          const learnedUnits = new Set(
+            progressRows
+              .filter((row) => row.training_status === 'learned')
+              .map((row) => row.task_type)
+          ).size;
+
           setName(child.display_name);
           setStats(childStats);
-          setLearnedCount(progression.learnedUnits);
-          setMissionUnlocked(progression.missionUnlocked);
+          setLearnedCount(learnedUnits);
+          setMissionUnlocked(
+            learnedUnits >= MISSION_UNLOCK_SKILL_BANDS
+          );
         })
         .catch((error) => console.error(error));
     }, [childId])
