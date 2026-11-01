@@ -46,7 +46,7 @@ export default function ChildExitRoute() {
             onPressIn={startHold}
             onPressOut={cancelHold}
           >
-            <Text style={styles.parentButtonText}>
+            <Text selectable={false} style={styles.parentButtonText}>
               {holding ? 'TRZYMAJ...' : 'PRZYTRZYMAJ, ABY WRÓCIĆ'}
             </Text>
           </Pressable>
@@ -110,7 +110,8 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     padding: 17,
     alignItems: 'center',
-    marginTop: 26
+    marginTop: 26,
+    userSelect: 'none'
   },
   parentButtonHolding: {
     opacity: 0.78
@@ -118,7 +119,8 @@ const styles = StyleSheet.create({
   parentButtonText: {
     color: '#FFF',
     fontSize: 16,
-    fontWeight: '900'
+    fontWeight: '900',
+    userSelect: 'none'
   },
   back: {
     color: colors.muted,
