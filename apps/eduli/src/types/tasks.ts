@@ -9,6 +9,7 @@ export type Task = {
   age_min?: number;
   age_max?: number;
   prompt?: string;
+  instruction?: string;
   correct_answer: string | number | Array<string | number>;
   options?: Array<string | number>;
   content?: Record<string, any>;
