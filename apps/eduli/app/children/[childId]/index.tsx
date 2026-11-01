@@ -1,12 +1,14 @@
-import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 
 import {
   responsiveHeadingSize,
   screenHorizontalPadding
 } from '../../../src/domain/layout/responsive';
+import { MECHANIC_LABELS } from '../../../src/domain/tasks/labels';
 import { getChild } from '../../../src/services/children';
+import { getMechanicProgress } from '../../../src/services/progress';
 import { colors } from '../../../src/theme';
 import type { Child } from '../../../src/types/models';
 
@@ -14,18 +16,35 @@ export default function ParentChildProfileRoute() {
   const { childId } = useLocalSearchParams<{ childId: string }>();
   const { width } = useWindowDimensions();
   const [child, setChild] = useState<Child | null>(null);
+  const [learnedTypes, setLearnedTypes] = useState<string[]>([]);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    if (!childId) return;
+  useFocusEffect(
+    useCallback(() => {
+      if (!childId) return;
 
-    getChild(childId)
-      .then(setChild)
-      .catch((nextError) => {
-        console.error(nextError);
-        setError('Nie udało się wczytać profilu dziecka.');
-      });
-  }, [childId]);
+      setError('');
+
+      Promise.all([
+        getChild(childId),
+        getMechanicProgress(childId)
+      ])
+        .then(([nextChild, rows]) => {
+          setChild(nextChild);
+          setLearnedTypes(
+            [...new Set(
+              rows
+                .filter((row) => row.training_status === 'learned')
+                .map((row) => row.task_type)
+            )].sort()
+          );
+        })
+        .catch((nextError) => {
+          console.error(nextError);
+          setError('Nie udało się wczytać profilu dziecka.');
+        });
+    }, [childId])
+  );
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -56,6 +75,23 @@ export default function ParentChildProfileRoute() {
             </Text>
             <Text style={styles.meta}>Data urodzenia: {child.birth_date ?? 'brak'}</Text>
             <Text style={styles.meta}>Kod dziecka: {child.share_code ?? 'brak'}</Text>
+
+            <View style={styles.progressDebug}>
+              <Text style={styles.progressDebugTitle}>
+                Poznane typy: {learnedTypes.length}/3
+              </Text>
+              {learnedTypes.length ? (
+                learnedTypes.map((taskType) => (
+                  <Text key={taskType} style={styles.progressDebugItem}>
+                    ✓ {MECHANIC_LABELS[taskType] ?? taskType}
+                  </Text>
+                ))
+              ) : (
+                <Text style={styles.progressDebugEmpty}>
+                  Brak typów zapisanych jako poznane.
+                </Text>
+              )}
+            </View>
 
             <View style={styles.actions}>
               <Pressable
@@ -98,6 +134,28 @@ const styles = StyleSheet.create({
   kicker: { color: colors.accentDark, fontSize: 12, fontWeight: '900' },
   title: { color: colors.text, fontSize: 40, fontWeight: '900', marginTop: 10 },
   meta: { color: colors.muted, fontSize: 16, marginTop: 8 },
+  progressDebug: {
+    marginTop: 22,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: '#F6F7F5',
+    padding: 16
+  },
+  progressDebugTitle: {
+    color: colors.text,
+    fontSize: 17,
+    fontWeight: '900'
+  },
+  progressDebugItem: {
+    color: colors.text,
+    marginTop: 8,
+    fontWeight: '700'
+  },
+  progressDebugEmpty: {
+    color: colors.muted,
+    marginTop: 8
+  },
   actions: { gap: 10, marginTop: 28 },
   primary: { backgroundColor: colors.accent, borderRadius: 18, padding: 16, alignItems: 'center' },
   primaryText: { color: '#FFF', fontSize: 17, fontWeight: '900' },
